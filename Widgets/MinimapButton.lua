@@ -1,129 +1,69 @@
 --[[
     MedaUI Minimap Button Widget
-    Creates themed minimap buttons with drag-around-minimap functionality
+    Creates minimap buttons using LibDBIcon (standard library)
 ]]
 
 local MedaUI = LibStub("MedaUI-1.0")
 local Theme = MedaUI.Theme
 
--- Storage for minimap button positions
-MedaUI.MinimapButtons = MedaUI.MinimapButtons or {}
+-- Try to get LibDataBroker and LibDBIcon
+local LDB = LibStub("LibDataBroker-1.1", true)
+local LDBIcon = LibStub("LibDBIcon-1.0", true)
 
---- Create a themed minimap button
---- @param name string Unique button name (used for saved position)
+--- Create a minimap button using LibDBIcon
+--- @param name string Unique button name
 --- @param icon string|number Icon texture path or fileID
 --- @param onClick function|nil Left-click handler
 --- @param onRightClick function|nil Right-click handler
---- @return Button The created minimap button
-function MedaUI:CreateMinimapButton(name, icon, onClick, onRightClick)
-    local button = CreateFrame("Button", "MedaUI_MinimapButton_" .. name, Minimap, "BackdropTemplate")
-    button:SetSize(32, 32)
-    button:SetFrameStrata("MEDIUM")
-    button:SetFrameLevel(8)
-    button:SetBackdrop({
-        bgFile = "Interface\\Buttons\\WHITE8x8",
-        edgeFile = "Interface\\Buttons\\WHITE8x8",
-        edgeSize = 1,
-    })
-    button:SetBackdropColor(unpack(Theme.background))
-    button:SetBackdropBorderColor(unpack(Theme.border))
-
-    -- Icon
-    button.icon = button:CreateTexture(nil, "ARTWORK")
-    button.icon:SetSize(20, 20)
-    button.icon:SetPoint("CENTER")
-    button.icon:SetTexture(icon)
-
-    -- Highlight texture
-    button.highlight = button:CreateTexture(nil, "HIGHLIGHT")
-    button.highlight:SetAllPoints()
-    button.highlight:SetColorTexture(unpack(Theme.highlight))
-
-    -- Position management
-    button.minimapAngle = self.MinimapButtons[name] or 225
-
-    local function UpdatePosition()
-        local angle = math.rad(button.minimapAngle)
-        local x = math.cos(angle) * 80
-        local y = math.sin(angle) * 80
-        button:SetPoint("CENTER", Minimap, "CENTER", x, y)
+--- @param savedVarsTable table|nil Table to store minimap button position (requires .minimap subtable)
+--- @return table|nil The data broker object, or nil if libraries not available
+function MedaUI:CreateMinimapButton(name, icon, onClick, onRightClick, savedVarsTable)
+    if not LDB or not LDBIcon then
+        print("|cFFFF0000MedaUI:|r LibDataBroker-1.1 or LibDBIcon-1.0 not found. Minimap button disabled.")
+        return nil
     end
 
-    -- Dragging
-    local isDragging = false
-
-    button:RegisterForDrag("LeftButton")
-    button:RegisterForClicks("LeftButtonUp", "RightButtonUp")
-
-    button:SetScript("OnDragStart", function(self)
-        isDragging = true
-        self:SetScript("OnUpdate", function()
-            local mx, my = Minimap:GetCenter()
-            local cx, cy = GetCursorPosition()
-            local scale = UIParent:GetEffectiveScale()
-            cx, cy = cx / scale, cy / scale
-
-            button.minimapAngle = math.deg(math.atan2(cy - my, cx - mx))
-            MedaUI.MinimapButtons[name] = button.minimapAngle
-            UpdatePosition()
-        end)
-    end)
-
-    button:SetScript("OnDragStop", function(self)
-        isDragging = false
-        self:SetScript("OnUpdate", nil)
-    end)
-
-    -- Click handlers
-    button:SetScript("OnClick", function(self, btn)
-        if isDragging then return end
-        if btn == "LeftButton" and onClick then
-            onClick()
-        elseif btn == "RightButton" and onRightClick then
-            onRightClick()
-        end
-    end)
-
-    -- Hover effects
-    button:SetScript("OnEnter", function(self)
-        self:SetBackdropBorderColor(unpack(Theme.gold))
-        if button.tooltipTitle then
-            GameTooltip:SetOwner(self, "ANCHOR_LEFT")
-            GameTooltip:AddLine(button.tooltipTitle, unpack(Theme.gold))
-            if button.tooltipText then
-                GameTooltip:AddLine(button.tooltipText, unpack(Theme.text))
+    -- Create the data broker object
+    local dataObj = LDB:NewDataObject(name, {
+        type = "launcher",
+        icon = icon,
+        OnClick = function(self, button)
+            if button == "LeftButton" and onClick then
+                onClick()
+            elseif button == "RightButton" and onRightClick then
+                onRightClick()
             end
-            GameTooltip:AddLine(" ")
-            GameTooltip:AddLine("Left-click to open", unpack(Theme.textDim))
-            GameTooltip:AddLine("Right-click for options", unpack(Theme.textDim))
-            GameTooltip:AddLine("Drag to move", unpack(Theme.textDim))
-            GameTooltip:Show()
-        end
-    end)
+        end,
+        OnTooltipShow = function(tooltip)
+            tooltip:AddLine(name, unpack(Theme.gold))
+            tooltip:AddLine(" ")
+            tooltip:AddLine("Left-click to open settings", unpack(Theme.text))
+            tooltip:AddLine("Right-click for options", unpack(Theme.text))
+            tooltip:AddLine("Drag to move", unpack(Theme.textDim))
+        end,
+    })
 
-    button:SetScript("OnLeave", function(self)
-        self:SetBackdropBorderColor(unpack(Theme.border))
-        GameTooltip:Hide()
-    end)
+    -- Register with LibDBIcon
+    -- Use provided saved vars table or create a default
+    local minimapData = savedVarsTable and savedVarsTable.minimap or { hide = false }
+    LDBIcon:Register(name, dataObj, minimapData)
 
-    -- API methods
-    function button:SetIcon(newIcon)
-        self.icon:SetTexture(newIcon)
+    -- Return the data object for further customization
+    dataObj.ShowButton = function()
+        LDBIcon:Show(name)
     end
 
-    function button:SetTooltip(title, text)
-        self.tooltipTitle = title
-        self.tooltipText = text
+    dataObj.HideButton = function()
+        LDBIcon:Hide(name)
     end
 
-    function button:SetAngle(angle)
-        self.minimapAngle = angle
-        MedaUI.MinimapButtons[name] = angle
-        UpdatePosition()
+    dataObj.IsButtonShown = function()
+        return not LDBIcon:IsButtonHidden(name)
     end
 
-    -- Initialize position
-    UpdatePosition()
+    dataObj.SetIcon = function(self, newIcon)
+        self.icon = newIcon
+    end
 
-    return button
+    return dataObj
 end

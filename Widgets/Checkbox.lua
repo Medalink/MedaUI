@@ -69,5 +69,32 @@ function MedaUI:CreateCheckbox(parent, label)
         self.label:SetText(text)
     end
 
+    -- Forward SetScript for OnClick to the internal box button
+    local originalSetScript = container.SetScript
+    function container:SetScript(scriptType, handler)
+        if scriptType == "OnClick" then
+            box:SetScript("OnClick", function()
+                if handler then
+                    handler(self)
+                end
+                if self.OnValueChanged then
+                    self:OnValueChanged(self.checked)
+                end
+            end)
+        else
+            originalSetScript(self, scriptType, handler)
+        end
+    end
+
+    -- Forward GetScript for OnClick
+    local originalGetScript = container.GetScript
+    function container:GetScript(scriptType)
+        if scriptType == "OnClick" then
+            return box:GetScript("OnClick")
+        else
+            return originalGetScript(self, scriptType)
+        end
+    end
+
     return container
 end

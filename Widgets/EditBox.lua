@@ -126,5 +126,17 @@ function MedaUI:CreateEditBox(parent, width, height, isMultiLine)
         self.editBox:SetFocus()
     end
 
+    function container:Enable()
+        self.editBox:Enable()
+        self:SetBackdropColor(unpack(Theme.input))
+        self.editBox:SetTextColor(unpack(Theme.text))
+    end
+
+    function container:Disable()
+        self.editBox:Disable()
+        self:SetBackdropColor(unpack(Theme.backgroundDark))
+        self.editBox:SetTextColor(unpack(Theme.textDim))
+    end
+
     return container
 end

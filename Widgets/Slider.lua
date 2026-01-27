@@ -16,8 +16,12 @@ local Theme = MedaUI.Theme
 function MedaUI:CreateSlider(parent, width, min, max, step)
     step = step or 1
 
-    local container = CreateFrame("Frame", nil, parent)
+    local container = CreateFrame("Frame", nil, parent, "BackdropTemplate")
     container:SetSize(width, 32)
+    -- Container backdrop for border color changes
+    container:SetBackdrop(self:CreateBackdrop(true))
+    container:SetBackdropColor(0, 0, 0, 0)  -- Transparent background
+    container:SetBackdropBorderColor(unpack(Theme.border))
 
     -- Track background
     local track = CreateFrame("Frame", nil, container, "BackdropTemplate")
@@ -142,6 +146,34 @@ function MedaUI:CreateSlider(parent, width, min, max, step)
         self.min = newMin
         self.max = newMax
         self:SetValue(self.value)
+    end
+
+    -- Expose thumb for external styling
+    container.thumb = thumb
+
+    -- Add SetColorTexture compatibility method to thumb (maps to backdrop color)
+    function thumb:SetColorTexture(r, g, b, a)
+        self:SetBackdropColor(r, g, b, a or 1)
+    end
+
+    -- Forward SetScript for OnValueChanged
+    local originalSetScript = container.SetScript
+    function container:SetScript(scriptType, handler)
+        if scriptType == "OnValueChanged" then
+            self.OnValueChanged = handler
+        else
+            originalSetScript(self, scriptType, handler)
+        end
+    end
+
+    -- Forward GetScript for OnValueChanged
+    local originalGetScript = container.GetScript
+    function container:GetScript(scriptType)
+        if scriptType == "OnValueChanged" then
+            return self.OnValueChanged
+        else
+            return originalGetScript(self, scriptType)
+        end
     end
 
     -- Initialize

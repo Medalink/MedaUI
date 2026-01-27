@@ -100,6 +100,43 @@ function MedaUI:CreateRadio(parent, label, group)
         self.label:SetText(text)
     end
 
+    -- Alias for SetSelected/GetSelected for checkbox-like API compatibility
+    function container:SetChecked(value)
+        self:SetSelected(value)
+    end
+
+    function container:GetChecked()
+        return self:GetSelected()
+    end
+
+    -- Forward SetScript for OnClick to the internal box button
+    local originalSetScript = container.SetScript
+    function container:SetScript(scriptType, handler)
+        if scriptType == "OnClick" then
+            box:SetScript("OnClick", function()
+                self:SetSelected(true)
+                if handler then
+                    handler(self)
+                end
+                if self.OnValueChanged then
+                    self:OnValueChanged(true)
+                end
+            end)
+        else
+            originalSetScript(self, scriptType, handler)
+        end
+    end
+
+    -- Forward GetScript for OnClick
+    local originalGetScript = container.GetScript
+    function container:GetScript(scriptType)
+        if scriptType == "OnClick" then
+            return box:GetScript("OnClick")
+        else
+            return originalGetScript(self, scriptType)
+        end
+    end
+
     return container
 end
 

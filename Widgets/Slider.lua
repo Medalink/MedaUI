@@ -152,6 +152,15 @@ function MedaUI:CreateSlider(parent, width, min, max, step)
         end
     end
 
+    -- Forward backdrop methods to inner slider
+    function container:SetBackdropColor(...)
+        self.slider:SetBackdropColor(...)
+    end
+
+    function container:SetBackdropBorderColor(...)
+        self.slider:SetBackdropBorderColor(...)
+    end
+
     -- Initialize
     slider:SetValue(min)
     UpdateValueText(min)

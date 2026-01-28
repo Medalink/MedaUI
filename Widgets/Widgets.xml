@@ -10,6 +10,7 @@
     <Script file="ResizeGrip.lua"/>
     <Script file="Panel.lua"/>
     <Script file="MinimapButton.lua"/>
+    <Script file="SectionHeader.lua"/>
     
     <!-- Advanced widgets -->
     <Script file="Badge.lua"/>

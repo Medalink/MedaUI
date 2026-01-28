@@ -4,7 +4,6 @@
 ]]
 
 local MedaUI = LibStub("MedaUI-1.0")
-local Theme = MedaUI.Theme
 
 --- Create a themed slider
 --- @param parent Frame The parent frame
@@ -36,27 +35,15 @@ function MedaUI:CreateSlider(parent, width, min, max, step)
         edgeSize = 1,
         insets = { left = 1, right = 1, top = 1, bottom = 1 },
     })
-    slider:SetBackdropColor(unpack(Theme.backgroundDark))
-    slider:SetBackdropBorderColor(unpack(Theme.border))
 
     -- Custom thumb texture
     local thumb = slider:CreateTexture(nil, "ARTWORK")
     thumb:SetSize(12, 12)
-    thumb:SetColorTexture(unpack(Theme.gold))
     slider:SetThumbTexture(thumb)
-
-    -- Thumb hover effect
-    slider:SetScript("OnEnter", function(self)
-        thumb:SetColorTexture(unpack(Theme.goldBright))
-    end)
-    slider:SetScript("OnLeave", function(self)
-        thumb:SetColorTexture(unpack(Theme.gold))
-    end)
 
     -- Value display
     local valueText = container:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     valueText:SetPoint("LEFT", slider, "RIGHT", 8, 0)
-    valueText:SetTextColor(unpack(Theme.gold))
     valueText:SetWidth(32)
     valueText:SetJustifyH("RIGHT")
 
@@ -68,6 +55,39 @@ function MedaUI:CreateSlider(parent, width, min, max, step)
     container.slider = slider
     container.valueText = valueText
     container.thumb = thumb
+    container._isHovered = false
+
+    -- Apply theme colors
+    local function ApplyTheme()
+        local Theme = MedaUI.Theme
+        slider:SetBackdropColor(unpack(Theme.backgroundDark))
+        slider:SetBackdropBorderColor(unpack(Theme.border))
+        valueText:SetTextColor(unpack(Theme.gold))
+        if container._isHovered then
+            thumb:SetColorTexture(unpack(Theme.goldBright))
+        else
+            thumb:SetColorTexture(unpack(Theme.gold))
+        end
+    end
+    container._ApplyTheme = ApplyTheme
+
+    -- Register for theme updates
+    container._themeHandle = MedaUI:RegisterThemedWidget(container, ApplyTheme)
+
+    -- Initial theme application
+    ApplyTheme()
+
+    -- Thumb hover effect
+    slider:SetScript("OnEnter", function(self)
+        container._isHovered = true
+        local Theme = MedaUI.Theme
+        thumb:SetColorTexture(unpack(Theme.goldBright))
+    end)
+    slider:SetScript("OnLeave", function(self)
+        container._isHovered = false
+        local Theme = MedaUI.Theme
+        thumb:SetColorTexture(unpack(Theme.gold))
+    end)
 
     -- Helper to update value display
     local function UpdateValueText(value)

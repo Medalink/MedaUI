@@ -9,80 +9,130 @@ local MedaUI = LibStub:NewLibrary(MAJOR, MINOR)
 if not MedaUI then return end  -- Newer version already loaded
 
 -- ============================================================================
--- Theme Definition (Dark Grey + Gold - Modern Material UI)
+-- Theme System Infrastructure
 -- ============================================================================
 
-MedaUI.Theme = {
-    -- Backgrounds
-    background = { 0.11, 0.11, 0.12, 0.97 },
-    backgroundLight = { 0.16, 0.16, 0.17, 1 },
-    backgroundDark = { 0.09, 0.09, 0.1, 1 },
+-- Theme registry - stores all registered themes
+MedaUI.themes = MedaUI.themes or {}
 
-    -- Borders
-    border = { 0.2, 0.2, 0.21, 0.6 },
-    borderLight = { 0.25, 0.25, 0.26, 0.4 },
+-- Active theme name
+MedaUI.activeThemeName = MedaUI.activeThemeName or nil
 
-    -- Gold accent colors
-    gold = { 0.9, 0.7, 0.15, 1 },
-    goldBright = { 1, 0.78, 0.2, 1 },
-    goldDim = { 0.7, 0.55, 0.1, 1 },
+-- Widget registry for theme updates
+MedaUI._widgetRegistry = MedaUI._widgetRegistry or {}
+MedaUI._widgetHandleCounter = MedaUI._widgetHandleCounter or 0
 
-    -- Text colors
-    text = { 0.9, 0.9, 0.9, 1 },
-    textDim = { 0.55, 0.55, 0.55, 1 },
-    textDisabled = { 0.35, 0.35, 0.35, 1 },
-    textGreen = { 0.4, 0.9, 0.4, 1 },
+-- Initialize CallbackHandler for theme change events
+MedaUI.callbacks = MedaUI.callbacks or LibStub("CallbackHandler-1.0"):New(MedaUI)
 
-    -- Interactive elements
-    button = { 0.16, 0.16, 0.17, 1 },
-    buttonHover = { 0.22, 0.22, 0.23, 1 },
-    buttonDisabled = { 0.1, 0.1, 0.11, 1 },
-    input = { 0.13, 0.13, 0.14, 1 },
+-- Current theme table (replaced on theme switch)
+MedaUI.Theme = MedaUI.Theme or {}
 
-    -- Tabs
-    tabActive = { 0.18, 0.18, 0.19, 1 },
-    tabInactive = { 0.13, 0.13, 0.14, 1 },
-    tabHover = { 0.22, 0.22, 0.23, 1 },
-    tabBadge = { 0.8, 0.2, 0.2, 1 },
+-- ============================================================================
+-- Theme Registration and Switching API
+-- ============================================================================
 
-    -- Table rows
-    rowEven = { 0.12, 0.12, 0.13, 1 },
-    rowOdd = { 0.1, 0.1, 0.11, 1 },
-    rowHeader = { 0.16, 0.16, 0.17, 1 },
-    rowSubheader = { 0.13, 0.13, 0.14, 1 },
+--- Register a new theme
+--- @param name string Unique theme identifier
+--- @param colors table Theme color definitions
+--- @param metadata table|nil Optional metadata {displayName, description}
+function MedaUI:RegisterTheme(name, colors, metadata)
+    metadata = metadata or {}
+    self.themes[name] = {
+        name = name,
+        colors = colors,
+        displayName = metadata.displayName or name,
+        description = metadata.description or "",
+    }
 
-    -- Highlights
-    highlight = { 0.9, 0.7, 0.15, 0.15 },
+    -- If this is the first theme registered and no theme is active, activate it
+    if not self.activeThemeName then
+        self:SetTheme(name)
+    end
+end
 
-    -- Code/monospace styling
-    codeBackground = { 0.08, 0.08, 0.09, 1 },
-    codeBorder = { 0.25, 0.25, 0.26, 1 },
-    codeLineNumber = { 0.4, 0.4, 0.4, 1 },
-    codeHighlight = { 0.3, 0.3, 0.1, 1 },
+--- Set the active theme
+--- @param name string The theme name to activate
+--- @return boolean success Whether the theme was successfully set
+function MedaUI:SetTheme(name)
+    local themeData = self.themes[name]
+    if not themeData then
+        return false
+    end
 
-    -- Tree styling
-    treeIndent = 16,
-    treeExpandIcon = { 0.6, 0.6, 0.6, 1 },
+    local previousTheme = self.activeThemeName
+    self.activeThemeName = name
 
-    -- Dropdown styling
-    dropdownArrow = { 0.6, 0.6, 0.6, 1 },
-    dropdownHover = { 0.22, 0.22, 0.23, 1 },
+    -- Replace MedaUI.Theme with the new theme's colors
+    -- We replace the table contents rather than the reference to maintain
+    -- compatibility with widgets that may have captured the table reference
+    wipe(self.Theme)
+    for key, value in pairs(themeData.colors) do
+        self.Theme[key] = value
+    end
 
-    -- Context menu
-    menuBackground = { 0.12, 0.12, 0.13, 0.98 },
-    menuHover = { 0.22, 0.22, 0.23, 1 },
-    menuSeparator = { 0.25, 0.25, 0.26, 1 },
+    -- Notify all registered widgets
+    for handle, entry in pairs(self._widgetRegistry) do
+        if entry.refreshFunc then
+            -- pcall to prevent one widget from breaking others
+            local success, err = pcall(entry.refreshFunc)
+            if not success then
+                -- Silent fail, or could log error
+            end
+        end
+    end
 
-    -- Message levels (for debug output)
-    levelDebug = { 0.5, 0.5, 0.5, 1 },
-    levelInfo = { 0.9, 0.9, 0.9, 1 },
-    levelWarn = { 1, 0.8, 0, 1 },
-    levelError = { 1, 0.3, 0.3, 1 },
+    -- Fire callback for external listeners
+    self.callbacks:Fire("THEME_CHANGED", name, previousTheme)
 
-    -- Misc
-    closeHover = { 1, 0.4, 0.4, 1 },
-    resizeHandle = { 0.3, 0.3, 0.3, 0.5 },
-}
+    return true
+end
+
+--- Get the currently active theme name
+--- @return string|nil The active theme name
+function MedaUI:GetActiveThemeName()
+    return self.activeThemeName
+end
+
+--- Get a list of all available themes
+--- @return table Array of {name, displayName, description} for each theme
+function MedaUI:GetAvailableThemes()
+    local themes = {}
+    for name, data in pairs(self.themes) do
+        themes[#themes + 1] = {
+            name = data.name,
+            displayName = data.displayName,
+            description = data.description,
+        }
+    end
+    -- Sort alphabetically by display name
+    table.sort(themes, function(a, b)
+        return a.displayName < b.displayName
+    end)
+    return themes
+end
+
+--- Register a widget for theme updates
+--- @param widget table The widget object (used as identifier)
+--- @param refreshFunc function Function to call when theme changes
+--- @return number handle Handle for unregistering
+function MedaUI:RegisterThemedWidget(widget, refreshFunc)
+    self._widgetHandleCounter = self._widgetHandleCounter + 1
+    local handle = self._widgetHandleCounter
+
+    self._widgetRegistry[handle] = {
+        widget = widget,
+        refreshFunc = refreshFunc,
+    }
+
+    return handle
+end
+
+--- Unregister a widget from theme updates
+--- @param handle number The handle returned from RegisterThemedWidget
+function MedaUI:UnregisterThemedWidget(handle)
+    self._widgetRegistry[handle] = nil
+end
 
 -- ============================================================================
 -- Theme Access API

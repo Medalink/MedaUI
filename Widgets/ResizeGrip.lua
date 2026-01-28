@@ -4,7 +4,6 @@
 ]]
 
 local MedaUI = LibStub("MedaUI-1.0")
-local Theme = MedaUI.Theme
 
 --- Add resize functionality to a frame
 --- @param frame Frame The frame to make resizable
@@ -42,23 +41,44 @@ function MedaUI:AddResizeGrip(frame, config)
 
         if corner.primary then
             -- Draw a visible grip pattern for the primary resize corner (bottom-right)
+            handle.dots = {}
             for i = 1, 3 do
                 local dot1 = handle:CreateTexture(nil, "OVERLAY")
                 dot1:SetSize(2, 2)
                 dot1:SetPoint("BOTTOMRIGHT", -(i * 4), (i * 4))
-                dot1:SetColorTexture(unpack(Theme.textDim or {0.5, 0.5, 0.5, 0.8}))
+                handle.dots[#handle.dots + 1] = dot1
 
                 local dot2 = handle:CreateTexture(nil, "OVERLAY")
                 dot2:SetSize(2, 2)
                 dot2:SetPoint("BOTTOMRIGHT", -(i * 4) - 4, (i * 4) - 4)
-                dot2:SetColorTexture(unpack(Theme.textDim or {0.5, 0.5, 0.5, 0.8}))
+                handle.dots[#handle.dots + 1] = dot2
             end
+
+            -- Apply theme to dots
+            local function ApplyTheme()
+                local Theme = MedaUI.Theme
+                for _, dot in ipairs(handle.dots) do
+                    dot:SetColorTexture(unpack(Theme.textDim))
+                end
+            end
+
+            -- Register for theme updates
+            handle._themeHandle = MedaUI:RegisterThemedWidget(handle, ApplyTheme)
+            ApplyTheme()
         else
             -- Hidden indicator for other corners, shows on hover
             handle.texture = handle:CreateTexture(nil, "OVERLAY")
             handle.texture:SetAllPoints()
-            handle.texture:SetColorTexture(unpack(Theme.resizeHandle or {0.3, 0.3, 0.3, 0.5}))
             handle.texture:Hide()
+
+            -- Apply theme
+            local function ApplyTheme()
+                local Theme = MedaUI.Theme
+                handle.texture:SetColorTexture(unpack(Theme.resizeHandle))
+            end
+
+            handle._themeHandle = MedaUI:RegisterThemedWidget(handle, ApplyTheme)
+            ApplyTheme()
 
             handle:SetScript("OnEnter", function(self)
                 if self.texture then self.texture:Show() end

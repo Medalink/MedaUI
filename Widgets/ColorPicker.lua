@@ -4,7 +4,6 @@
 ]]
 
 local MedaUI = LibStub("MedaUI-1.0")
-local Theme = MedaUI.Theme
 
 --- Create a themed color picker
 --- @param parent Frame The parent frame
@@ -24,7 +23,6 @@ function MedaUI:CreateColorPicker(parent, width, height, hasOpacity)
     local swatch = CreateFrame("Button", nil, container, "BackdropTemplate")
     swatch:SetAllPoints()
     swatch:SetBackdrop(self:CreateBackdrop(true))
-    swatch:SetBackdropBorderColor(unpack(Theme.border))
 
     -- Color texture inside swatch
     local colorTex = swatch:CreateTexture(nil, "OVERLAY")
@@ -43,6 +41,7 @@ function MedaUI:CreateColorPicker(parent, width, height, hasOpacity)
     container.b = 1
     container.a = 1
     container.hasOpacity = hasOpacity
+    container._isHovered = false
 
     -- Helper to update swatch visual
     local function UpdateSwatch()
@@ -54,6 +53,23 @@ function MedaUI:CreateColorPicker(parent, width, height, hasOpacity)
             checkerboard:Hide()
         end
     end
+
+    -- Apply theme colors
+    local function ApplyTheme()
+        local Theme = MedaUI.Theme
+        if container._isHovered then
+            swatch:SetBackdropBorderColor(unpack(Theme.gold))
+        else
+            swatch:SetBackdropBorderColor(unpack(Theme.border))
+        end
+    end
+    container._ApplyTheme = ApplyTheme
+
+    -- Register for theme updates
+    container._themeHandle = MedaUI:RegisterThemedWidget(container, ApplyTheme)
+
+    -- Initial theme application
+    ApplyTheme()
 
     -- Open color picker
     local function OpenColorPicker()
@@ -125,17 +141,10 @@ function MedaUI:CreateColorPicker(parent, width, height, hasOpacity)
 
     swatch:SetScript("OnClick", OpenColorPicker)
 
-    -- Hover effects
+    -- Hover effects with tooltip
     swatch:SetScript("OnEnter", function(self)
-        self:SetBackdropBorderColor(unpack(Theme.gold))
-    end)
-
-    swatch:SetScript("OnLeave", function(self)
-        self:SetBackdropBorderColor(unpack(Theme.border))
-    end)
-
-    -- Tooltip
-    swatch:SetScript("OnEnter", function(self)
+        container._isHovered = true
+        local Theme = MedaUI.Theme
         self:SetBackdropBorderColor(unpack(Theme.gold))
         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
         GameTooltip:SetText("Click to change color", 1, 1, 1)
@@ -143,6 +152,8 @@ function MedaUI:CreateColorPicker(parent, width, height, hasOpacity)
     end)
 
     swatch:SetScript("OnLeave", function(self)
+        container._isHovered = false
+        local Theme = MedaUI.Theme
         self:SetBackdropBorderColor(unpack(Theme.border))
         GameTooltip:Hide()
     end)

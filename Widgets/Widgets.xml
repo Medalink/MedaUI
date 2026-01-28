@@ -11,7 +11,7 @@
     <Script file="Panel.lua"/>
     <Script file="MinimapButton.lua"/>
     <Script file="SectionHeader.lua"/>
-    
+
     <!-- Advanced widgets -->
     <Script file="Badge.lua"/>
     <Script file="TabBar.lua"/>
@@ -21,4 +21,5 @@
     <Script file="TreeView.lua"/>
     <Script file="CodeBlock.lua"/>
     <Script file="ContextMenu.lua"/>
+    <Script file="ThemeSelector.lua"/>
 </Ui>

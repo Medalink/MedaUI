@@ -6,5 +6,8 @@
 ## X-Category: Library
 
 Libs\LibStub\LibStub.lua
+Libs\CallbackHandler-1.0\CallbackHandler-1.0.lua
 MedaUI.lua
+Themes\Default.lua
+Themes\Bricks.lua
 Widgets\Widgets.xml

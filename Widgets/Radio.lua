@@ -4,7 +4,6 @@
 ]]
 
 local MedaUI = LibStub("MedaUI-1.0")
-local Theme = MedaUI.Theme
 
 -- Radio group management
 MedaUI.RadioGroups = MedaUI.RadioGroups or {}
@@ -24,21 +23,17 @@ function MedaUI:CreateRadio(parent, label, group)
     box:SetSize(16, 16)
     box:SetPoint("LEFT", 0, 0)
     box:SetBackdrop(self:CreateBackdrop(true))
-    box:SetBackdropColor(unpack(Theme.input))
-    box:SetBackdropBorderColor(unpack(Theme.border))
 
     -- Selected indicator (inner dot)
     box.dot = box:CreateTexture(nil, "OVERLAY")
     box.dot:SetSize(8, 8)
     box.dot:SetPoint("CENTER")
-    box.dot:SetColorTexture(unpack(Theme.gold))
     box.dot:Hide()
 
     -- Label
     container.label = container:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     container.label:SetPoint("LEFT", box, "RIGHT", 6, 0)
     container.label:SetText(label)
-    container.label:SetTextColor(unpack(Theme.text))
 
     -- State
     container.selected = false
@@ -50,6 +45,26 @@ function MedaUI:CreateRadio(parent, label, group)
         table.insert(self.RadioGroups[group], container)
     end
 
+    -- Apply theme colors
+    local function ApplyTheme()
+        local Theme = MedaUI.Theme
+        box:SetBackdropColor(unpack(Theme.input))
+        box.dot:SetColorTexture(unpack(Theme.gold))
+        container.label:SetTextColor(unpack(Theme.text))
+        if container.selected then
+            box:SetBackdropBorderColor(unpack(Theme.gold))
+        else
+            box:SetBackdropBorderColor(unpack(Theme.border))
+        end
+    end
+    container._ApplyTheme = ApplyTheme
+
+    -- Register for theme updates
+    container._themeHandle = MedaUI:RegisterThemedWidget(container, ApplyTheme)
+
+    -- Initial theme application
+    ApplyTheme()
+
     -- Click behavior
     box:SetScript("OnClick", function()
         container:SetSelected(true)
@@ -60,17 +75,20 @@ function MedaUI:CreateRadio(parent, label, group)
 
     -- Hover effect
     box:SetScript("OnEnter", function(self)
+        local Theme = MedaUI.Theme
         self:SetBackdropBorderColor(unpack(Theme.gold))
     end)
 
     box:SetScript("OnLeave", function(self)
         if not container.selected then
+            local Theme = MedaUI.Theme
             self:SetBackdropBorderColor(unpack(Theme.border))
         end
     end)
 
     -- API methods
     function container:SetSelected(value)
+        local Theme = MedaUI.Theme
         -- Deselect others in group
         if value and self.group and MedaUI.RadioGroups[self.group] then
             for _, radio in ipairs(MedaUI.RadioGroups[self.group]) do

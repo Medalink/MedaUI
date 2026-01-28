@@ -4,7 +4,6 @@
 ]]
 
 local MedaUI = LibStub("MedaUI-1.0")
-local Theme = MedaUI.Theme
 
 -- Try to get LibDataBroker and LibDBIcon
 local LDB = LibStub("LibDataBroker-1.1", true)
@@ -35,6 +34,7 @@ function MedaUI:CreateMinimapButton(name, icon, onClick, onRightClick, savedVars
             end
         end,
         OnTooltipShow = function(tooltip)
+            local Theme = MedaUI.Theme
             tooltip:AddLine(name, unpack(Theme.gold))
             tooltip:AddLine(" ")
             tooltip:AddLine("Left-click to open settings", unpack(Theme.text))

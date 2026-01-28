@@ -4,7 +4,6 @@
 ]]
 
 local MedaUI = LibStub("MedaUI-1.0")
-local Theme = MedaUI.Theme
 
 --- Create a themed checkbox
 --- @param parent Frame The parent frame
@@ -19,23 +18,41 @@ function MedaUI:CreateCheckbox(parent, label)
     box:SetSize(16, 16)
     box:SetPoint("LEFT", 0, 0)
     box:SetBackdrop(self:CreateBackdrop(true))
-    box:SetBackdropColor(unpack(Theme.input))
-    box:SetBackdropBorderColor(unpack(Theme.border))
 
     -- Checkmark
     box.check = box:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     box.check:SetPoint("CENTER", 0, 1)
     box.check:SetText("")
-    box.check:SetTextColor(unpack(Theme.gold))
 
     -- Label
     container.label = container:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     container.label:SetPoint("LEFT", box, "RIGHT", 6, 0)
     container.label:SetText(label)
-    container.label:SetTextColor(unpack(Theme.text))
 
     -- State
     container.checked = false
+    container.box = box
+    container._isHovered = false
+
+    -- Apply theme colors
+    local function ApplyTheme()
+        local Theme = MedaUI.Theme
+        box:SetBackdropColor(unpack(Theme.input))
+        if container._isHovered then
+            box:SetBackdropBorderColor(unpack(Theme.gold))
+        else
+            box:SetBackdropBorderColor(unpack(Theme.border))
+        end
+        box.check:SetTextColor(unpack(Theme.gold))
+        container.label:SetTextColor(unpack(Theme.text))
+    end
+    container._ApplyTheme = ApplyTheme
+
+    -- Register for theme updates
+    container._themeHandle = MedaUI:RegisterThemedWidget(container, ApplyTheme)
+
+    -- Initial theme application
+    ApplyTheme()
 
     -- Click behavior
     box:SetScript("OnClick", function()
@@ -48,10 +65,14 @@ function MedaUI:CreateCheckbox(parent, label)
 
     -- Hover effect
     box:SetScript("OnEnter", function(self)
+        container._isHovered = true
+        local Theme = MedaUI.Theme
         self:SetBackdropBorderColor(unpack(Theme.gold))
     end)
 
     box:SetScript("OnLeave", function(self)
+        container._isHovered = false
+        local Theme = MedaUI.Theme
         self:SetBackdropBorderColor(unpack(Theme.border))
     end)
 

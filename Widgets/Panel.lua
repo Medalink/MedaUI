@@ -4,7 +4,6 @@
 ]]
 
 local MedaUI = LibStub("MedaUI-1.0")
-local Theme = MedaUI.Theme
 
 --- Create a themed panel/window
 --- @param name string Unique frame name
@@ -18,8 +17,6 @@ function MedaUI:CreatePanel(name, width, height, title)
     panel:SetSize(width, height)
     panel:SetPoint("CENTER")
     panel:SetBackdrop(self:CreateBackdrop(true))
-    panel:SetBackdropColor(unpack(Theme.background))
-    panel:SetBackdropBorderColor(unpack(Theme.border))
     panel:SetMovable(true)
     panel:EnableMouse(true)
     panel:SetClampedToScreen(true)
@@ -33,7 +30,6 @@ function MedaUI:CreatePanel(name, width, height, title)
     titleBar:SetBackdrop({
         bgFile = "Interface\\Buttons\\WHITE8x8",
     })
-    titleBar:SetBackdropColor(unpack(Theme.backgroundLight))
     titleBar:EnableMouse(true)
     titleBar:RegisterForDrag("LeftButton")
 
@@ -53,7 +49,6 @@ function MedaUI:CreatePanel(name, width, height, title)
         panel.titleText = titleBar:CreateFontString(nil, "OVERLAY", "GameFontNormal")
         panel.titleText:SetPoint("LEFT", 10, 0)
         panel.titleText:SetText(title)
-        panel.titleText:SetTextColor(unpack(Theme.gold))
     end
 
     -- Close button
@@ -66,15 +61,6 @@ function MedaUI:CreatePanel(name, width, height, title)
     closeBtn.text = closeBtn:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     closeBtn.text:SetPoint("CENTER", 0, 1)
     closeBtn.text:SetText("x")
-    closeBtn.text:SetTextColor(unpack(Theme.textDim))
-
-    closeBtn:SetScript("OnEnter", function(self)
-        self.text:SetTextColor(unpack(Theme.closeHover))
-    end)
-
-    closeBtn:SetScript("OnLeave", function(self)
-        self.text:SetTextColor(unpack(Theme.textDim))
-    end)
 
     closeBtn:SetScript("OnClick", function()
         panel:Hide()
@@ -90,16 +76,48 @@ function MedaUI:CreatePanel(name, width, height, title)
     accent:SetHeight(1)
     accent:SetPoint("BOTTOMLEFT", 0, 0)
     accent:SetPoint("BOTTOMRIGHT", 0, 0)
-    accent:SetColorTexture(unpack(Theme.goldDim))
 
-    -- API methods
+    -- Store references
     panel.titleBar = titleBar
     panel.closeButton = closeBtn
+    panel.accent = accent
     panel.isResizable = false
     panel.resizeGrip = nil
     panel.OnResize = nil
     panel.OnMove = nil
 
+    -- Apply theme colors
+    local function ApplyTheme()
+        local Theme = MedaUI.Theme
+        panel:SetBackdropColor(unpack(Theme.background))
+        panel:SetBackdropBorderColor(unpack(Theme.border))
+        titleBar:SetBackdropColor(unpack(Theme.backgroundLight))
+        if panel.titleText then
+            panel.titleText:SetTextColor(unpack(Theme.gold))
+        end
+        closeBtn.text:SetTextColor(unpack(Theme.textDim))
+        accent:SetColorTexture(unpack(Theme.goldDim))
+    end
+    panel._ApplyTheme = ApplyTheme
+
+    -- Register for theme updates
+    panel._themeHandle = MedaUI:RegisterThemedWidget(panel, ApplyTheme)
+
+    -- Initial theme application
+    ApplyTheme()
+
+    -- Close button hover effects
+    closeBtn:SetScript("OnEnter", function(self)
+        local Theme = MedaUI.Theme
+        self.text:SetTextColor(unpack(Theme.closeHover))
+    end)
+
+    closeBtn:SetScript("OnLeave", function(self)
+        local Theme = MedaUI.Theme
+        self.text:SetTextColor(unpack(Theme.textDim))
+    end)
+
+    -- API methods
     function panel:SetTitle(newTitle)
         if self.titleText then
             self.titleText:SetText(newTitle)

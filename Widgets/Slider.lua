@@ -1,6 +1,6 @@
 --[[
     MedaUI Slider Widget
-    Creates themed sliders with value display
+    Creates themed sliders with value display (matches MedaBinds style)
 ]]
 
 local MedaUI = LibStub("MedaUI-1.0")
@@ -16,39 +16,47 @@ local Theme = MedaUI.Theme
 function MedaUI:CreateSlider(parent, width, min, max, step)
     step = step or 1
 
-    local container = CreateFrame("Frame", nil, parent, "BackdropTemplate")
-    container:SetSize(width, 32)
-    -- Container backdrop for border color changes
-    container:SetBackdrop(self:CreateBackdrop(true))
-    container:SetBackdropColor(0, 0, 0, 0)  -- Transparent background
-    container:SetBackdropBorderColor(unpack(Theme.border))
+    local container = CreateFrame("Frame", nil, parent)
+    container:SetSize(width, 24)
+
+    -- Custom slider frame using native WoW Slider
+    local slider = CreateFrame("Slider", nil, container, "BackdropTemplate")
+    slider:SetPoint("LEFT", 0, 0)
+    slider:SetSize(width - 40, 8)
+    slider:SetMinMaxValues(min, max)
+    slider:SetValueStep(step)
+    slider:SetObeyStepOnDrag(true)
+    slider:SetOrientation("HORIZONTAL")
+    slider:EnableMouse(true)
 
     -- Track background
-    local track = CreateFrame("Frame", nil, container, "BackdropTemplate")
-    track:SetSize(width - 40, 6)
-    track:SetPoint("LEFT", 0, 0)
-    track:SetBackdrop(self:CreateBackdrop(true))
-    track:SetBackdropColor(unpack(Theme.backgroundDark))
-    track:SetBackdropBorderColor(unpack(Theme.border))
+    slider:SetBackdrop({
+        bgFile = "Interface\\Buttons\\WHITE8x8",
+        edgeFile = "Interface\\Buttons\\WHITE8x8",
+        edgeSize = 1,
+        insets = { left = 1, right = 1, top = 1, bottom = 1 },
+    })
+    slider:SetBackdropColor(unpack(Theme.backgroundDark))
+    slider:SetBackdropBorderColor(unpack(Theme.border))
 
-    -- Filled portion of track
-    local fill = track:CreateTexture(nil, "OVERLAY")
-    fill:SetPoint("LEFT", 1, 0)
-    fill:SetHeight(4)
-    fill:SetColorTexture(unpack(Theme.gold))
+    -- Custom thumb texture
+    local thumb = slider:CreateTexture(nil, "ARTWORK")
+    thumb:SetSize(12, 12)
+    thumb:SetColorTexture(unpack(Theme.gold))
+    slider:SetThumbTexture(thumb)
 
-    -- Thumb (draggable handle)
-    local thumb = CreateFrame("Button", nil, container, "BackdropTemplate")
-    thumb:SetSize(14, 18)
-    thumb:SetBackdrop(self:CreateBackdrop(true))
-    thumb:SetBackdropColor(unpack(Theme.backgroundLight))
-    thumb:SetBackdropBorderColor(unpack(Theme.gold))
-    thumb:SetPoint("CENTER", track, "LEFT", 0, 0)
+    -- Thumb hover effect
+    slider:SetScript("OnEnter", function(self)
+        thumb:SetColorTexture(unpack(Theme.goldBright))
+    end)
+    slider:SetScript("OnLeave", function(self)
+        thumb:SetColorTexture(unpack(Theme.gold))
+    end)
 
     -- Value display
     local valueText = container:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-    valueText:SetPoint("LEFT", track, "RIGHT", 8, 0)
-    valueText:SetTextColor(unpack(Theme.text))
+    valueText:SetPoint("LEFT", slider, "RIGHT", 8, 0)
+    valueText:SetTextColor(unpack(Theme.gold))
     valueText:SetWidth(32)
     valueText:SetJustifyH("RIGHT")
 
@@ -57,85 +65,40 @@ function MedaUI:CreateSlider(parent, width, min, max, step)
     container.max = max
     container.step = step
     container.value = min
+    container.slider = slider
+    container.valueText = valueText
+    container.thumb = thumb
 
-    -- Helper to update visual
-    local function UpdateSlider()
-        local pct = (container.value - min) / (max - min)
-        local trackWidth = track:GetWidth() - 2
-        thumb:SetPoint("CENTER", track, "LEFT", 1 + (pct * trackWidth), 0)
-        fill:SetWidth(math.max(1, pct * trackWidth))
-
-        -- Format value display
+    -- Helper to update value display
+    local function UpdateValueText(value)
         if step < 1 then
-            valueText:SetText(string.format("%.1f", container.value))
+            valueText:SetText(string.format("%.1f", value))
         else
-            valueText:SetText(tostring(math.floor(container.value)))
+            valueText:SetText(tostring(math.floor(value + 0.5)))
         end
     end
 
-    -- Dragging logic
-    local isDragging = false
-
-    local function OnUpdate()
-        if not isDragging then return end
-
-        local x = GetCursorPosition() / UIParent:GetEffectiveScale()
-        local left = track:GetLeft() + 1
-        local right = track:GetRight() - 1
-        local pct = math.max(0, math.min(1, (x - left) / (right - left)))
-
-        local rawValue = min + (pct * (max - min))
-        local steppedValue = math.floor(rawValue / step + 0.5) * step
-        steppedValue = math.max(min, math.min(max, steppedValue))
-
-        if steppedValue ~= container.value then
-            container.value = steppedValue
-            UpdateSlider()
-            if container.OnValueChanged then
-                container:OnValueChanged(steppedValue)
-            end
+    -- OnValueChanged handler
+    slider:SetScript("OnValueChanged", function(self, value)
+        if step >= 1 then
+            value = math.floor(value + 0.5)
         end
-    end
-
-    thumb:SetScript("OnMouseDown", function()
-        isDragging = true
-        thumb:SetScript("OnUpdate", OnUpdate)
-    end)
-
-    thumb:SetScript("OnMouseUp", function()
-        isDragging = false
-        thumb:SetScript("OnUpdate", nil)
-    end)
-
-    -- Click on track to jump
-    track:SetScript("OnMouseDown", function(self, button)
-        if button == "LeftButton" then
-            isDragging = true
-            thumb:SetScript("OnUpdate", OnUpdate)
-            OnUpdate()
+        container.value = value
+        UpdateValueText(value)
+        if container.OnValueChanged then
+            container:OnValueChanged(value)
         end
-    end)
-
-    track:SetScript("OnMouseUp", function()
-        isDragging = false
-        thumb:SetScript("OnUpdate", nil)
-    end)
-
-    -- Hover effects
-    thumb:SetScript("OnEnter", function(self)
-        self:SetBackdropColor(unpack(Theme.buttonHover))
-    end)
-
-    thumb:SetScript("OnLeave", function(self)
-        self:SetBackdropColor(unpack(Theme.backgroundLight))
     end)
 
     -- API methods
     function container:SetValue(value)
         value = math.max(self.min, math.min(self.max, value))
-        value = math.floor(value / self.step + 0.5) * self.step
+        if self.step >= 1 then
+            value = math.floor(value / self.step + 0.5) * self.step
+        end
         self.value = value
-        UpdateSlider()
+        self.slider:SetValue(value)
+        UpdateValueText(value)
     end
 
     function container:GetValue()
@@ -145,15 +108,8 @@ function MedaUI:CreateSlider(parent, width, min, max, step)
     function container:SetMinMaxValues(newMin, newMax)
         self.min = newMin
         self.max = newMax
+        self.slider:SetMinMaxValues(newMin, newMax)
         self:SetValue(self.value)
-    end
-
-    -- Expose thumb for external styling
-    container.thumb = thumb
-
-    -- Add SetColorTexture compatibility method to thumb (maps to backdrop color)
-    function thumb:SetColorTexture(r, g, b, a)
-        self:SetBackdropColor(r, g, b, a or 1)
     end
 
     -- Forward SetScript for OnValueChanged
@@ -177,7 +133,8 @@ function MedaUI:CreateSlider(parent, width, min, max, step)
     end
 
     -- Initialize
-    UpdateSlider()
+    slider:SetValue(min)
+    UpdateValueText(min)
 
     return container
 end

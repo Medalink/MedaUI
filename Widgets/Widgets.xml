@@ -5,6 +5,7 @@
     <Script file="Radio.lua"/>
     <Script file="EditBox.lua"/>
     <Script file="Slider.lua"/>
+    <Script file="ColorPicker.lua"/>
     <Script file="Panel.lua"/>
     <Script file="MinimapButton.lua"/>
 </Ui>

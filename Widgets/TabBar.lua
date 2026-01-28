@@ -22,7 +22,7 @@ function MedaUI:CreateTabBar(parent, tabs)
     tabBar.OnTabChanged = nil
     
     local tabWidth = 80
-    local tabPadding = 2
+    local tabPadding = 4
     
     -- Create tab buttons
     for i, tabDef in ipairs(tabs) do

@@ -43,6 +43,9 @@ function MedaUI:CreatePanel(name, width, height, title)
 
     titleBar:SetScript("OnDragStop", function()
         panel:StopMovingOrSizing()
+        if panel.OnMove then
+            panel:OnMove(panel:GetState())
+        end
     end)
 
     -- Title text
@@ -93,8 +96,9 @@ function MedaUI:CreatePanel(name, width, height, title)
     panel.titleBar = titleBar
     panel.closeButton = closeBtn
     panel.isResizable = false
-    panel.resizeHandles = {}
+    panel.resizeGrip = nil
     panel.OnResize = nil
+    panel.OnMove = nil
 
     function panel:SetTitle(newTitle)
         if self.titleText then
@@ -108,103 +112,28 @@ function MedaUI:CreatePanel(name, width, height, title)
 
     --- Enable resizing with min/max bounds
     --- @param enabled boolean Whether resizing is enabled
-    --- @param config table|nil {minWidth, minHeight, maxWidth, maxHeight}
+    --- @param config table|nil {minWidth, minHeight}
     function panel:SetResizable(enabled, config)
         self.isResizable = enabled
         config = config or {}
-        
-        local minW = config.minWidth or 200
-        local minH = config.minHeight or 150
-        local maxW = config.maxWidth or 2000
-        local maxH = config.maxHeight or 1500
-        
+
         if enabled then
-            self:SetResizeBounds(minW, minH, maxW, maxH)
-            
-            -- Create resize handles if they don't exist
-            if #self.resizeHandles == 0 then
-                local handleSize = 8
-                local handles = {
-                    { point = "BOTTOMRIGHT", cursor = "BOTTOMRIGHT" },
-                    { point = "BOTTOMLEFT", cursor = "BOTTOMLEFT" },
-                    { point = "TOPRIGHT", cursor = "TOPRIGHT" },
-                    { point = "TOPLEFT", cursor = "TOPLEFT" },
-                }
-                
-                for _, h in ipairs(handles) do
-                    local handle = CreateFrame("Button", nil, self)
-                    handle:SetSize(handleSize, handleSize)
-                    handle:SetPoint(h.point)
-                    handle:EnableMouse(true)
-                    handle:RegisterForDrag("LeftButton")
-                    handle.direction = h.point
-                    
-                    -- Visual indicator
-                    handle.texture = handle:CreateTexture(nil, "OVERLAY")
-                    handle.texture:SetAllPoints()
-                    handle.texture:SetColorTexture(unpack(Theme.resizeHandle or {0.3, 0.3, 0.3, 0.5}))
-                    handle.texture:Hide()
-                    
-                    handle:SetScript("OnEnter", function(self)
-                        self.texture:Show()
-                    end)
-                    
-                    handle:SetScript("OnLeave", function(self)
-                        self.texture:Hide()
-                    end)
-                    
-                    handle:SetScript("OnDragStart", function(self)
-                        panel:StartSizing(self.direction)
-                    end)
-                    
-                    handle:SetScript("OnDragStop", function(self)
-                        panel:StopMovingOrSizing()
-                        if panel.OnResize then
-                            panel:OnResize(panel:GetWidth(), panel:GetHeight())
+            -- Create resize grip if it doesn't exist
+            if not self.resizeGrip then
+                self.resizeGrip = MedaUI:AddResizeGrip(self, {
+                    minWidth = config.minWidth or 200,
+                    minHeight = config.minHeight or 150,
+                    onResize = function(w, h)
+                        if self.OnResize then
+                            self:OnResize(self:GetState())
                         end
-                    end)
-                    
-                    self.resizeHandles[#self.resizeHandles + 1] = handle
-                end
-                
-                -- Edge handles (bottom and right)
-                local bottomHandle = CreateFrame("Button", nil, self)
-                bottomHandle:SetHeight(handleSize)
-                bottomHandle:SetPoint("BOTTOMLEFT", handleSize, 0)
-                bottomHandle:SetPoint("BOTTOMRIGHT", -handleSize, 0)
-                bottomHandle:EnableMouse(true)
-                bottomHandle:RegisterForDrag("LeftButton")
-                bottomHandle.direction = "BOTTOM"
-                bottomHandle:SetScript("OnDragStart", function() panel:StartSizing("BOTTOM") end)
-                bottomHandle:SetScript("OnDragStop", function()
-                    panel:StopMovingOrSizing()
-                    if panel.OnResize then panel:OnResize(panel:GetWidth(), panel:GetHeight()) end
-                end)
-                self.resizeHandles[#self.resizeHandles + 1] = bottomHandle
-                
-                local rightHandle = CreateFrame("Button", nil, self)
-                rightHandle:SetWidth(handleSize)
-                rightHandle:SetPoint("TOPRIGHT", 0, -handleSize)
-                rightHandle:SetPoint("BOTTOMRIGHT", 0, handleSize)
-                rightHandle:EnableMouse(true)
-                rightHandle:RegisterForDrag("LeftButton")
-                rightHandle.direction = "RIGHT"
-                rightHandle:SetScript("OnDragStart", function() panel:StartSizing("RIGHT") end)
-                rightHandle:SetScript("OnDragStop", function()
-                    panel:StopMovingOrSizing()
-                    if panel.OnResize then panel:OnResize(panel:GetWidth(), panel:GetHeight()) end
-                end)
-                self.resizeHandles[#self.resizeHandles + 1] = rightHandle
+                    end,
+                })
             end
-            
-            -- Show handles
-            for _, handle in ipairs(self.resizeHandles) do
-                handle:Show()
-            end
+            self.resizeGrip:Show()
         else
-            -- Hide handles
-            for _, handle in ipairs(self.resizeHandles) do
-                handle:Hide()
+            if self.resizeGrip then
+                self.resizeGrip:Hide()
             end
         end
     end
@@ -220,6 +149,48 @@ function MedaUI:CreatePanel(name, width, height, title)
     --- @param h number Height
     function panel:SetPanelSize(w, h)
         self:SetSize(w, h)
+    end
+
+    --- Get the current state (position and size)
+    --- @return table {position = {point, relativeTo, relativePoint, x, y}, size = {width, height}}
+    function panel:GetState()
+        local point, relativeTo, relativePoint, x, y = self:GetPoint()
+        return {
+            position = {
+                point = point,
+                relativeTo = relativeTo and relativeTo:GetName() or nil,
+                relativePoint = relativePoint,
+                x = x,
+                y = y,
+            },
+            size = {
+                width = self:GetWidth(),
+                height = self:GetHeight(),
+            },
+        }
+    end
+
+    --- Restore panel state (position and size)
+    --- @param state table {position = {...}, size = {...}}
+    function panel:RestoreState(state)
+        if not state then return end
+
+        if state.size then
+            if state.size.width then self:SetWidth(state.size.width) end
+            if state.size.height then self:SetHeight(state.size.height) end
+        end
+
+        if state.position and state.position.point then
+            self:ClearAllPoints()
+            local relativeTo = state.position.relativeTo and _G[state.position.relativeTo] or UIParent
+            self:SetPoint(
+                state.position.point,
+                relativeTo,
+                state.position.relativePoint,
+                state.position.x or 0,
+                state.position.y or 0
+            )
+        end
     end
 
     -- Start hidden

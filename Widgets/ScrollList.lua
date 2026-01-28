@@ -34,8 +34,8 @@ function MedaUI:CreateScrollList(parent, width, height, config)
     
     -- Scroll frame
     local scrollFrame = CreateFrame("ScrollFrame", nil, scrollList, "UIPanelScrollFrameTemplate")
-    scrollFrame:SetPoint("TOPLEFT", 4, -4)
-    scrollFrame:SetPoint("BOTTOMRIGHT", -24, 4)
+    scrollFrame:SetPoint("TOPLEFT", 6, -6)
+    scrollFrame:SetPoint("BOTTOMRIGHT", -24, 6)
     
     -- Content frame
     local content = CreateFrame("Frame", nil, scrollFrame)

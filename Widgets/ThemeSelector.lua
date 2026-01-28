@@ -90,7 +90,7 @@ function MedaUI:CreateThemeSelector(parent, width, config)
     end
 
     -- Register for external theme changes
-    local function OnThemeChanged(_, newTheme, oldTheme)
+    local function OnThemeChanged(callback, newTheme, oldTheme)
         -- Update dropdown selection if theme was changed externally
         if dropdown:GetSelected() ~= newTheme then
             dropdown:SetSelected(newTheme)
@@ -98,7 +98,7 @@ function MedaUI:CreateThemeSelector(parent, width, config)
         UpdatePreview()
     end
 
-    container._themeCallback = MedaUI.callbacks:RegisterCallback("THEME_CHANGED", OnThemeChanged)
+    MedaUI.RegisterCallback(container, "THEME_CHANGED", OnThemeChanged)
 
     -- API methods
     --- Get the currently selected theme

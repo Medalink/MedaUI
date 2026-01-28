@@ -19,8 +19,9 @@ function MedaUI:CreateTabBar(parent, tabs)
     tabBar.activeTab = nil
     tabBar.OnTabChanged = nil
 
-    local tabWidth = 80
     local tabPadding = 4
+    local minTabWidth = 60
+    local tabHorizontalPadding = 20  -- Extra padding on each side of text
 
     -- Apply theme colors to the tab bar background
     local function ApplyTheme()
@@ -45,10 +46,10 @@ function MedaUI:CreateTabBar(parent, tabs)
     tabBar._themeHandle = MedaUI:RegisterThemedWidget(tabBar, ApplyTheme)
 
     -- Create tab buttons
+    local xOffset = tabPadding
     for i, tabDef in ipairs(tabs) do
         local tab = CreateFrame("Button", nil, tabBar, "BackdropTemplate")
-        tab:SetSize(tabWidth, 26)
-        tab:SetPoint("LEFT", (i - 1) * (tabWidth + tabPadding) + tabPadding, 0)
+        tab:SetHeight(26)
         tab:SetBackdrop(self:CreateBackdrop(false))
 
         tab.id = tabDef.id
@@ -58,6 +59,13 @@ function MedaUI:CreateTabBar(parent, tabs)
         tab.text = tab:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
         tab.text:SetPoint("CENTER", 0, 0)
         tab.text:SetText(tabDef.label)
+
+        -- Calculate tab width based on text
+        local textWidth = tab.text:GetStringWidth()
+        local tabWidth = math.max(minTabWidth, textWidth + tabHorizontalPadding)
+        tab:SetSize(tabWidth, 26)
+        tab:SetPoint("LEFT", xOffset, 0)
+        xOffset = xOffset + tabWidth + tabPadding
 
         -- Active indicator (gold line at bottom)
         tab.activeIndicator = tab:CreateTexture(nil, "OVERLAY")
@@ -99,9 +107,8 @@ function MedaUI:CreateTabBar(parent, tabs)
         tabBar.tabs[i] = tabDef
     end
 
-    -- Calculate total width
-    local totalWidth = #tabs * (tabWidth + tabPadding) + tabPadding
-    tabBar:SetWidth(totalWidth)
+    -- Set total width (xOffset already includes final padding)
+    tabBar:SetWidth(xOffset)
 
     -- Initial theme application
     ApplyTheme()

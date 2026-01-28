@@ -5,23 +5,36 @@
 
 local MedaUI = LibStub("MedaUI-1.0")
 
+-- Button constants
+local MIN_HEIGHT = 28
+local HORIZONTAL_PADDING = 16  -- Padding on each side
+local VERTICAL_PADDING = 8     -- Padding top/bottom
+
 --- Create a themed button
 --- @param parent Frame The parent frame
 --- @param text string Button label text
---- @param width number Button width
---- @param height number Button height (default: 24)
+--- @param width number|nil Button width (nil for auto-size based on text)
+--- @param height number Button height (default: 28)
 --- @return Button The created button
 function MedaUI:CreateButton(parent, text, width, height)
-    height = height or 24
+    height = math.max(height or MIN_HEIGHT, MIN_HEIGHT)
 
     local button = CreateFrame("Button", nil, parent, "BackdropTemplate")
-    button:SetSize(width, height)
     button:SetBackdrop(self:CreateBackdrop(true))
 
     -- Button text
     button.text = button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     button.text:SetPoint("CENTER")
     button.text:SetText(text)
+
+    -- Calculate width if not provided
+    if width then
+        button:SetSize(width, height)
+    else
+        -- Auto-size based on text width + horizontal padding
+        local textWidth = button.text:GetStringWidth()
+        button:SetSize(textWidth + (HORIZONTAL_PADDING * 2), height)
+    end
 
     -- Track state for theme refresh
     button._isHovered = false

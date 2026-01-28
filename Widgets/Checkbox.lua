@@ -24,9 +24,9 @@ function MedaUI:CreateCheckbox(parent, label)
     box.check:SetPoint("CENTER", 0, 1)
     box.check:SetText("")
 
-    -- Label
+    -- Label (8px gap from box for consistent spacing)
     container.label = container:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    container.label:SetPoint("LEFT", box, "RIGHT", 6, 0)
+    container.label:SetPoint("LEFT", box, "RIGHT", 8, 0)
     container.label:SetText(label)
 
     -- State

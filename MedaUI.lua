@@ -176,6 +176,81 @@ end
 -- MedaUI:CreateMinimapButton(name, icon, onClick, onRightClick)
 
 -- ============================================================================
+-- Status Color Utilities
+-- ============================================================================
+
+--- Get a color based on value thresholds
+--- @param value number The value to evaluate
+--- @param thresholds table Array of {max, color} where color is a theme key or {r,g,b}
+--- @return number, number, number RGB values
+function MedaUI:GetStatusColor(value, thresholds)
+    local Theme = self.Theme
+
+    for _, threshold in ipairs(thresholds) do
+        if not threshold.max or value <= threshold.max then
+            local color = threshold.color
+            if type(color) == "string" then
+                -- Theme color key
+                local themeColor = Theme[color]
+                if themeColor then
+                    return themeColor[1], themeColor[2], themeColor[3]
+                end
+            elseif type(color) == "table" then
+                -- Direct RGB
+                return color[1], color[2], color[3]
+            end
+        end
+    end
+
+    -- Default to text color
+    return Theme.text[1], Theme.text[2], Theme.text[3]
+end
+
+--- Get FPS color (red < 30, orange < 60, green >= 60)
+--- @param fps number Current FPS
+--- @return number, number, number RGB values
+function MedaUI:GetFPSColor(fps)
+    return self:GetStatusColor(fps, {
+        { max = 30, color = { 1, 0.3, 0.3 } },      -- Red
+        { max = 60, color = { 1, 0.8, 0 } },        -- Orange
+        { color = { 0.4, 0.9, 0.4 } },              -- Green
+    })
+end
+
+--- Get latency color (green < 100, orange < 300, red >= 300)
+--- @param latency number Latency in ms
+--- @return number, number, number RGB values
+function MedaUI:GetLatencyColor(latency)
+    return self:GetStatusColor(latency, {
+        { max = 100, color = { 0.4, 0.9, 0.4 } },   -- Green
+        { max = 300, color = { 1, 0.8, 0 } },       -- Orange
+        { color = { 1, 0.3, 0.3 } },                -- Red
+    })
+end
+
+--- Get memory color based on percentage (green < 50, orange < 80, red >= 80)
+--- @param percent number Memory percentage (0-100)
+--- @return number, number, number RGB values
+function MedaUI:GetMemoryColor(percent)
+    return self:GetStatusColor(percent, {
+        { max = 50, color = { 0.4, 0.9, 0.4 } },    -- Green
+        { max = 80, color = { 1, 0.8, 0 } },        -- Orange
+        { color = { 1, 0.3, 0.3 } },                -- Red
+    })
+end
+
+--- Get combat status color
+--- @param inCombat boolean Whether in combat
+--- @return number, number, number RGB values
+function MedaUI:GetCombatColor(inCombat)
+    if inCombat then
+        return 1, 0.3, 0.3  -- Red
+    else
+        return 0.4, 0.9, 0.4  -- Green
+    end
+end
+
+-- ============================================================================
 -- Utility Functions
 -- ============================================================================
 

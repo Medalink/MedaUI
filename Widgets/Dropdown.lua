@@ -32,8 +32,9 @@ function MedaUI:CreateDropdown(parent, width, options)
     -- Selected text display
     dropdown.text = dropdown:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     dropdown.text:SetPoint("LEFT", 8, 0)
-    dropdown.text:SetPoint("RIGHT", -24, 0)
+    dropdown.text:SetPoint("RIGHT", -26, 0)
     dropdown.text:SetJustifyH("LEFT")
+    dropdown.text:SetWordWrap(false)
     dropdown.text:SetText("Select...")
 
     -- Arrow separator line
@@ -71,6 +72,16 @@ function MedaUI:CreateDropdown(parent, width, options)
     dropdown.menu:SetWidth(width)
     dropdown.menu:Hide()
     dropdown.menu.items = {}
+
+    -- Scroll frame for menu items
+    dropdown.menu.scrollFrame = CreateFrame("ScrollFrame", name .. "MenuScroll", dropdown.menu, "UIPanelScrollFrameTemplate")
+    dropdown.menu.scrollFrame:SetPoint("TOPLEFT", 2, -2)
+    dropdown.menu.scrollFrame:SetPoint("BOTTOMRIGHT", -20, 2)
+
+    -- Scroll child (content)
+    dropdown.menu.scrollChild = CreateFrame("Frame", nil, dropdown.menu.scrollFrame)
+    dropdown.menu.scrollChild:SetWidth(width - 24)
+    dropdown.menu.scrollFrame:SetScrollChild(dropdown.menu.scrollChild)
 
     -- Apply theme colors
     local function ApplyTheme()
@@ -114,13 +125,18 @@ function MedaUI:CreateDropdown(parent, width, options)
         wipe(dropdown.menu.items)
 
         local itemHeight = 22
-        local menuHeight = #dropdown.options * itemHeight + 4
-        dropdown.menu:SetHeight(math.min(menuHeight, 200))
+        local maxVisibleItems = 10
+        local totalHeight = #dropdown.options * itemHeight
+        local menuHeight = math.min(totalHeight + 4, maxVisibleItems * itemHeight + 4)
+        dropdown.menu:SetHeight(menuHeight)
+
+        -- Set scroll child height to fit all items
+        dropdown.menu.scrollChild:SetHeight(totalHeight)
 
         for i, opt in ipairs(dropdown.options) do
-            local item = CreateFrame("Button", nil, dropdown.menu, "BackdropTemplate")
-            item:SetSize(width - 4, itemHeight)
-            item:SetPoint("TOPLEFT", 2, -2 - (i - 1) * itemHeight)
+            local item = CreateFrame("Button", nil, dropdown.menu.scrollChild, "BackdropTemplate")
+            item:SetSize(width - 24, itemHeight)
+            item:SetPoint("TOPLEFT", 0, -(i - 1) * itemHeight)
             item:SetBackdrop(MedaUI:CreateBackdrop(false))
             item:SetBackdropColor(0, 0, 0, 0)
 
@@ -129,6 +145,9 @@ function MedaUI:CreateDropdown(parent, width, options)
 
             item.text = item:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
             item.text:SetPoint("LEFT", 8, 0)
+            item.text:SetPoint("RIGHT", -4, 0)
+            item.text:SetJustifyH("LEFT")
+            item.text:SetWordWrap(false)
             item.text:SetText(opt.label)
             item.text:SetTextColor(unpack(Theme.text))
 
@@ -152,6 +171,9 @@ function MedaUI:CreateDropdown(parent, width, options)
 
             dropdown.menu.items[i] = item
         end
+
+        -- Reset scroll position
+        dropdown.menu.scrollFrame:SetVerticalScroll(0)
     end
 
     -- Toggle dropdown

@@ -6,6 +6,30 @@
 local MedaUI = LibStub("MedaUI-1.0")
 
 MedaUI:RegisterTheme("default", {
+    -- Font Size Hierarchy
+    fontSize = {
+        xs = 10,      -- Small labels, hints
+        sm = 11,      -- Secondary text, descriptions
+        md = 12,      -- Body text, widget labels (default)
+        lg = 14,      -- Section headers
+        xl = 16,      -- Panel titles
+    },
+
+    -- Spacing System
+    spacing = {
+        xs = 4,
+        sm = 8,
+        md = 12,
+        lg = 16,
+        xl = 24,
+    },
+
+    -- Gradient Colors
+    titleGradientStart = { 0.9, 0.7, 0.15, 1 },
+    titleGradientEnd = { 1.0, 0.85, 0.3, 1 },
+    sectionGradientStart = { 0.9, 0.7, 0.15, 0.8 },
+    sectionGradientEnd = { 0.9, 0.7, 0.15, 0.1 },
+
     -- Backgrounds
     background = { 0.11, 0.11, 0.12, 0.97 },
     backgroundLight = { 0.16, 0.16, 0.17, 1 },

@@ -44,7 +44,7 @@ function MedaUI:CreatePanel(name, width, height, title)
         end
     end)
 
-    -- Title text
+    -- Title text with gradient support
     if title then
         panel.titleText = titleBar:CreateFontString(nil, "OVERLAY", "GameFontNormal")
         panel.titleText:SetPoint("LEFT", 10, 0)
@@ -71,6 +71,13 @@ function MedaUI:CreatePanel(name, width, height, title)
     panel.content:SetPoint("TOPLEFT", 8, -36)
     panel.content:SetPoint("BOTTOMRIGHT", -8, 8)
 
+    -- Addon icon watermark (optional, 128x128, bottom-right, 15% opacity)
+    panel.addonIcon = panel.content:CreateTexture(nil, "BACKGROUND")
+    panel.addonIcon:SetSize(128, 128)
+    panel.addonIcon:SetPoint("BOTTOMRIGHT", panel.content, "BOTTOMRIGHT", -8, 8)
+    panel.addonIcon:SetAlpha(0.15)
+    panel.addonIcon:Hide()  -- Hidden by default
+
     -- Gold accent line under title
     local accent = titleBar:CreateTexture(nil, "OVERLAY")
     accent:SetHeight(1)
@@ -92,9 +99,12 @@ function MedaUI:CreatePanel(name, width, height, title)
         panel:SetBackdropColor(unpack(Theme.background))
         panel:SetBackdropBorderColor(unpack(Theme.border))
         titleBar:SetBackdropColor(unpack(Theme.backgroundLight))
+
+        -- Title text color (using gold accent)
         if panel.titleText then
             panel.titleText:SetTextColor(unpack(Theme.gold))
         end
+
         closeBtn.text:SetTextColor(unpack(Theme.textDim))
         accent:SetColorTexture(unpack(Theme.goldDim))
     end
@@ -128,12 +138,37 @@ function MedaUI:CreatePanel(name, width, height, title)
         return self.content
     end
 
+    --- Set the addon icon watermark
+    --- @param iconPath string The texture path for the icon
+    function panel:SetAddonIcon(iconPath)
+        if self.addonIcon and iconPath then
+            self.addonIcon:SetTexture(iconPath)
+            self.addonIcon:Show()
+        end
+    end
+
+    --- Clear the addon icon watermark
+    function panel:ClearAddonIcon()
+        if self.addonIcon then
+            self.addonIcon:Hide()
+            self.addonIcon:SetTexture(nil)
+        end
+    end
+
+    -- Store reference to native SetResizable before we override it
+    local nativeSetResizable = panel.SetResizable
+
     --- Enable resizing with min/max bounds
     --- @param enabled boolean Whether resizing is enabled
     --- @param config table|nil {minWidth, minHeight}
     function panel:SetResizable(enabled, config)
         self.isResizable = enabled
         config = config or {}
+
+        -- Call native Frame:SetResizable
+        if nativeSetResizable then
+            nativeSetResizable(self, enabled)
+        end
 
         if enabled then
             -- Create resize grip if it doesn't exist

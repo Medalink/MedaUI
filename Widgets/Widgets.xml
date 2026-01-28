@@ -22,4 +22,19 @@
     <Script file="CodeBlock.lua"/>
     <Script file="ContextMenu.lua"/>
     <Script file="ThemeSelector.lua"/>
+
+    <!-- Layout helpers -->
+    <Script file="TwoColumnLayout.lua"/>
+    <Script file="LabeledControl.lua"/>
+
+    <!-- Data display -->
+    <Script file="DataTable.lua"/>
+
+    <!-- Effects and animations -->
+    <Script file="Effects.lua"/>
+
+    <!-- Specialized containers -->
+    <Script file="FloatingToolbar.lua"/>
+    <Script file="AutoHideContainer.lua"/>
+    <Script file="TextViewer.lua"/>
 </Ui>

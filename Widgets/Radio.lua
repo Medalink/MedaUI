@@ -30,9 +30,9 @@ function MedaUI:CreateRadio(parent, label, group)
     box.dot:SetPoint("CENTER")
     box.dot:Hide()
 
-    -- Label
+    -- Label (8px gap from box for consistent spacing)
     container.label = container:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    container.label:SetPoint("LEFT", box, "RIGHT", 6, 0)
+    container.label:SetPoint("LEFT", box, "RIGHT", 8, 0)
     container.label:SetText(label)
 
     -- State

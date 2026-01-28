@@ -16,6 +16,7 @@ function MedaUI:AddResizeGrip(frame, config)
     local minH = config.minHeight or 150
     local onResize = config.onResize
 
+    -- Set resize bounds (caller is responsible for enabling SetResizable on the frame)
     frame:SetResizeBounds(minW, minH)
 
     local handles = {}
@@ -41,15 +42,17 @@ function MedaUI:AddResizeGrip(frame, config)
 
         if corner.primary then
             -- Draw a visible grip pattern for the primary resize corner (bottom-right)
+            -- 3x3 pixel dots with improved visibility
             handle.dots = {}
+            handle._isHovered = false
             for i = 1, 3 do
                 local dot1 = handle:CreateTexture(nil, "OVERLAY")
-                dot1:SetSize(2, 2)
+                dot1:SetSize(3, 3)  -- Increased from 2x2 to 3x3
                 dot1:SetPoint("BOTTOMRIGHT", -(i * 4), (i * 4))
                 handle.dots[#handle.dots + 1] = dot1
 
                 local dot2 = handle:CreateTexture(nil, "OVERLAY")
-                dot2:SetSize(2, 2)
+                dot2:SetSize(3, 3)  -- Increased from 2x2 to 3x3
                 dot2:SetPoint("BOTTOMRIGHT", -(i * 4) - 4, (i * 4) - 4)
                 handle.dots[#handle.dots + 1] = dot2
             end
@@ -58,9 +61,28 @@ function MedaUI:AddResizeGrip(frame, config)
             local function ApplyTheme()
                 local Theme = MedaUI.Theme
                 for _, dot in ipairs(handle.dots) do
-                    dot:SetColorTexture(unpack(Theme.textDim))
+                    if handle._isHovered then
+                        -- Gold color on hover
+                        dot:SetColorTexture(unpack(Theme.gold))
+                    else
+                        -- Slightly higher base opacity (0.6 alpha)
+                        local color = Theme.textDim
+                        dot:SetColorTexture(color[1], color[2], color[3], 0.6)
+                    end
                 end
             end
+            handle._ApplyTheme = ApplyTheme
+
+            -- Hover state for gold color
+            handle:SetScript("OnEnter", function(self)
+                self._isHovered = true
+                self._ApplyTheme()
+            end)
+
+            handle:SetScript("OnLeave", function(self)
+                self._isHovered = false
+                self._ApplyTheme()
+            end)
 
             -- Register for theme updates
             handle._themeHandle = MedaUI:RegisterThemedWidget(handle, ApplyTheme)

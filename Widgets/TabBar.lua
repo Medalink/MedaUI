@@ -60,9 +60,10 @@ function MedaUI:CreateTabBar(parent, tabs)
         tab.text:SetPoint("CENTER", 0, 0)
         tab.text:SetText(tabDef.label)
 
-        -- Calculate tab width based on text
-        local textWidth = tab.text:GetStringWidth()
-        local tabWidth = math.max(minTabWidth, textWidth + tabHorizontalPadding)
+        -- Calculate tab width based on text length (approximate 7px per char for small font)
+        local textLen = string.len(tabDef.label or "")
+        local estimatedWidth = textLen * 7
+        local tabWidth = math.max(minTabWidth, estimatedWidth + tabHorizontalPadding)
         tab:SetSize(tabWidth, 26)
         tab:SetPoint("LEFT", xOffset, 0)
         xOffset = xOffset + tabWidth + tabPadding

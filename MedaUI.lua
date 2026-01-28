@@ -42,6 +42,8 @@ MedaUI.Theme = {
     -- Tabs
     tabActive = { 0.18, 0.18, 0.19, 1 },
     tabInactive = { 0.13, 0.13, 0.14, 1 },
+    tabHover = { 0.22, 0.22, 0.23, 1 },
+    tabBadge = { 0.8, 0.2, 0.2, 1 },
 
     -- Table rows
     rowEven = { 0.12, 0.12, 0.13, 1 },
@@ -52,9 +54,34 @@ MedaUI.Theme = {
     -- Highlights
     highlight = { 0.9, 0.7, 0.15, 0.15 },
 
+    -- Code/monospace styling
+    codeBackground = { 0.08, 0.08, 0.09, 1 },
+    codeBorder = { 0.25, 0.25, 0.26, 1 },
+    codeLineNumber = { 0.4, 0.4, 0.4, 1 },
+    codeHighlight = { 0.3, 0.3, 0.1, 1 },
+
+    -- Tree styling
+    treeIndent = 16,
+    treeExpandIcon = { 0.6, 0.6, 0.6, 1 },
+
+    -- Dropdown styling
+    dropdownArrow = { 0.6, 0.6, 0.6, 1 },
+    dropdownHover = { 0.22, 0.22, 0.23, 1 },
+
+    -- Context menu
+    menuBackground = { 0.12, 0.12, 0.13, 0.98 },
+    menuHover = { 0.22, 0.22, 0.23, 1 },
+    menuSeparator = { 0.25, 0.25, 0.26, 1 },
+
+    -- Message levels (for debug output)
+    levelDebug = { 0.5, 0.5, 0.5, 1 },
+    levelInfo = { 0.9, 0.9, 0.9, 1 },
+    levelWarn = { 1, 0.8, 0, 1 },
+    levelError = { 1, 0.3, 0.3, 1 },
+
     -- Misc
     closeHover = { 1, 0.4, 0.4, 1 },
-    menuBackground = { 0.12, 0.12, 0.13, 0.98 },
+    resizeHandle = { 0.3, 0.3, 0.3, 0.5 },
 }
 
 -- ============================================================================

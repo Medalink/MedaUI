@@ -1,0 +1,280 @@
+--[[
+    MedaUI CodeBlock Widget
+    Monospace text display for stack traces, code, table dumps
+]]
+
+local MedaUI = LibStub("MedaUI-1.0")
+local Theme = MedaUI.Theme
+
+--- Create a code block
+--- @param parent Frame Parent frame
+--- @param width number Code block width
+--- @param height number Code block height
+--- @param config table|nil Configuration {showLineNumbers, wrapText}
+--- @return Frame The code block frame
+function MedaUI:CreateCodeBlock(parent, width, height, config)
+    config = config or {}
+    local showLineNumbers = config.showLineNumbers ~= false
+    local wrapText = config.wrapText or false
+    
+    local codeBlock = CreateFrame("Frame", nil, parent, "BackdropTemplate")
+    codeBlock:SetSize(width, height)
+    codeBlock:SetBackdrop(self:CreateBackdrop(true))
+    codeBlock:SetBackdropColor(0.08, 0.08, 0.09, 1) -- Slightly darker for code
+    codeBlock:SetBackdropBorderColor(unpack(Theme.border))
+    
+    codeBlock.text = ""
+    codeBlock.lines = {}
+    codeBlock.highlightLine = nil
+    codeBlock.showLineNumbers = showLineNumbers
+    
+    -- Scroll frame
+    local scrollFrame = CreateFrame("ScrollFrame", nil, codeBlock, "UIPanelScrollFrameTemplate")
+    scrollFrame:SetPoint("TOPLEFT", 4, -4)
+    scrollFrame:SetPoint("BOTTOMRIGHT", -24, 4)
+    
+    -- Content frame
+    local content = CreateFrame("Frame", nil, scrollFrame)
+    content:SetWidth(width - 28)
+    scrollFrame:SetScrollChild(content)
+    codeBlock.content = content
+    codeBlock.scrollFrame = scrollFrame
+    
+    -- Line number gutter (if enabled)
+    local gutterWidth = showLineNumbers and 40 or 0
+    
+    if showLineNumbers then
+        codeBlock.gutter = CreateFrame("Frame", nil, codeBlock, "BackdropTemplate")
+        codeBlock.gutter:SetPoint("TOPLEFT", 4, -4)
+        codeBlock.gutter:SetPoint("BOTTOMLEFT", 4, 4)
+        codeBlock.gutter:SetWidth(gutterWidth)
+        codeBlock.gutter:SetBackdrop(self:CreateBackdrop(false))
+        codeBlock.gutter:SetBackdropColor(0.1, 0.1, 0.11, 1)
+        
+        -- Adjust scroll frame position
+        scrollFrame:SetPoint("TOPLEFT", gutterWidth + 6, -4)
+    end
+    
+    -- Copy button
+    codeBlock.copyBtn = CreateFrame("Button", nil, codeBlock, "BackdropTemplate")
+    codeBlock.copyBtn:SetSize(50, 18)
+    codeBlock.copyBtn:SetPoint("TOPRIGHT", -28, -6)
+    codeBlock.copyBtn:SetBackdrop(self:CreateBackdrop(true))
+    codeBlock.copyBtn:SetBackdropColor(unpack(Theme.button))
+    codeBlock.copyBtn:SetBackdropBorderColor(unpack(Theme.border))
+    
+    codeBlock.copyBtn.text = codeBlock.copyBtn:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    codeBlock.copyBtn.text:SetPoint("CENTER", 0, 0)
+    codeBlock.copyBtn.text:SetText("Copy")
+    codeBlock.copyBtn.text:SetTextColor(unpack(Theme.textDim))
+    
+    codeBlock.copyBtn:SetScript("OnEnter", function(self)
+        self:SetBackdropColor(unpack(Theme.buttonHover))
+        self.text:SetTextColor(unpack(Theme.text))
+    end)
+    
+    codeBlock.copyBtn:SetScript("OnLeave", function(self)
+        self:SetBackdropColor(unpack(Theme.button))
+        self.text:SetTextColor(unpack(Theme.textDim))
+    end)
+    
+    codeBlock.copyBtn:SetScript("OnClick", function()
+        codeBlock:CopyToClipboard()
+    end)
+    
+    -- Line pool
+    codeBlock.linePool = {}
+    codeBlock.lineNumberPool = {}
+    
+    local lineHeight = 14
+    
+    -- Update display
+    local function UpdateDisplay()
+        local lines = codeBlock.lines
+        local totalHeight = #lines * lineHeight + 8
+        content:SetHeight(math.max(totalHeight, height - 8))
+        
+        -- Hide existing lines
+        for _, line in ipairs(codeBlock.linePool) do
+            line:Hide()
+        end
+        for _, lineNum in ipairs(codeBlock.lineNumberPool) do
+            lineNum:Hide()
+        end
+        
+        -- Create/show lines
+        for i, lineText in ipairs(lines) do
+            -- Line number
+            if showLineNumbers then
+                local lineNum = codeBlock.lineNumberPool[i]
+                if not lineNum then
+                    lineNum = codeBlock.gutter:CreateFontString(nil, "OVERLAY")
+                    lineNum:SetFont("Fonts\\FRIZQT__.TTF", 10, "")
+                    lineNum:SetJustifyH("RIGHT")
+                    lineNum:SetWidth(gutterWidth - 8)
+                    codeBlock.lineNumberPool[i] = lineNum
+                end
+                lineNum:SetPoint("TOPRIGHT", -4, -4 - (i - 1) * lineHeight)
+                lineNum:SetText(tostring(i))
+                lineNum:SetTextColor(0.4, 0.4, 0.4, 1)
+                lineNum:Show()
+            end
+            
+            -- Line content
+            local line = codeBlock.linePool[i]
+            if not line then
+                line = CreateFrame("Frame", nil, content, "BackdropTemplate")
+                line:SetHeight(lineHeight)
+                line:SetBackdrop(MedaUI:CreateBackdrop(false))
+                
+                line.text = line:CreateFontString(nil, "OVERLAY")
+                line.text:SetFont("Fonts\\FRIZQT__.TTF", 10, "")
+                line.text:SetPoint("LEFT", 4, 0)
+                line.text:SetPoint("RIGHT", -4, 0)
+                line.text:SetJustifyH("LEFT")
+                
+                codeBlock.linePool[i] = line
+            end
+            
+            line:SetPoint("TOPLEFT", 0, -4 - (i - 1) * lineHeight)
+            line:SetPoint("RIGHT", 0, 0)
+            line.text:SetText(lineText)
+            line.text:SetTextColor(unpack(Theme.text))
+            
+            -- Highlight line
+            if codeBlock.highlightLine == i then
+                line:SetBackdropColor(0.3, 0.3, 0.1, 1)
+            else
+                line:SetBackdropColor(0, 0, 0, 0)
+            end
+            
+            line:Show()
+        end
+    end
+    
+    -- Mouse wheel scrolling
+    codeBlock:EnableMouseWheel(true)
+    codeBlock:SetScript("OnMouseWheel", function(self, delta)
+        local current = scrollFrame:GetVerticalScroll()
+        local max = content:GetHeight() - (height - 8)
+        local new = math.max(0, math.min(max, current - (delta * lineHeight * 3)))
+        scrollFrame:SetVerticalScroll(new)
+    end)
+    
+    --- Set the code text
+    --- @param text string The code text
+    function codeBlock:SetText(text)
+        self.text = text or ""
+        self.lines = {}
+        
+        -- Split into lines
+        for line in (text .. "\n"):gmatch("([^\n]*)\n") do
+            self.lines[#self.lines + 1] = line
+        end
+        
+        UpdateDisplay()
+    end
+    
+    --- Get the code text
+    --- @return string The code text
+    function codeBlock:GetText()
+        return self.text
+    end
+    
+    --- Set a line to highlight
+    --- @param lineNumber number|nil The line number to highlight
+    function codeBlock:SetHighlightLine(lineNumber)
+        self.highlightLine = lineNumber
+        UpdateDisplay()
+        if lineNumber then
+            self:ScrollToLine(lineNumber)
+        end
+    end
+    
+    --- Clear highlight
+    function codeBlock:ClearHighlight()
+        self.highlightLine = nil
+        UpdateDisplay()
+    end
+    
+    --- Scroll to a specific line
+    --- @param lineNumber number The line number to scroll to
+    function codeBlock:ScrollToLine(lineNumber)
+        local scrollPos = (lineNumber - 1) * lineHeight - (height / 2)
+        local max = content:GetHeight() - (height - 8)
+        scrollFrame:SetVerticalScroll(math.max(0, math.min(max, scrollPos)))
+    end
+    
+    --- Copy text to clipboard (opens edit box dialog)
+    function codeBlock:CopyToClipboard()
+        -- Create a popup with an edit box for copying
+        if not MedaUI.copyDialog then
+            local dialog = CreateFrame("Frame", "MedaUICopyDialog", UIParent, "BackdropTemplate")
+            dialog:SetSize(400, 200)
+            dialog:SetPoint("CENTER")
+            dialog:SetBackdrop(MedaUI:CreateBackdrop(true))
+            dialog:SetBackdropColor(unpack(Theme.background))
+            dialog:SetBackdropBorderColor(unpack(Theme.border))
+            dialog:SetFrameStrata("FULLSCREEN_DIALOG")
+            dialog:EnableMouse(true)
+            
+            dialog.title = dialog:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+            dialog.title:SetPoint("TOP", 0, -10)
+            dialog.title:SetText("Press Ctrl+C to copy")
+            dialog.title:SetTextColor(unpack(Theme.gold))
+            
+            dialog.editBox = CreateFrame("EditBox", nil, dialog, "BackdropTemplate")
+            dialog.editBox:SetPoint("TOPLEFT", 10, -35)
+            dialog.editBox:SetPoint("BOTTOMRIGHT", -10, 40)
+            dialog.editBox:SetBackdrop(MedaUI:CreateBackdrop(true))
+            dialog.editBox:SetBackdropColor(unpack(Theme.input))
+            dialog.editBox:SetBackdropBorderColor(unpack(Theme.border))
+            dialog.editBox:SetMultiLine(true)
+            dialog.editBox:SetFontObject(GameFontHighlightSmall)
+            dialog.editBox:SetTextColor(unpack(Theme.text))
+            dialog.editBox:SetAutoFocus(true)
+            
+            dialog.closeBtn = CreateFrame("Button", nil, dialog, "BackdropTemplate")
+            dialog.closeBtn:SetSize(80, 24)
+            dialog.closeBtn:SetPoint("BOTTOM", 0, 10)
+            dialog.closeBtn:SetBackdrop(MedaUI:CreateBackdrop(true))
+            dialog.closeBtn:SetBackdropColor(unpack(Theme.button))
+            dialog.closeBtn:SetBackdropBorderColor(unpack(Theme.border))
+            
+            dialog.closeBtn.text = dialog.closeBtn:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+            dialog.closeBtn.text:SetPoint("CENTER")
+            dialog.closeBtn.text:SetText("Close")
+            dialog.closeBtn.text:SetTextColor(unpack(Theme.text))
+            
+            dialog.closeBtn:SetScript("OnClick", function()
+                dialog:Hide()
+            end)
+            
+            dialog.editBox:SetScript("OnEscapePressed", function()
+                dialog:Hide()
+            end)
+            
+            dialog:Hide()
+            MedaUI.copyDialog = dialog
+        end
+        
+        MedaUI.copyDialog.editBox:SetText(self.text)
+        MedaUI.copyDialog.editBox:HighlightText()
+        MedaUI.copyDialog:Show()
+    end
+    
+    --- Refresh the display
+    function codeBlock:Refresh()
+        UpdateDisplay()
+    end
+    
+    --- Set whether to show line numbers
+    --- @param show boolean Whether to show line numbers
+    function codeBlock:SetShowLineNumbers(show)
+        self.showLineNumbers = show
+        -- Would need to recreate gutter, simplified for now
+        UpdateDisplay()
+    end
+    
+    return codeBlock
+end

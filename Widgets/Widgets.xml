@@ -1,5 +1,6 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
 ..\FrameXML\UI.xsd">
+    <!-- Core widgets -->
     <Script file="Button.lua"/>
     <Script file="Checkbox.lua"/>
     <Script file="Radio.lua"/>
@@ -8,4 +9,14 @@
     <Script file="ColorPicker.lua"/>
     <Script file="Panel.lua"/>
     <Script file="MinimapButton.lua"/>
+    
+    <!-- Advanced widgets -->
+    <Script file="Badge.lua"/>
+    <Script file="TabBar.lua"/>
+    <Script file="Dropdown.lua"/>
+    <Script file="SearchBox.lua"/>
+    <Script file="ScrollList.lua"/>
+    <Script file="TreeView.lua"/>
+    <Script file="CodeBlock.lua"/>
+    <Script file="ContextMenu.lua"/>
 </Ui>

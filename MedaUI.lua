@@ -284,3 +284,150 @@ function MedaUI:ApplyBackdrop(frame, bgKey, borderKey)
         frame:SetBackdropBorderColor(unpack(self.Theme[borderKey]))
     end
 end
+
+-- ============================================================================
+-- Media / Texture Registry
+-- ============================================================================
+
+-- Get addon name from WoW (first arg to every file)
+local LOADED_BY_ADDON = ...
+
+-- Dynamically determine the media path based on where MedaUI is loaded from
+local TEXTURE_EXT = ".tga"
+local MEDIA_PATH
+
+do
+    -- Try multiple path patterns to find the textures
+    -- Pattern 1: Embedded as library (Interface/AddOns/AddonName/Libs/MedaUI/Media/)
+    -- Pattern 2: Standalone addon (Interface/AddOns/MedaUI/Media/)
+
+    if LOADED_BY_ADDON and LOADED_BY_ADDON ~= "MedaUI" then
+        -- Loaded as embedded library - construct path based on loading addon
+        MEDIA_PATH = "Interface\\AddOns\\" .. LOADED_BY_ADDON .. "\\Libs\\MedaUI\\Media\\"
+    else
+        -- Standalone installation or addon name is MedaUI
+        MEDIA_PATH = "Interface\\AddOns\\MedaUI\\Media\\"
+    end
+end
+
+-- Debug: Store path for inspection (can be viewed with /dump MedaUI._mediaPath)
+MedaUI._mediaPath = MEDIA_PATH
+MedaUI._loadedByAddon = LOADED_BY_ADDON
+
+-- Texture registry organized by category
+MedaUI.Media = MedaUI.Media or {
+    -- Bar textures (256x32, horizontal status bars)
+    bars = {
+        {
+            id = "solid",
+            name = "Solid",
+            description = "Clean solid bar with subtle depth",
+            file = "bar-solid",
+        },
+    },
+
+    -- Orb textures (64x64, circular for mana/health orbs)
+    orbs = {
+        {
+            id = "solid",
+            name = "Solid",
+            description = "Clean simple orb with solid fill",
+            mask = "orb-classic-mask",
+            ring = "orb-classic-ring",
+        },
+        {
+            id = "glow",
+            name = "Glow",
+            description = "Soft outer glow effect",
+            mask = "orb-glow-mask",
+            ring = "orb-glow-ring",
+        },
+        {
+            id = "glass",
+            name = "Glass",
+            description = "Glossy glass-like with highlight",
+            mask = "orb-glass-mask",
+            ring = "orb-glass-ring",
+        },
+    },
+}
+
+--- Get the full texture path for a media file
+--- @param category string The media category (e.g., "bars")
+--- @param id string The texture id within the category
+--- @return string|nil The full texture path, or nil if not found
+function MedaUI:GetMediaPath(category, id)
+    local categoryData = self.Media[category]
+    if not categoryData then return nil end
+
+    for _, entry in ipairs(categoryData) do
+        if entry.id == id then
+            return MEDIA_PATH .. entry.file .. TEXTURE_EXT
+        end
+    end
+    return nil
+end
+
+--- Get a bar texture path by id
+--- @param id string The bar texture id (e.g., "glass", "frosted")
+--- @return string The full texture path (defaults to "solid" if not found)
+function MedaUI:GetBarTexture(id)
+    return self:GetMediaPath("bars", id) or (MEDIA_PATH .. "bar-solid" .. TEXTURE_EXT)
+end
+
+--- Get list of available textures in a category
+--- @param category string The media category (e.g., "bars")
+--- @return table Array of {id, name, description} for each texture
+function MedaUI:GetMediaList(category)
+    local categoryData = self.Media[category]
+    if not categoryData then return {} end
+
+    local list = {}
+    for _, entry in ipairs(categoryData) do
+        list[#list + 1] = {
+            id = entry.id,
+            name = entry.name,
+            description = entry.description,
+        }
+    end
+    return list
+end
+
+--- Get list of available bar textures (convenience method)
+--- @return table Array of {id, name, description} for each bar texture
+function MedaUI:GetBarTextureList()
+    return self:GetMediaList("bars")
+end
+
+--- Get orb texture paths by id (returns both mask and ring)
+--- @param id string The orb texture id (e.g., "glass", "frosted")
+--- @return string, string The mask path and ring path (defaults to "classic" if not found)
+function MedaUI:GetOrbTextures(id)
+    local categoryData = self.Media.orbs
+    if categoryData then
+        for _, entry in ipairs(categoryData) do
+            if entry.id == id then
+                return MEDIA_PATH .. entry.mask .. TEXTURE_EXT, MEDIA_PATH .. entry.ring .. TEXTURE_EXT
+            end
+        end
+    end
+    -- Default to solid (uses classic textures)
+    return MEDIA_PATH .. "orb-classic-mask" .. TEXTURE_EXT, MEDIA_PATH .. "orb-classic-ring" .. TEXTURE_EXT
+end
+
+--- Get list of available orb textures (convenience method)
+--- @return table Array of {id, name, description} for each orb texture
+function MedaUI:GetOrbTextureList()
+    local categoryData = self.Media.orbs
+    if not categoryData then return {} end
+
+    local list = {}
+    for _, entry in ipairs(categoryData) do
+        list[#list + 1] = {
+            id = entry.id,
+            name = entry.name,
+            description = entry.description,
+        }
+    end
+    return list
+end

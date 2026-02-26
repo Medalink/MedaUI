@@ -43,6 +43,7 @@ MedaUI:RegisterTheme("default", {
     gold = { 0.9, 0.7, 0.15, 1 },
     goldBright = { 1, 0.78, 0.2, 1 },
     goldDim = { 0.7, 0.55, 0.1, 1 },
+    accent = { 0.9, 0.7, 0.15, 1 },  -- Primary accent (same as gold)
 
     -- Text colors
     text = { 0.9, 0.9, 0.9, 1 },

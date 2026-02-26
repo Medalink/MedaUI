@@ -43,6 +43,7 @@ MedaUI:RegisterTheme("bricks", {
     gold = { 0.38, 0.53, 0.87, 1 },               -- #6187DE primary
     goldBright = { 0.53, 0.67, 0.95, 1 },         -- #87ABF2 hover/bright
     goldDim = { 0.27, 0.38, 0.65, 1 },            -- #4560A6 muted
+    accent = { 0.38, 0.53, 0.87, 1 },             -- Primary accent (same as gold)
 
     -- Text colors (high contrast)
     text = { 0.95, 0.95, 0.97, 1 },               -- #F2F2F7

@@ -1,6 +1,11 @@
 --[[
     MedaUI Dropdown Widget
     Select menu with options list
+
+    textureMode (optional 4th arg to CreateDropdown):
+      "fill"    – option.texture fills entire row; text overlaid with outline
+      "preview" – square preview panel anchored to the right of the dropdown
+      nil       – plain text items (default)
 ]]
 
 local MedaUI = LibStub("MedaUI-1.0")
@@ -11,9 +16,10 @@ local dropdownCounter = 0
 --- Create a dropdown select menu
 --- @param parent Frame Parent frame
 --- @param width number Dropdown width
---- @param options table Array of {value, label} options
+--- @param options table Array of {value, label, texture?} options
+--- @param textureMode string|nil "fill", "preview", or nil
 --- @return Frame The dropdown frame
-function MedaUI:CreateDropdown(parent, width, options)
+function MedaUI:CreateDropdown(parent, width, options, textureMode)
     dropdownCounter = dropdownCounter + 1
     local name = "MedaUIDropdown" .. dropdownCounter
 
@@ -28,6 +34,39 @@ function MedaUI:CreateDropdown(parent, width, options)
     dropdown.isOpen = false
     dropdown.enabled = true
     dropdown._isHovered = false
+    dropdown._textureMode = textureMode
+    dropdown._selectedTexture = nil
+
+    -- ================================================================
+    -- Fill mode: texture behind selected text in the main dropdown bar
+    -- ================================================================
+    if textureMode == "fill" then
+        dropdown.fillTex = dropdown:CreateTexture(nil, "BORDER")
+        dropdown.fillTex:SetPoint("TOPLEFT", 1, -1)
+        dropdown.fillTex:SetPoint("BOTTOMRIGHT", -23, 1)
+        dropdown.fillTex:Hide()
+    end
+
+    -- ================================================================
+    -- Preview mode: square panel to the right of the dropdown
+    -- ================================================================
+    if textureMode == "preview" then
+        local pvSize = 48
+        local pv = CreateFrame("Frame", nil, dropdown, "BackdropTemplate")
+        pv:SetSize(pvSize, pvSize)
+        pv:SetPoint("LEFT", dropdown, "RIGHT", 6, 0)
+        pv:SetBackdrop(self:CreateBackdrop(true))
+        pv:SetBackdropColor(0.04, 0.04, 0.06, 0.9)
+        pv:SetBackdropBorderColor(0.25, 0.25, 0.35, 0.6)
+
+        local pvTex = pv:CreateTexture(nil, "ARTWORK")
+        pvTex:SetPoint("TOPLEFT", 3, -3)
+        pvTex:SetPoint("BOTTOMRIGHT", -3, 3)
+        pvTex:SetTexCoord(0, 1, 0, 1)
+        pv.tex = pvTex
+
+        dropdown.previewPanel = pv
+    end
 
     -- Selected text display
     dropdown.text = dropdown:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
@@ -36,6 +75,11 @@ function MedaUI:CreateDropdown(parent, width, options)
     dropdown.text:SetJustifyH("LEFT")
     dropdown.text:SetWordWrap(false)
     dropdown.text:SetText("Select...")
+
+    if textureMode == "fill" then
+        dropdown.text:SetShadowOffset(2, -2)
+        dropdown.text:SetShadowColor(0, 0, 0, 1)
+    end
 
     -- Arrow separator line
     dropdown.arrowSeparator = dropdown:CreateTexture(nil, "ARTWORK")
@@ -93,7 +137,11 @@ function MedaUI:CreateDropdown(parent, width, options)
             else
                 dropdown:SetBackdropBorderColor(unpack(Theme.border))
             end
-            dropdown.text:SetTextColor(unpack(Theme.text))
+            if textureMode == "fill" and dropdown._selectedTexture then
+                dropdown.text:SetTextColor(1, 1, 1, 1)
+            else
+                dropdown.text:SetTextColor(unpack(Theme.text))
+            end
             dropdown.arrow:SetVertexColor(unpack(Theme.textDim))
             dropdown.arrowSeparator:SetColorTexture(unpack(Theme.border))
         else
@@ -105,6 +153,11 @@ function MedaUI:CreateDropdown(parent, width, options)
         end
         dropdown.menu:SetBackdropColor(unpack(Theme.menuBackground))
         dropdown.menu:SetBackdropBorderColor(unpack(Theme.border))
+
+        if textureMode == "preview" and dropdown.previewPanel then
+            dropdown.previewPanel:SetBackdropColor(0.04, 0.04, 0.06, 0.9)
+            dropdown.previewPanel:SetBackdropBorderColor(unpack(Theme.border))
+        end
     end
     dropdown._ApplyTheme = ApplyTheme
 
@@ -124,13 +177,11 @@ function MedaUI:CreateDropdown(parent, width, options)
         end
         wipe(dropdown.menu.items)
 
-        local itemHeight = 22
+        local itemHeight = (textureMode == "fill") and 24 or 22
         local maxVisibleItems = 10
         local totalHeight = #dropdown.options * itemHeight
         local menuHeight = math.min(totalHeight + 4, maxVisibleItems * itemHeight + 4)
         dropdown.menu:SetHeight(menuHeight)
-
-        -- Set scroll child height to fit all items
         dropdown.menu.scrollChild:SetHeight(totalHeight)
 
         for i, opt in ipairs(dropdown.options) do
@@ -142,23 +193,58 @@ function MedaUI:CreateDropdown(parent, width, options)
 
             item.value = opt.value
             item.label = opt.label
+            item._texture = opt.texture
 
-            item.text = item:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-            item.text:SetPoint("LEFT", 8, 0)
-            item.text:SetPoint("RIGHT", -4, 0)
-            item.text:SetJustifyH("LEFT")
-            item.text:SetWordWrap(false)
-            item.text:SetText(opt.label)
-            item.text:SetTextColor(unpack(Theme.text))
+            -- Fill mode: texture fills entire item row
+            if textureMode == "fill" and opt.texture then
+                local fill = item:CreateTexture(nil, "ARTWORK")
+                fill:SetAllPoints()
+                fill:SetTexture(opt.texture)
+                fill:SetAlpha(0.85)
 
-            item:SetScript("OnEnter", function(self)
-                local Theme = MedaUI.Theme
-                self:SetBackdropColor(unpack(Theme.buttonHover))
-            end)
+                item.text = item:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+                item.text:SetPoint("LEFT", 8, 0)
+                item.text:SetPoint("RIGHT", -4, 0)
+                item.text:SetJustifyH("LEFT")
+                item.text:SetWordWrap(false)
+                item.text:SetText(opt.label)
+                item.text:SetTextColor(1, 1, 1, 1)
+                item.text:SetShadowOffset(2, -2)
+                item.text:SetShadowColor(0, 0, 0, 1)
+            else
+                item.text = item:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+                item.text:SetPoint("LEFT", 8, 0)
+                item.text:SetPoint("RIGHT", -4, 0)
+                item.text:SetJustifyH("LEFT")
+                item.text:SetWordWrap(false)
+                item.text:SetText(opt.label)
+                item.text:SetTextColor(unpack(Theme.text))
+            end
 
-            item:SetScript("OnLeave", function(self)
-                self:SetBackdropColor(0, 0, 0, 0)
-            end)
+            -- Hover / leave
+            if textureMode == "preview" then
+                item:SetScript("OnEnter", function(self)
+                    local Theme = MedaUI.Theme
+                    self:SetBackdropColor(unpack(Theme.buttonHover))
+                    if self._texture and dropdown.previewPanel then
+                        dropdown.previewPanel.tex:SetTexture(self._texture)
+                    end
+                end)
+                item:SetScript("OnLeave", function(self)
+                    self:SetBackdropColor(0, 0, 0, 0)
+                    if dropdown._selectedTexture and dropdown.previewPanel then
+                        dropdown.previewPanel.tex:SetTexture(dropdown._selectedTexture)
+                    end
+                end)
+            else
+                item:SetScript("OnEnter", function(self)
+                    local Theme = MedaUI.Theme
+                    self:SetBackdropColor(unpack(Theme.buttonHover))
+                end)
+                item:SetScript("OnLeave", function(self)
+                    self:SetBackdropColor(0, 0, 0, 0)
+                end)
+            end
 
             item:SetScript("OnClick", function(self)
                 dropdown:SetSelected(self.value)
@@ -224,12 +310,35 @@ function MedaUI:CreateDropdown(parent, width, options)
         local previousValue = self.selectedValue
         self.selectedValue = value
 
-        -- Find label for value
+        local foundTexture = nil
         for _, opt in ipairs(self.options) do
             if opt.value == value then
                 self.selectedLabel = opt.label
                 self.text:SetText(opt.label)
+                foundTexture = opt.texture
                 break
+            end
+        end
+
+        self._selectedTexture = foundTexture
+
+        -- Fill mode: show texture behind selected text
+        if textureMode == "fill" then
+            if foundTexture then
+                self.fillTex:SetTexture(foundTexture)
+                self.fillTex:Show()
+                self.text:SetTextColor(1, 1, 1, 1)
+            else
+                self.fillTex:Hide()
+                local Theme = MedaUI.Theme
+                self.text:SetTextColor(unpack(Theme.text))
+            end
+        end
+
+        -- Preview mode: update side panel
+        if textureMode == "preview" and self.previewPanel then
+            if foundTexture then
+                self.previewPanel.tex:SetTexture(foundTexture)
             end
         end
 
@@ -266,7 +375,11 @@ function MedaUI:CreateDropdown(parent, width, options)
         if not found then
             self.selectedValue = nil
             self.selectedLabel = nil
+            self._selectedTexture = nil
             self.text:SetText("Select...")
+            if textureMode == "fill" and self.fillTex then
+                self.fillTex:Hide()
+            end
         end
     end
 
@@ -276,7 +389,11 @@ function MedaUI:CreateDropdown(parent, width, options)
         self.enabled = enabled
         local Theme = MedaUI.Theme
         if enabled then
-            self.text:SetTextColor(unpack(Theme.text))
+            if textureMode == "fill" and self._selectedTexture then
+                self.text:SetTextColor(1, 1, 1, 1)
+            else
+                self.text:SetTextColor(unpack(Theme.text))
+            end
             self.arrow:SetVertexColor(unpack(Theme.textDim))
             self.arrowSeparator:SetColorTexture(unpack(Theme.border))
             self:SetBackdropColor(unpack(Theme.input))

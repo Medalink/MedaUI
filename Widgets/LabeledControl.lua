@@ -72,8 +72,9 @@ end
 --- @param labelText string Label text
 --- @param width number Dropdown width
 --- @param options table Array of {label, value} options
+--- @param textureMode string|nil Optional textureMode passed to CreateDropdown ("fill", "preview", "font")
 --- @return table The labeled control wrapper
-function MedaUI:CreateLabeledDropdown(parent, labelText, width, options)
+function MedaUI:CreateLabeledDropdown(parent, labelText, width, options, textureMode)
     local container = CreateFrame("Frame", nil, parent)
     container:SetSize(width + 10, 55)
 
@@ -83,7 +84,7 @@ function MedaUI:CreateLabeledDropdown(parent, labelText, width, options)
     label:SetText(labelText)
 
     -- Dropdown
-    local dropdown = self:CreateDropdown(container, width, options)
+    local dropdown = self:CreateDropdown(container, width, options, textureMode)
     dropdown:SetPoint("TOPLEFT", label, "BOTTOMLEFT", 0, -4)
 
     -- Apply theme to label

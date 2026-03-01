@@ -38,4 +38,5 @@
     <Script file="FloatingToolbar.lua"/>
     <Script file="AutoHideContainer.lua"/>
     <Script file="TextViewer.lua"/>
+    <Script file="NotificationBanner.lua"/>
 </Ui>

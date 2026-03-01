@@ -559,6 +559,112 @@ function MedaUI:GetOrbTextures(id)
     return MEDIA_PATH .. "orb-classic-mask" .. TEXTURE_EXT, MEDIA_PATH .. "orb-classic-ring" .. TEXTURE_EXT
 end
 
+--- Get list of available fonts, including LibSharedMedia fonts when installed.
+--- Sorted alphabetically with "Default (Game Font)" always first.
+--- Each entry has {value, label, path} suitable for CreateDropdown with "font" textureMode.
+--- @return table Array of {value, label, path}
+function MedaUI:GetFontList()
+    local seen = {}
+    local fonts = {}
+
+    local LSM = LibStub and LibStub("LibSharedMedia-3.0", true)
+    if LSM then
+        local lsmFonts = LSM:HashTable("font")
+        if lsmFonts then
+            for name, path in pairs(lsmFonts) do
+                if not seen[path] then
+                    fonts[#fonts + 1] = { value = path, label = name, path = path }
+                    seen[path] = true
+                end
+            end
+        end
+    end
+
+    if #fonts == 0 then
+        local builtins = {
+            { value = "Fonts\\FRIZQT__.TTF",  label = "Friz Quadrata",  path = "Fonts\\FRIZQT__.TTF" },
+            { value = "Fonts\\ARIALN.TTF",    label = "Arial Narrow",   path = "Fonts\\ARIALN.TTF" },
+            { value = "Fonts\\MORPHEUS.TTF",  label = "Morpheus",       path = "Fonts\\MORPHEUS.TTF" },
+            { value = "Fonts\\skurri.TTF",    label = "Skurri",         path = "Fonts\\skurri.TTF" },
+        }
+        for _, f in ipairs(builtins) do
+            if not seen[f.value] then
+                fonts[#fonts + 1] = f
+                seen[f.value] = true
+            end
+        end
+    end
+
+    table.sort(fonts, function(a, b) return a.label:lower() < b.label:lower() end)
+
+    local list = { { value = "default", label = "Default (Game Font)", path = nil } }
+    for _, f in ipairs(fonts) do
+        list[#list + 1] = f
+    end
+    return list
+end
+
+--- Resolve a font value from GetFontList to a usable font path.
+--- @param value string The font value (path or "default")
+--- @return string|nil The font file path, or nil for the game default
+function MedaUI:GetFontPath(value)
+    if not value or value == "default" then return nil end
+    return value
+end
+
+--- Get list of available sounds, including LibSharedMedia sounds when installed.
+--- Sorted alphabetically with "None" always first.
+--- Each entry has {value, label} suitable for CreateDropdown.
+--- @return table Array of {value, label}
+function MedaUI:GetSoundList()
+    local seen = {}
+    local sounds = {}
+
+    local LSM = LibStub and LibStub("LibSharedMedia-3.0", true)
+    if LSM then
+        local lsmSounds = LSM:HashTable("sound")
+        if lsmSounds then
+            for name, path in pairs(lsmSounds) do
+                if not seen[path] then
+                    sounds[#sounds + 1] = { value = path, label = name }
+                    seen[path] = true
+                end
+            end
+        end
+    end
+
+    if #sounds == 0 then
+        local builtins = {
+            { value = "Sound\\Interface\\RaidWarning.ogg", label = "Raid Warning" },
+            { value = "Sound\\Interface\\ReadyCheck.ogg", label = "Ready Check" },
+            { value = "Sound\\Interface\\AlarmClockWarning3.ogg", label = "Alarm Clock" },
+            { value = "Sound\\Interface\\levelup2.ogg", label = "Level Up" },
+        }
+        for _, s in ipairs(builtins) do
+            if not seen[s.value] then
+                sounds[#sounds + 1] = s
+                seen[s.value] = true
+            end
+        end
+    end
+
+    table.sort(sounds, function(a, b) return a.label:lower() < b.label:lower() end)
+
+    local list = { { value = "none", label = "None (silent)" } }
+    for _, s in ipairs(sounds) do
+        list[#list + 1] = s
+    end
+    return list
+end
+
+--- Resolve a sound value from GetSoundList to a playable path.
+--- @param value string The sound value (path or "none")
+--- @return string|nil The sound file path, or nil for no sound
+function MedaUI:GetSoundPath(value)
+    if not value or value == "none" then return nil end
+    return value
+end
+
 --- Get list of available orb textures (convenience method)
 --- @return table Array of {id, name, description} for each orb texture
 function MedaUI:GetOrbTextureList()

@@ -13,6 +13,18 @@ local MedaUI = LibStub("MedaUI-1.0")
 -- Dropdown counter for unique names
 local dropdownCounter = 0
 
+-- Font object cache for "font" textureMode
+local fontPreviewCache = {}
+local function GetFontPreviewObject(fontPath, size)
+    if not fontPath then return nil end
+    local key = fontPath .. "_" .. size
+    if fontPreviewCache[key] then return fontPreviewCache[key] end
+    local fo = CreateFont("MedaUIDropdownFont_" .. key:gsub("[^%w]", "_"))
+    fo:SetFont(fontPath, size, "")
+    fontPreviewCache[key] = fo
+    return fo
+end
+
 --- Create a dropdown select menu
 --- @param parent Frame Parent frame
 --- @param width number Dropdown width
@@ -219,6 +231,11 @@ function MedaUI:CreateDropdown(parent, width, options, textureMode)
                 item.text:SetWordWrap(false)
                 item.text:SetText(opt.label)
                 item.text:SetTextColor(unpack(Theme.text))
+
+                if textureMode == "font" and opt.path then
+                    local fo = GetFontPreviewObject(opt.path, 12)
+                    if fo then item.text:SetFontObject(fo) end
+                end
             end
 
             -- Hover / leave
@@ -311,16 +328,28 @@ function MedaUI:CreateDropdown(parent, width, options, textureMode)
         self.selectedValue = value
 
         local foundTexture = nil
+        local foundFontPath = nil
         for _, opt in ipairs(self.options) do
             if opt.value == value then
                 self.selectedLabel = opt.label
                 self.text:SetText(opt.label)
                 foundTexture = opt.texture
+                foundFontPath = opt.path
                 break
             end
         end
 
         self._selectedTexture = foundTexture
+
+        -- Font mode: render selected text in the chosen font
+        if textureMode == "font" then
+            if foundFontPath then
+                local fo = GetFontPreviewObject(foundFontPath, 11)
+                if fo then self.text:SetFontObject(fo) end
+            else
+                self.text:SetFontObject(GameFontNormalSmall)
+            end
+        end
 
         -- Fill mode: show texture behind selected text
         if textureMode == "fill" then

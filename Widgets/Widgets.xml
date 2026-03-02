@@ -39,4 +39,6 @@
     <Script file="AutoHideContainer.lua"/>
     <Script file="TextViewer.lua"/>
     <Script file="NotificationBanner.lua"/>
+    <Script file="StatusRow.lua"/>
+    <Script file="InfoPanel.lua"/>
 </Ui>

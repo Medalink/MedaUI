@@ -4,6 +4,8 @@
 ]]
 
 local MedaUI = LibStub("MedaUI-1.0")
+---@type AbstractFramework
+local AF = _G.AbstractFramework
 
 --- Create a two-column layout helper
 --- @param parent Frame The parent frame
@@ -40,7 +42,7 @@ function MedaUI:CreateTwoColumnLayout(parent, config)
     --- @return Frame The widget (for chaining)
     function layout:AddToLeft(widget, yOffset)
         yOffset = yOffset or 0
-        widget:SetPoint("TOPLEFT", self.parent, "TOPLEFT", self.leftX, self.leftY + yOffset)
+        AF.SetPoint(widget, "TOPLEFT", self.parent, "TOPLEFT", self.leftX, self.leftY + yOffset)
         table.insert(self.widgets, widget)
         return widget
     end
@@ -51,7 +53,7 @@ function MedaUI:CreateTwoColumnLayout(parent, config)
     --- @return Frame The widget (for chaining)
     function layout:AddToRight(widget, yOffset)
         yOffset = yOffset or 0
-        widget:SetPoint("TOPLEFT", self.parent, "TOPLEFT", self.rightX, self.rightY + yOffset)
+        AF.SetPoint(widget, "TOPLEFT", self.parent, "TOPLEFT", self.rightX, self.rightY + yOffset)
         table.insert(self.widgets, widget)
         return widget
     end
@@ -116,14 +118,14 @@ function MedaUI:CreateTwoColumnLayout(parent, config)
     --- Add a full-width section header spanning both columns
     --- @param text string Header text
     --- @param width number|nil Width (default: full width)
-    --- @return FontString, Texture, Frame The header elements
+    --- @return Frame The section header container
     function layout:AddSectionHeader(text, width)
         width = width or (self.rightX - self.leftX + self.rightWidth)
-        local header, line, container = MedaUI:CreateSectionHeader(self.parent, text, width)
-        header:SetPoint("TOPLEFT", self.parent, "TOPLEFT", self.leftX, self:GetCurrentY())
+        local container = MedaUI:CreateSectionHeader(self.parent, text, width)
+        AF.SetPoint(container, "TOPLEFT", self.parent, "TOPLEFT", self.leftX, self:GetCurrentY())
         self:NextRow(32)
         table.insert(self.widgets, container)
-        return header, line, container
+        return container
     end
 
     --- Add a full-width widget (spans both columns)
@@ -132,7 +134,7 @@ function MedaUI:CreateTwoColumnLayout(parent, config)
     --- @return Frame The widget
     function layout:AddFullWidth(widget, yOffset)
         yOffset = yOffset or 0
-        widget:SetPoint("TOPLEFT", self.parent, "TOPLEFT", self.leftX, self:GetCurrentY() + yOffset)
+        AF.SetPoint(widget, "TOPLEFT", self.parent, "TOPLEFT", self.leftX, self:GetCurrentY() + yOffset)
         table.insert(self.widgets, widget)
         return widget
     end

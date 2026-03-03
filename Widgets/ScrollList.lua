@@ -4,6 +4,8 @@
 ]]
 
 local MedaUI = LibStub("MedaUI-1.0")
+---@type AbstractFramework
+local AF = _G.AbstractFramework
 
 --- Create a scrollable list
 --- @param parent Frame Parent frame
@@ -17,7 +19,7 @@ function MedaUI:CreateScrollList(parent, width, height, config)
     local renderRow = config.renderRow
 
     local scrollList = CreateFrame("Frame", nil, parent, "BackdropTemplate")
-    scrollList:SetSize(width, height)
+    AF.SetSize(scrollList, width, height)
     scrollList:SetBackdrop(self:CreateBackdrop(true))
 
     scrollList.data = {}
@@ -31,12 +33,12 @@ function MedaUI:CreateScrollList(parent, width, height, config)
 
     -- Scroll frame
     local scrollFrame = CreateFrame("ScrollFrame", nil, scrollList, "UIPanelScrollFrameTemplate")
-    scrollFrame:SetPoint("TOPLEFT", 6, -6)
-    scrollFrame:SetPoint("BOTTOMRIGHT", -24, 6)
+    AF.SetPoint(scrollFrame, "TOPLEFT", 6, -6)
+    AF.SetPoint(scrollFrame, "BOTTOMRIGHT", -24, 6)
 
     -- Content frame
     local content = CreateFrame("Frame", nil, scrollFrame)
-    content:SetWidth(width - 28)
+    AF.SetWidth(content, width - 28)
     scrollFrame:SetScrollChild(content)
     scrollList.content = content
     scrollList.scrollFrame = scrollFrame
@@ -44,8 +46,8 @@ function MedaUI:CreateScrollList(parent, width, height, config)
     -- Style the scrollbar
     local scrollBar = scrollFrame.ScrollBar
     if scrollBar then
-        scrollBar:SetPoint("TOPLEFT", scrollFrame, "TOPRIGHT", 4, -16)
-        scrollBar:SetPoint("BOTTOMLEFT", scrollFrame, "BOTTOMRIGHT", 4, 16)
+        AF.SetPoint(scrollBar, "TOPLEFT", scrollFrame, "TOPRIGHT", 4, -16)
+        AF.SetPoint(scrollBar, "BOTTOMLEFT", scrollFrame, "BOTTOMRIGHT", 4, 16)
     end
 
     -- Calculate visible rows
@@ -74,7 +76,7 @@ function MedaUI:CreateScrollList(parent, width, height, config)
         local row = scrollList.rowPool[index]
         if not row then
             row = CreateFrame("Frame", nil, content, "BackdropTemplate")
-            row:SetSize(width - 28, rowHeight)
+            AF.SetSize(row, width - 28, rowHeight)
             row:SetBackdrop(MedaUI:CreateBackdrop(false))
             row.index = index
             scrollList.rowPool[index] = row
@@ -87,7 +89,7 @@ function MedaUI:CreateScrollList(parent, width, height, config)
         local Theme = MedaUI.Theme
         local dataSource = scrollList.filteredData or scrollList.data
         local totalHeight = #dataSource * rowHeight
-        content:SetHeight(math.max(totalHeight, height - 8))
+        AF.SetHeight(content, math.max(totalHeight, height - 8))
 
         -- Hide all rows first
         for _, row in ipairs(scrollList.visibleRows) do
@@ -105,7 +107,7 @@ function MedaUI:CreateScrollList(parent, width, height, config)
         -- Show and render visible rows
         for i = firstVisible, lastVisible do
             local row = GetRow(i)
-            row:SetPoint("TOPLEFT", 0, -((i - 1) * rowHeight))
+            AF.SetPoint(row, "TOPLEFT", 0, -((i - 1) * rowHeight))
 
             -- Alternating row colors
             if i % 2 == 0 then

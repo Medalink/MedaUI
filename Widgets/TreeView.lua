@@ -4,6 +4,8 @@
 ]]
 
 local MedaUI = LibStub("MedaUI-1.0")
+---@type AbstractFramework
+local AF = _G.AbstractFramework
 
 --- Create a tree view
 --- @param parent Frame Parent frame
@@ -12,7 +14,7 @@ local MedaUI = LibStub("MedaUI-1.0")
 --- @return Frame The tree view frame
 function MedaUI:CreateTreeView(parent, width, height)
     local treeView = CreateFrame("Frame", nil, parent, "BackdropTemplate")
-    treeView:SetSize(width, height)
+    AF.SetSize(treeView, width, height)
     treeView:SetBackdrop(self:CreateBackdrop(true))
 
     treeView.data = {}
@@ -26,12 +28,12 @@ function MedaUI:CreateTreeView(parent, width, height)
 
     -- Scroll frame
     local scrollFrame = CreateFrame("ScrollFrame", nil, treeView, "UIPanelScrollFrameTemplate")
-    scrollFrame:SetPoint("TOPLEFT", 4, -4)
-    scrollFrame:SetPoint("BOTTOMRIGHT", -24, 4)
+    AF.SetPoint(scrollFrame, "TOPLEFT", 4, -4)
+    AF.SetPoint(scrollFrame, "BOTTOMRIGHT", -24, 4)
 
     -- Content frame
     local content = CreateFrame("Frame", nil, scrollFrame)
-    content:SetWidth(width - 28)
+    AF.SetWidth(content, width - 28)
     scrollFrame:SetScrollChild(content)
     treeView.content = content
     treeView.scrollFrame = scrollFrame
@@ -86,23 +88,23 @@ function MedaUI:CreateTreeView(parent, width, height)
         local row = treeView.rowPool[index]
         if not row then
             row = CreateFrame("Button", nil, content, "BackdropTemplate")
-            row:SetSize(width - 28, treeView.rowHeight)
+            AF.SetSize(row, width - 28, treeView.rowHeight)
             row:SetBackdrop(MedaUI:CreateBackdrop(false))
             row:RegisterForClicks("LeftButtonUp", "RightButtonUp")
 
             -- Expand/collapse button
             row.expandBtn = CreateFrame("Button", nil, row)
-            row.expandBtn:SetSize(16, 16)
-            row.expandBtn:SetPoint("LEFT", 0, 0)
+            AF.SetSize(row.expandBtn, 16, 16)
+            AF.SetPoint(row.expandBtn, "LEFT", 0, 0)
 
             row.expandBtn.text = row.expandBtn:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-            row.expandBtn.text:SetPoint("CENTER", 0, 0)
+            AF.SetPoint(row.expandBtn.text, "CENTER", 0, 0)
             row.expandBtn.text:SetText("+")
 
             -- Node label
             row.label = row:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-            row.label:SetPoint("LEFT", row.expandBtn, "RIGHT", 2, 0)
-            row.label:SetPoint("RIGHT", -4, 0)
+            AF.SetPoint(row.label, "LEFT", row.expandBtn, "RIGHT", 2, 0)
+            AF.SetPoint(row.label, "RIGHT", -4, 0)
             row.label:SetJustifyH("LEFT")
 
             treeView.rowPool[index] = row
@@ -118,7 +120,7 @@ function MedaUI:CreateTreeView(parent, width, height)
         treeView.flattenedData = FlattenTree(treeView.data)
 
         local totalHeight = #treeView.flattenedData * treeView.rowHeight
-        content:SetHeight(math.max(totalHeight, height - 8))
+        AF.SetHeight(content, math.max(totalHeight, height - 8))
 
         -- Hide all rows
         for _, row in ipairs(treeView.visibleRows) do
@@ -129,11 +131,11 @@ function MedaUI:CreateTreeView(parent, width, height)
         -- Create visible rows
         for i, item in ipairs(treeView.flattenedData) do
             local row = GetRow(i)
-            row:SetPoint("TOPLEFT", 0, -((i - 1) * treeView.rowHeight))
+            AF.SetPoint(row, "TOPLEFT", 0, -((i - 1) * treeView.rowHeight))
 
             -- Indentation
             local indent = item.depth * treeView.indentSize
-            row.expandBtn:SetPoint("LEFT", indent, 0)
+            AF.SetPoint(row.expandBtn, "LEFT", indent, 0)
 
             -- Expand button
             if item.hasChildren then
@@ -155,7 +157,7 @@ function MedaUI:CreateTreeView(parent, width, height)
             -- Label
             row.label:SetText(item.node.label or "")
             row.label:SetTextColor(unpack(Theme.text))
-            row.label:SetPoint("LEFT", row.expandBtn, "RIGHT", item.hasChildren and 2 or -12, 0)
+            AF.SetPoint(row.label, "LEFT", row.expandBtn, "RIGHT", item.hasChildren and 2 or -12, 0)
 
             -- Selection highlight
             if treeView.selectedNode == item.node then

@@ -8,6 +8,9 @@ local MAJOR, MINOR = "MedaUI-1.0", 1
 local MedaUI = LibStub:NewLibrary(MAJOR, MINOR)
 if not MedaUI then return end  -- Newer version already loaded
 
+---@type AbstractFramework
+local AF = _G.AbstractFramework
+
 -- ============================================================================
 -- Theme System Infrastructure
 -- ============================================================================
@@ -80,6 +83,11 @@ function MedaUI:SetTheme(name)
                 -- Silent fail, or could log error
             end
         end
+    end
+
+    -- Update AF accent color to match MedaUI's current accent
+    if AF and self.Theme.gold then
+        AF.SetAddonAccentColor("MedaUI", self.Theme.gold)
     end
 
     -- Fire callback for external listeners
@@ -254,7 +262,8 @@ end
 -- Utility Functions
 -- ============================================================================
 
---- Create a standard backdrop table for themed frames
+--- Create a standard backdrop table for themed frames.
+--- Prefer using AF.ApplyDefaultBackdrop(frame) then overriding colors.
 --- @param hasEdge boolean Whether to include an edge/border
 --- @return table Backdrop configuration table
 function MedaUI:CreateBackdrop(hasEdge)
@@ -267,6 +276,21 @@ function MedaUI:CreateBackdrop(hasEdge)
         backdrop.insets = { left = 1, right = 1, top = 1, bottom = 1 }
     end
     return backdrop
+end
+
+--- Create a themed frame using AF as the foundation.
+--- Applies AF's pixel-perfect backdrop then overrides with MedaUI theme colors.
+--- @param parent Frame The parent frame
+--- @param name string|nil Optional global frame name
+--- @param width number|nil Width
+--- @param height number|nil Height
+--- @param bgKey string|nil Background color key (default: "background")
+--- @param borderKey string|nil Border color key (default: "border")
+--- @return Frame The frame with BackdropTemplate and pixel updater
+function MedaUI:CreateThemedFrame(parent, name, width, height, bgKey, borderKey)
+    local frame = AF.CreateBorderedFrame(parent, name, width, height)
+    self:ApplyBackdrop(frame, bgKey or "background", borderKey or "border")
+    return frame
 end
 
 --- Apply theme colors to a backdrop frame

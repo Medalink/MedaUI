@@ -4,6 +4,8 @@
 ]]
 
 local MedaUI = LibStub("MedaUI-1.0")
+---@type AbstractFramework
+local AF = _G.AbstractFramework
 
 --- Create a code block
 --- @param parent Frame Parent frame
@@ -17,7 +19,7 @@ function MedaUI:CreateCodeBlock(parent, width, height, config)
     local wrapText = config.wrapText or false
 
     local codeBlock = CreateFrame("Frame", nil, parent, "BackdropTemplate")
-    codeBlock:SetSize(width, height)
+    AF.SetSize(codeBlock, width, height)
     codeBlock:SetBackdrop(self:CreateBackdrop(true))
 
     codeBlock.text = ""
@@ -27,12 +29,12 @@ function MedaUI:CreateCodeBlock(parent, width, height, config)
 
     -- Scroll frame
     local scrollFrame = CreateFrame("ScrollFrame", nil, codeBlock, "UIPanelScrollFrameTemplate")
-    scrollFrame:SetPoint("TOPLEFT", 4, -4)
-    scrollFrame:SetPoint("BOTTOMRIGHT", -24, 4)
+    AF.SetPoint(scrollFrame, "TOPLEFT", 4, -4)
+    AF.SetPoint(scrollFrame, "BOTTOMRIGHT", -24, 4)
 
     -- Content frame
     local content = CreateFrame("Frame", nil, scrollFrame)
-    content:SetWidth(width - 28)
+    AF.SetWidth(content, width - 28)
     scrollFrame:SetScrollChild(content)
     codeBlock.content = content
     codeBlock.scrollFrame = scrollFrame
@@ -42,23 +44,23 @@ function MedaUI:CreateCodeBlock(parent, width, height, config)
 
     if showLineNumbers then
         codeBlock.gutter = CreateFrame("Frame", nil, codeBlock, "BackdropTemplate")
-        codeBlock.gutter:SetPoint("TOPLEFT", 4, -4)
-        codeBlock.gutter:SetPoint("BOTTOMLEFT", 4, 4)
-        codeBlock.gutter:SetWidth(gutterWidth)
+        AF.SetPoint(codeBlock.gutter, "TOPLEFT", 4, -4)
+        AF.SetPoint(codeBlock.gutter, "BOTTOMLEFT", 4, 4)
+        AF.SetWidth(codeBlock.gutter, gutterWidth)
         codeBlock.gutter:SetBackdrop(self:CreateBackdrop(false))
 
         -- Adjust scroll frame position
-        scrollFrame:SetPoint("TOPLEFT", gutterWidth + 6, -4)
+        AF.SetPoint(scrollFrame, "TOPLEFT", gutterWidth + 6, -4)
     end
 
     -- Copy button
     codeBlock.copyBtn = CreateFrame("Button", nil, codeBlock, "BackdropTemplate")
-    codeBlock.copyBtn:SetSize(50, 18)
-    codeBlock.copyBtn:SetPoint("TOPRIGHT", -28, -6)
+    AF.SetSize(codeBlock.copyBtn, 50, 18)
+    AF.SetPoint(codeBlock.copyBtn, "TOPRIGHT", -28, -6)
     codeBlock.copyBtn:SetBackdrop(self:CreateBackdrop(true))
 
     codeBlock.copyBtn.text = codeBlock.copyBtn:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    codeBlock.copyBtn.text:SetPoint("CENTER", 0, 0)
+    AF.SetPoint(codeBlock.copyBtn.text, "CENTER", 0, 0)
     codeBlock.copyBtn.text:SetText("Copy")
 
     codeBlock.copyBtn:SetScript("OnClick", function()
@@ -112,7 +114,7 @@ function MedaUI:CreateCodeBlock(parent, width, height, config)
         local Theme = MedaUI.Theme
         local lines = codeBlock.lines
         local totalHeight = #lines * lineHeight + 8
-        content:SetHeight(math.max(totalHeight, height - 8))
+        AF.SetHeight(content, math.max(totalHeight, height - 8))
 
         -- Hide existing lines
         for _, line in ipairs(codeBlock.linePool) do
@@ -131,10 +133,10 @@ function MedaUI:CreateCodeBlock(parent, width, height, config)
                     lineNum = codeBlock.gutter:CreateFontString(nil, "OVERLAY")
                     lineNum:SetFont("Fonts\\FRIZQT__.TTF", 10, "")
                     lineNum:SetJustifyH("RIGHT")
-                    lineNum:SetWidth(gutterWidth - 8)
+                    AF.SetWidth(lineNum, gutterWidth - 8)
                     codeBlock.lineNumberPool[i] = lineNum
                 end
-                lineNum:SetPoint("TOPRIGHT", -4, -4 - (i - 1) * lineHeight)
+                AF.SetPoint(lineNum, "TOPRIGHT", -4, -4 - (i - 1) * lineHeight)
                 lineNum:SetText(tostring(i))
                 lineNum:SetTextColor(unpack(Theme.codeLineNumber))
                 lineNum:Show()
@@ -144,20 +146,20 @@ function MedaUI:CreateCodeBlock(parent, width, height, config)
             local line = codeBlock.linePool[i]
             if not line then
                 line = CreateFrame("Frame", nil, content, "BackdropTemplate")
-                line:SetHeight(lineHeight)
+                AF.SetHeight(line, lineHeight)
                 line:SetBackdrop(MedaUI:CreateBackdrop(false))
 
                 line.text = line:CreateFontString(nil, "OVERLAY")
                 line.text:SetFont("Fonts\\FRIZQT__.TTF", 10, "")
-                line.text:SetPoint("LEFT", 4, 0)
-                line.text:SetPoint("RIGHT", -4, 0)
+                AF.SetPoint(line.text, "LEFT", 4, 0)
+                AF.SetPoint(line.text, "RIGHT", -4, 0)
                 line.text:SetJustifyH("LEFT")
 
                 codeBlock.linePool[i] = line
             end
 
-            line:SetPoint("TOPLEFT", 0, -4 - (i - 1) * lineHeight)
-            line:SetPoint("RIGHT", 0, 0)
+            AF.SetPoint(line, "TOPLEFT", 0, -4 - (i - 1) * lineHeight)
+            AF.SetPoint(line, "RIGHT", 0, 0)
             line.text:SetText(lineText)
             line.text:SetTextColor(unpack(Theme.text))
 
@@ -231,31 +233,31 @@ function MedaUI:CreateCodeBlock(parent, width, height, config)
         -- Create a popup with an edit box for copying
         if not MedaUI.copyDialog then
             local dialog = CreateFrame("Frame", "MedaUICopyDialog", UIParent, "BackdropTemplate")
-            dialog:SetSize(400, 200)
-            dialog:SetPoint("CENTER")
+            AF.SetSize(dialog, 400, 200)
+            AF.SetPoint(dialog, "CENTER")
             dialog:SetBackdrop(MedaUI:CreateBackdrop(true))
             dialog:SetFrameStrata("FULLSCREEN_DIALOG")
             dialog:EnableMouse(true)
 
             dialog.title = dialog:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-            dialog.title:SetPoint("TOP", 0, -10)
+            AF.SetPoint(dialog.title, "TOP", 0, -10)
             dialog.title:SetText("Press Ctrl+C to copy")
 
             dialog.editBox = CreateFrame("EditBox", nil, dialog, "BackdropTemplate")
-            dialog.editBox:SetPoint("TOPLEFT", 10, -35)
-            dialog.editBox:SetPoint("BOTTOMRIGHT", -10, 40)
+            AF.SetPoint(dialog.editBox, "TOPLEFT", 10, -35)
+            AF.SetPoint(dialog.editBox, "BOTTOMRIGHT", -10, 40)
             dialog.editBox:SetBackdrop(MedaUI:CreateBackdrop(true))
             dialog.editBox:SetMultiLine(true)
             dialog.editBox:SetFontObject(GameFontHighlightSmall)
             dialog.editBox:SetAutoFocus(true)
 
             dialog.closeBtn = CreateFrame("Button", nil, dialog, "BackdropTemplate")
-            dialog.closeBtn:SetSize(80, 24)
-            dialog.closeBtn:SetPoint("BOTTOM", 0, 10)
+            AF.SetSize(dialog.closeBtn, 80, 24)
+            AF.SetPoint(dialog.closeBtn, "BOTTOM", 0, 10)
             dialog.closeBtn:SetBackdrop(MedaUI:CreateBackdrop(true))
 
             dialog.closeBtn.text = dialog.closeBtn:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-            dialog.closeBtn.text:SetPoint("CENTER")
+            AF.SetPoint(dialog.closeBtn.text, "CENTER")
             dialog.closeBtn.text:SetText("Close")
 
             dialog.closeBtn:SetScript("OnClick", function()

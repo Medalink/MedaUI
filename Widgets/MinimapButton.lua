@@ -4,6 +4,8 @@
 ]]
 
 local MedaUI = LibStub("MedaUI-1.0")
+---@type AbstractFramework
+local AF = _G.AbstractFramework
 
 -- Try to get LibDataBroker and LibDBIcon
 local LDB = LibStub("LibDataBroker-1.1", true)

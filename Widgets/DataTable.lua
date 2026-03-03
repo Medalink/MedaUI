@@ -4,6 +4,8 @@
 ]]
 
 local MedaUI = LibStub("MedaUI-1.0")
+---@type AbstractFramework
+local AF = _G.AbstractFramework
 
 --- Create a data table widget
 --- @param parent Frame The parent frame
@@ -15,7 +17,7 @@ function MedaUI:CreateDataTable(parent, width, height, config)
     config = config or {}
 
     local table = CreateFrame("Frame", nil, parent, "BackdropTemplate")
-    table:SetSize(width, height)
+    AF.SetSize(table, width, height)
     table:SetBackdrop(self:CreateBackdrop(true))
 
     local Theme = self.Theme
@@ -42,22 +44,22 @@ function MedaUI:CreateDataTable(parent, width, height, config)
 
     -- Scroll frame
     local scrollFrame = CreateFrame("ScrollFrame", nil, table, "UIPanelScrollFrameTemplate")
-    scrollFrame:SetPoint("TOPLEFT", 1, -(1 + headerHeight))
-    scrollFrame:SetPoint("BOTTOMRIGHT", -22, 1)
+    AF.SetPoint(scrollFrame, "TOPLEFT", 1, -(1 + headerHeight))
+    AF.SetPoint(scrollFrame, "BOTTOMRIGHT", -22, 1)
     table.scrollFrame = scrollFrame
 
     -- Scroll child
     local scrollChild = CreateFrame("Frame", nil, scrollFrame)
-    scrollChild:SetSize(width - 24, 1)
+    AF.SetSize(scrollChild, width - 24, 1)
     scrollFrame:SetScrollChild(scrollChild)
     table.scrollChild = scrollChild
 
     -- Header row (if enabled)
     if table.showHeaders then
         local headerFrame = CreateFrame("Frame", nil, table, "BackdropTemplate")
-        headerFrame:SetHeight(headerHeight)
-        headerFrame:SetPoint("TOPLEFT", 1, -1)
-        headerFrame:SetPoint("TOPRIGHT", -22, -1)
+        AF.SetHeight(headerFrame, headerHeight)
+        AF.SetPoint(headerFrame, "TOPLEFT", 1, -1)
+        AF.SetPoint(headerFrame, "TOPRIGHT", -22, -1)
         headerFrame:SetBackdrop({
             bgFile = "Interface\\Buttons\\WHITE8x8",
         })
@@ -96,8 +98,8 @@ function MedaUI:CreateDataTable(parent, width, height, config)
             local xPos = 8
             for _, col in ipairs(columns) do
                 local headerLabel = self.headerRow:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-                headerLabel:SetPoint("LEFT", xPos, 0)
-                headerLabel:SetWidth(col.width - 5)
+                AF.SetPoint(headerLabel, "LEFT", xPos, 0)
+                AF.SetWidth(headerLabel, col.width - 5)
                 headerLabel:SetJustifyH(col.align or "LEFT")
                 headerLabel:SetText(col.label or col.key)
                 headerLabel:SetTextColor(unpack(MedaUI.Theme.goldDim))
@@ -151,15 +153,15 @@ function MedaUI:CreateDataTable(parent, width, height, config)
             for _, group in ipairs(self.groups) do
                 -- Group header
                 local groupHeader = CreateFrame("Frame", nil, self.scrollChild, "BackdropTemplate")
-                groupHeader:SetSize(self.scrollChild:GetWidth(), self.rowHeight + 4)
-                groupHeader:SetPoint("TOPLEFT", 0, yOffset)
+                AF.SetSize(groupHeader, self.scrollChild:GetWidth(), self.rowHeight + 4)
+                AF.SetPoint(groupHeader, "TOPLEFT", 0, yOffset)
                 groupHeader:SetBackdrop({
                     bgFile = "Interface\\Buttons\\WHITE8x8",
                 })
                 groupHeader:SetBackdropColor(unpack(Theme.rowHeader))
 
                 local headerText = groupHeader:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-                headerText:SetPoint("LEFT", 8, 0)
+                AF.SetPoint(headerText, "LEFT", 8, 0)
                 headerText:SetText(group.header)
                 headerText:SetTextColor(unpack(Theme.gold))
 
@@ -187,7 +189,7 @@ function MedaUI:CreateDataTable(parent, width, height, config)
         end
 
         -- Update scroll child height
-        self.scrollChild:SetHeight(math.abs(yOffset) + 10)
+        AF.SetHeight(self.scrollChild, math.abs(yOffset) + 10)
     end
 
     --- Create a data row
@@ -199,8 +201,8 @@ function MedaUI:CreateDataTable(parent, width, height, config)
         local Theme = MedaUI.Theme
 
         local row = CreateFrame("Button", nil, self.scrollChild, "BackdropTemplate")
-        row:SetSize(self.scrollChild:GetWidth(), self.rowHeight)
-        row:SetPoint("TOPLEFT", 0, yOffset)
+        AF.SetSize(row, self.scrollChild:GetWidth(), self.rowHeight)
+        AF.SetPoint(row, "TOPLEFT", 0, yOffset)
         row:SetBackdrop({
             bgFile = "Interface\\Buttons\\WHITE8x8",
         })
@@ -225,8 +227,8 @@ function MedaUI:CreateDataTable(parent, width, height, config)
         local xPos = 8
         for _, col in ipairs(self.columns) do
             local cellText = row:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-            cellText:SetPoint("LEFT", xPos, 0)
-            cellText:SetWidth(col.width - 5)
+            AF.SetPoint(cellText, "LEFT", xPos, 0)
+            AF.SetWidth(cellText, col.width - 5)
             cellText:SetJustifyH(col.align or "LEFT")
 
             local value = data[col.key] or ""

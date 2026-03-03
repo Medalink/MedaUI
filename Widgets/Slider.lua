@@ -4,6 +4,7 @@
 ]]
 
 local MedaUI = LibStub("MedaUI-1.0")
+local AF = _G.AbstractFramework
 
 --- Create a themed slider
 --- @param parent Frame The parent frame
@@ -16,12 +17,12 @@ function MedaUI:CreateSlider(parent, width, min, max, step)
     step = step or 1
 
     local container = CreateFrame("Frame", nil, parent)
-    container:SetSize(width, 24)
+    AF.SetSize(container, width, 24)
 
     -- Custom slider frame using native WoW Slider
     local slider = CreateFrame("Slider", nil, container, "BackdropTemplate")
-    slider:SetPoint("LEFT", 0, 0)
-    slider:SetSize(width - 40, 8)
+    AF.SetPoint(slider, "LEFT", 0, 0)
+    AF.SetSize(slider, width - 40, 8)
     slider:SetMinMaxValues(min, max)
     slider:SetValueStep(step)
     slider:SetObeyStepOnDrag(true)
@@ -38,13 +39,13 @@ function MedaUI:CreateSlider(parent, width, min, max, step)
 
     -- Custom thumb texture
     local thumb = slider:CreateTexture(nil, "ARTWORK")
-    thumb:SetSize(12, 12)
+    AF.SetSize(thumb, 12, 12)
     slider:SetThumbTexture(thumb)
 
     -- Value display
     local valueText = container:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-    valueText:SetPoint("LEFT", slider, "RIGHT", 8, 0)
-    valueText:SetWidth(32)
+    AF.SetPoint(valueText, "LEFT", slider, "RIGHT", 8, 0)
+    AF.SetWidth(valueText, 32)
     valueText:SetJustifyH("RIGHT")
 
     -- State

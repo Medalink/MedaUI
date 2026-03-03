@@ -4,6 +4,7 @@
 ]]
 
 local MedaUI = LibStub("MedaUI-1.0")
+local AF = _G.AbstractFramework
 
 -- Button constants
 local MIN_HEIGHT = 28
@@ -23,17 +24,16 @@ function MedaUI:CreateButton(parent, text, width, height)
     button:SetBackdrop(self:CreateBackdrop(true))
 
     -- Button text
-    button.text = button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    button.text:SetPoint("CENTER")
-    button.text:SetText(text)
+    button.text = AF.CreateFontString(button, text)
+    AF.SetPoint(button.text, "CENTER")
 
     -- Calculate width if not provided
     if width then
-        button:SetSize(width, height)
+        AF.SetSize(button, width, height)
     else
         -- Auto-size based on text width + horizontal padding
         local textWidth = button.text:GetStringWidth()
-        button:SetSize(textWidth + (HORIZONTAL_PADDING * 2), height)
+        AF.SetSize(button, textWidth + (HORIZONTAL_PADDING * 2), height)
     end
 
     -- Track state for theme refresh
@@ -85,7 +85,12 @@ function MedaUI:CreateButton(parent, text, width, height)
         end
     end)
 
-    -- Click feedback
+    -- Click handler
+    button:SetScript("OnClick", function(self, btn)
+        if self.OnClick then self:OnClick(btn) end
+    end)
+
+    -- Click feedback (intentionally raw WoW SetPoint for animation)
     button:SetScript("OnMouseDown", function(self)
         if self:IsEnabled() then
             self.text:SetPoint("CENTER", 1, -1)

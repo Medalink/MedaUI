@@ -4,12 +4,13 @@
 ]]
 
 local MedaUI = LibStub("MedaUI-1.0")
+local AF = _G.AbstractFramework
 
 --- Create a themed section header with gold text and gradient underline
 --- @param parent Frame The parent frame
 --- @param text string Header text
 --- @param width number|nil Width of the underline (default: 280)
---- @return FontString, Texture, Frame The header text, separator line, and container
+--- @return Frame The container frame (with .header and .line properties)
 function MedaUI:CreateSectionHeader(parent, text, width)
     width = width or 280
 
@@ -17,17 +18,16 @@ function MedaUI:CreateSectionHeader(parent, text, width)
 
     -- Container for theme management
     local container = CreateFrame("Frame", nil, parent)
-    container:SetSize(width, 32)  -- Increased height for proper spacing
+    AF.SetSize(container, width, 32)
 
     -- Header text
-    local header = container:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    header:SetPoint("TOPLEFT", 0, 0)
-    header:SetText(text)
+    local header = AF.CreateFontString(container, text)
+    AF.SetPoint(header, "TOPLEFT", 0, 0)
 
     -- Gradient line (2px height)
     local line = container:CreateTexture(nil, "ARTWORK")
-    line:SetPoint("TOPLEFT", header, "BOTTOMLEFT", 0, -4)
-    line:SetSize(width, 2)
+    AF.SetPoint(line, "TOPLEFT", header, "BOTTOMLEFT", 0, -4)
+    AF.SetSize(line, width, 2)
 
     -- Apply theme colors
     local function ApplyTheme()
@@ -86,11 +86,9 @@ function MedaUI:CreateSectionHeader(parent, text, width)
     --- Set the line width
     --- @param newWidth number The new line width
     function container:SetLineWidth(newWidth)
-        self.line:SetWidth(newWidth)
-        self:SetWidth(newWidth)
+        AF.SetWidth(self.line, newWidth)
+        AF.SetWidth(self, newWidth)
     end
 
-    -- Return both elements for positioning (backward compatibility)
-    -- Also return the container as the third return value for theme registration
-    return header, line, container
+    return container
 end

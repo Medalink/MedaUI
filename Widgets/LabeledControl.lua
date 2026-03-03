@@ -4,6 +4,8 @@
 ]]
 
 local MedaUI = LibStub("MedaUI-1.0")
+---@type AbstractFramework
+local AF = _G.AbstractFramework
 
 --- Create a labeled slider
 --- @param parent Frame The parent frame
@@ -15,16 +17,16 @@ local MedaUI = LibStub("MedaUI-1.0")
 --- @return table The labeled control wrapper
 function MedaUI:CreateLabeledSlider(parent, labelText, width, min, max, step)
     local container = CreateFrame("Frame", nil, parent)
-    container:SetSize(width + 10, 50)
+    AF.SetSize(container, width + 10, 50)
 
     -- Label
     local label = container:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    label:SetPoint("TOPLEFT", 0, 0)
+    AF.SetPoint(label, "TOPLEFT", 0, 0)
     label:SetText(labelText)
 
     -- Slider
     local slider = self:CreateSlider(container, width, min, max, step)
-    slider:SetPoint("TOPLEFT", label, "BOTTOMLEFT", 0, -12)
+    AF.SetPoint(slider, "TOPLEFT", label, "BOTTOMLEFT", 0, -12)
 
     -- Apply theme to label
     local function ApplyTheme()
@@ -76,16 +78,16 @@ end
 --- @return table The labeled control wrapper
 function MedaUI:CreateLabeledDropdown(parent, labelText, width, options, textureMode)
     local container = CreateFrame("Frame", nil, parent)
-    container:SetSize(width + 10, 55)
+    AF.SetSize(container, width + 10, 55)
 
     -- Label
     local label = container:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    label:SetPoint("TOPLEFT", 0, 0)
+    AF.SetPoint(label, "TOPLEFT", 0, 0)
     label:SetText(labelText)
 
     -- Dropdown
     local dropdown = self:CreateDropdown(container, width, options, textureMode)
-    dropdown:SetPoint("TOPLEFT", label, "BOTTOMLEFT", 0, -4)
+    AF.SetPoint(dropdown, "TOPLEFT", label, "BOTTOMLEFT", 0, -4)
 
     -- Apply theme to label
     local function ApplyTheme()
@@ -141,16 +143,16 @@ end
 function MedaUI:CreateLabeledColorPicker(parent, labelText, size, hasAlpha)
     size = size or 26
     local container = CreateFrame("Frame", nil, parent)
-    container:SetSize(200, 26)
+    AF.SetSize(container, 200, 26)
 
     -- Label
     local label = container:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    label:SetPoint("LEFT", 0, 0)
+    AF.SetPoint(label, "LEFT", 0, 0)
     label:SetText(labelText)
 
     -- Color picker
     local colorPicker = self:CreateColorPicker(container, size, size, hasAlpha)
-    colorPicker:SetPoint("LEFT", label, "RIGHT", 10, 0)
+    AF.SetPoint(colorPicker, "LEFT", label, "RIGHT", 10, 0)
 
     -- Apply theme to label
     local function ApplyTheme()
@@ -205,16 +207,16 @@ function MedaUI:CreateLabeledCheckbox(parent, labelText, headerText)
     end
 
     local container = CreateFrame("Frame", nil, parent)
-    container:SetSize(200, 40)
+    AF.SetSize(container, 200, 40)
 
     -- Header label
     local header = container:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    header:SetPoint("TOPLEFT", 0, 0)
+    AF.SetPoint(header, "TOPLEFT", 0, 0)
     header:SetText(headerText)
 
     -- Checkbox
     local checkbox = self:CreateCheckbox(container, labelText)
-    checkbox:SetPoint("TOPLEFT", header, "BOTTOMLEFT", 0, -4)
+    AF.SetPoint(checkbox, "TOPLEFT", header, "BOTTOMLEFT", 0, -4)
 
     -- Apply theme to header
     local function ApplyTheme()
@@ -262,16 +264,16 @@ end
 function MedaUI:CreateLabeledEditBox(parent, labelText, width, height)
     height = height or 24
     local container = CreateFrame("Frame", nil, parent)
-    container:SetSize(width + 10, 45)
+    AF.SetSize(container, width + 10, 45)
 
     -- Label
     local label = container:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    label:SetPoint("TOPLEFT", 0, 0)
+    AF.SetPoint(label, "TOPLEFT", 0, 0)
     label:SetText(labelText)
 
     -- Edit box
     local editBox = self:CreateEditBox(container, width, height)
-    editBox:SetPoint("TOPLEFT", label, "BOTTOMLEFT", 0, -4)
+    AF.SetPoint(editBox, "TOPLEFT", label, "BOTTOMLEFT", 0, -4)
 
     -- Apply theme to label
     local function ApplyTheme()

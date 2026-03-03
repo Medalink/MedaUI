@@ -4,6 +4,8 @@
 ]]
 
 local MedaUI = LibStub("MedaUI-1.0")
+---@type AbstractFramework
+local AF = _G.AbstractFramework
 
 --- Add resize functionality to a frame
 --- @param frame Frame The frame to make resizable
@@ -33,47 +35,33 @@ function MedaUI:AddResizeGrip(frame, config)
 
     for _, corner in ipairs(corners) do
         local handle = CreateFrame("Button", nil, frame)
-        handle:SetSize(cornerSize, cornerSize)
-        handle:SetPoint(corner.point)
+        AF.SetSize(handle, cornerSize, cornerSize)
+        AF.SetPoint(handle, corner.point)
         handle:EnableMouse(true)
         handle:RegisterForDrag("LeftButton")
         handle.direction = corner.point
         handle.isPrimary = corner.primary
 
         if corner.primary then
-            -- Draw a visible grip pattern for the primary resize corner (bottom-right)
-            -- 3x3 pixel dots with improved visibility
-            handle.dots = {}
             handle._isHovered = false
-            for i = 1, 3 do
-                local dot1 = handle:CreateTexture(nil, "OVERLAY")
-                dot1:SetSize(3, 3)  -- Increased from 2x2 to 3x3
-                dot1:SetPoint("BOTTOMRIGHT", -(i * 4), (i * 4))
-                handle.dots[#handle.dots + 1] = dot1
+            handle.triangle = handle:CreateTexture(nil, "OVERLAY")
+            AF.SetSize(handle.triangle, 14, 14)
+            AF.SetPoint(handle.triangle, "BOTTOMRIGHT", 0, 0)
+            handle.triangle:SetTexture("Interface\\AddOns\\AbstractFramework\\Media\\Textures\\Triangle_BottomRight.tga")
 
-                local dot2 = handle:CreateTexture(nil, "OVERLAY")
-                dot2:SetSize(3, 3)  -- Increased from 2x2 to 3x3
-                dot2:SetPoint("BOTTOMRIGHT", -(i * 4) - 4, (i * 4) - 4)
-                handle.dots[#handle.dots + 1] = dot2
-            end
-
-            -- Apply theme to dots
             local function ApplyTheme()
                 local Theme = MedaUI.Theme
-                for _, dot in ipairs(handle.dots) do
-                    if handle._isHovered then
-                        -- Gold color on hover
-                        dot:SetColorTexture(unpack(Theme.gold))
-                    else
-                        -- Slightly higher base opacity (0.6 alpha)
-                        local color = Theme.textDim
-                        dot:SetColorTexture(color[1], color[2], color[3], 0.6)
-                    end
+                if handle._isHovered then
+                    handle.triangle:SetVertexColor(unpack(Theme.gold))
+                    handle.triangle:SetAlpha(0.8)
+                else
+                    local c = Theme.resizeHandle
+                    handle.triangle:SetVertexColor(c[1], c[2], c[3])
+                    handle.triangle:SetAlpha(c[4] or 0.6)
                 end
             end
             handle._ApplyTheme = ApplyTheme
 
-            -- Hover state for gold color
             handle:SetScript("OnEnter", function(self)
                 self._isHovered = true
                 self._ApplyTheme()
@@ -84,7 +72,6 @@ function MedaUI:AddResizeGrip(frame, config)
                 self._ApplyTheme()
             end)
 
-            -- Register for theme updates
             handle._themeHandle = MedaUI:RegisterThemedWidget(handle, ApplyTheme)
             ApplyTheme()
         else
@@ -127,9 +114,9 @@ function MedaUI:AddResizeGrip(frame, config)
 
     -- Bottom edge handle
     local bottomHandle = CreateFrame("Button", nil, frame)
-    bottomHandle:SetHeight(edgeSize)
-    bottomHandle:SetPoint("BOTTOMLEFT", cornerSize, 0)
-    bottomHandle:SetPoint("BOTTOMRIGHT", -cornerSize, 0)
+    AF.SetHeight(bottomHandle, edgeSize)
+    AF.SetPoint(bottomHandle, "BOTTOMLEFT", cornerSize, 0)
+    AF.SetPoint(bottomHandle, "BOTTOMRIGHT", -cornerSize, 0)
     bottomHandle:EnableMouse(true)
     bottomHandle:RegisterForDrag("LeftButton")
     bottomHandle.direction = "BOTTOM"
@@ -144,9 +131,9 @@ function MedaUI:AddResizeGrip(frame, config)
 
     -- Right edge handle
     local rightHandle = CreateFrame("Button", nil, frame)
-    rightHandle:SetWidth(edgeSize)
-    rightHandle:SetPoint("TOPRIGHT", 0, -cornerSize)
-    rightHandle:SetPoint("BOTTOMRIGHT", 0, cornerSize)
+    AF.SetWidth(rightHandle, edgeSize)
+    AF.SetPoint(rightHandle, "TOPRIGHT", 0, -cornerSize)
+    AF.SetPoint(rightHandle, "BOTTOMRIGHT", 0, cornerSize)
     rightHandle:EnableMouse(true)
     rightHandle:RegisterForDrag("LeftButton")
     rightHandle.direction = "RIGHT"
@@ -161,9 +148,9 @@ function MedaUI:AddResizeGrip(frame, config)
 
     -- Left edge handle
     local leftHandle = CreateFrame("Button", nil, frame)
-    leftHandle:SetWidth(edgeSize)
-    leftHandle:SetPoint("TOPLEFT", 0, -cornerSize)
-    leftHandle:SetPoint("BOTTOMLEFT", 0, cornerSize)
+    AF.SetWidth(leftHandle, edgeSize)
+    AF.SetPoint(leftHandle, "TOPLEFT", 0, -cornerSize)
+    AF.SetPoint(leftHandle, "BOTTOMLEFT", 0, cornerSize)
     leftHandle:EnableMouse(true)
     leftHandle:RegisterForDrag("LeftButton")
     leftHandle.direction = "LEFT"
@@ -178,9 +165,9 @@ function MedaUI:AddResizeGrip(frame, config)
 
     -- Top edge handle
     local topHandle = CreateFrame("Button", nil, frame)
-    topHandle:SetHeight(edgeSize)
-    topHandle:SetPoint("TOPLEFT", cornerSize, 0)
-    topHandle:SetPoint("TOPRIGHT", -cornerSize, 0)
+    AF.SetHeight(topHandle, edgeSize)
+    AF.SetPoint(topHandle, "TOPLEFT", cornerSize, 0)
+    AF.SetPoint(topHandle, "TOPRIGHT", -cornerSize, 0)
     topHandle:EnableMouse(true)
     topHandle:RegisterForDrag("LeftButton")
     topHandle.direction = "TOP"

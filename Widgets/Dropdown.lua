@@ -9,6 +9,7 @@
 ]]
 
 local MedaUI = LibStub("MedaUI-1.0")
+local AF = _G.AbstractFramework
 
 -- Dropdown counter for unique names
 local dropdownCounter = 0
@@ -36,7 +37,7 @@ function MedaUI:CreateDropdown(parent, width, options, textureMode)
     local name = "MedaUIDropdown" .. dropdownCounter
 
     local dropdown = CreateFrame("Frame", name, parent, "BackdropTemplate")
-    dropdown:SetSize(width, 24)
+    AF.SetSize(dropdown, width, 24)
     dropdown:SetBackdrop(self:CreateBackdrop(true))
 
     dropdown.options = options or {}
@@ -54,8 +55,8 @@ function MedaUI:CreateDropdown(parent, width, options, textureMode)
     -- ================================================================
     if textureMode == "fill" then
         dropdown.fillTex = dropdown:CreateTexture(nil, "BORDER")
-        dropdown.fillTex:SetPoint("TOPLEFT", 1, -1)
-        dropdown.fillTex:SetPoint("BOTTOMRIGHT", -23, 1)
+        AF.SetPoint(dropdown.fillTex, "TOPLEFT", 1, -1)
+        AF.SetPoint(dropdown.fillTex, "BOTTOMRIGHT", -23, 1)
         dropdown.fillTex:Hide()
     end
 
@@ -65,15 +66,15 @@ function MedaUI:CreateDropdown(parent, width, options, textureMode)
     if textureMode == "preview" then
         local pvSize = 48
         local pv = CreateFrame("Frame", nil, dropdown, "BackdropTemplate")
-        pv:SetSize(pvSize, pvSize)
-        pv:SetPoint("LEFT", dropdown, "RIGHT", 6, 0)
+        AF.SetSize(pv, pvSize, pvSize)
+        AF.SetPoint(pv, "LEFT", dropdown, "RIGHT", 6, 0)
         pv:SetBackdrop(self:CreateBackdrop(true))
         pv:SetBackdropColor(0.04, 0.04, 0.06, 0.9)
         pv:SetBackdropBorderColor(0.25, 0.25, 0.35, 0.6)
 
         local pvTex = pv:CreateTexture(nil, "ARTWORK")
-        pvTex:SetPoint("TOPLEFT", 3, -3)
-        pvTex:SetPoint("BOTTOMRIGHT", -3, 3)
+        AF.SetPoint(pvTex, "TOPLEFT", 3, -3)
+        AF.SetPoint(pvTex, "BOTTOMRIGHT", -3, 3)
         pvTex:SetTexCoord(0, 1, 0, 1)
         pv.tex = pvTex
 
@@ -82,8 +83,8 @@ function MedaUI:CreateDropdown(parent, width, options, textureMode)
 
     -- Selected text display
     dropdown.text = dropdown:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    dropdown.text:SetPoint("LEFT", 8, 0)
-    dropdown.text:SetPoint("RIGHT", -26, 0)
+    AF.SetPoint(dropdown.text, "LEFT", 8, 0)
+    AF.SetPoint(dropdown.text, "RIGHT", -26, 0)
     dropdown.text:SetJustifyH("LEFT")
     dropdown.text:SetWordWrap(false)
     dropdown.text:SetText("Select...")
@@ -95,13 +96,13 @@ function MedaUI:CreateDropdown(parent, width, options, textureMode)
 
     -- Arrow separator line
     dropdown.arrowSeparator = dropdown:CreateTexture(nil, "ARTWORK")
-    dropdown.arrowSeparator:SetSize(1, 16)
-    dropdown.arrowSeparator:SetPoint("RIGHT", -22, 0)
+    AF.SetSize(dropdown.arrowSeparator, 1, 16)
+    AF.SetPoint(dropdown.arrowSeparator, "RIGHT", -22, 0)
 
     -- Arrow icon (texture-based chevron)
     dropdown.arrow = dropdown:CreateTexture(nil, "OVERLAY")
-    dropdown.arrow:SetSize(12, 12)
-    dropdown.arrow:SetPoint("RIGHT", -6, 0)
+    AF.SetSize(dropdown.arrow, 12, 12)
+    AF.SetPoint(dropdown.arrow, "RIGHT", -6, 0)
 
     -- Try Atlas first, fall back to rotated expand arrow
     local atlasSet = pcall(function()
@@ -124,19 +125,19 @@ function MedaUI:CreateDropdown(parent, width, options, textureMode)
     dropdown.menu = CreateFrame("Frame", name .. "Menu", dropdown, "BackdropTemplate")
     dropdown.menu:SetBackdrop(self:CreateBackdrop(true))
     dropdown.menu:SetFrameStrata("FULLSCREEN_DIALOG")
-    dropdown.menu:SetPoint("TOPLEFT", dropdown, "BOTTOMLEFT", 0, -2)
-    dropdown.menu:SetWidth(width)
+    AF.SetPoint(dropdown.menu, "TOPLEFT", dropdown, "BOTTOMLEFT", 0, -2)
+    AF.SetWidth(dropdown.menu, width)
     dropdown.menu:Hide()
     dropdown.menu.items = {}
 
     -- Scroll frame for menu items
     dropdown.menu.scrollFrame = CreateFrame("ScrollFrame", name .. "MenuScroll", dropdown.menu, "UIPanelScrollFrameTemplate")
-    dropdown.menu.scrollFrame:SetPoint("TOPLEFT", 2, -2)
-    dropdown.menu.scrollFrame:SetPoint("BOTTOMRIGHT", -20, 2)
+    AF.SetPoint(dropdown.menu.scrollFrame, "TOPLEFT", 2, -2)
+    AF.SetPoint(dropdown.menu.scrollFrame, "BOTTOMRIGHT", -20, 2)
 
     -- Scroll child (content)
     dropdown.menu.scrollChild = CreateFrame("Frame", nil, dropdown.menu.scrollFrame)
-    dropdown.menu.scrollChild:SetWidth(width - 24)
+    AF.SetWidth(dropdown.menu.scrollChild, width - 24)
     dropdown.menu.scrollFrame:SetScrollChild(dropdown.menu.scrollChild)
 
     -- Apply theme colors
@@ -193,13 +194,13 @@ function MedaUI:CreateDropdown(parent, width, options, textureMode)
         local maxVisibleItems = 10
         local totalHeight = #dropdown.options * itemHeight
         local menuHeight = math.min(totalHeight + 4, maxVisibleItems * itemHeight + 4)
-        dropdown.menu:SetHeight(menuHeight)
-        dropdown.menu.scrollChild:SetHeight(totalHeight)
+        AF.SetHeight(dropdown.menu, menuHeight)
+        AF.SetHeight(dropdown.menu.scrollChild, totalHeight)
 
         for i, opt in ipairs(dropdown.options) do
             local item = CreateFrame("Button", nil, dropdown.menu.scrollChild, "BackdropTemplate")
-            item:SetSize(width - 24, itemHeight)
-            item:SetPoint("TOPLEFT", 0, -(i - 1) * itemHeight)
+            AF.SetSize(item, width - 24, itemHeight)
+            AF.SetPoint(item, "TOPLEFT", 0, -(i - 1) * itemHeight)
             item:SetBackdrop(MedaUI:CreateBackdrop(false))
             item:SetBackdropColor(0, 0, 0, 0)
 
@@ -215,8 +216,8 @@ function MedaUI:CreateDropdown(parent, width, options, textureMode)
                 fill:SetAlpha(0.85)
 
                 item.text = item:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-                item.text:SetPoint("LEFT", 8, 0)
-                item.text:SetPoint("RIGHT", -4, 0)
+                AF.SetPoint(item.text, "LEFT", 8, 0)
+                AF.SetPoint(item.text, "RIGHT", -4, 0)
                 item.text:SetJustifyH("LEFT")
                 item.text:SetWordWrap(false)
                 item.text:SetText(opt.label)
@@ -225,8 +226,8 @@ function MedaUI:CreateDropdown(parent, width, options, textureMode)
                 item.text:SetShadowColor(0, 0, 0, 1)
             else
                 item.text = item:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-                item.text:SetPoint("LEFT", 8, 0)
-                item.text:SetPoint("RIGHT", -4, 0)
+                AF.SetPoint(item.text, "LEFT", 8, 0)
+                AF.SetPoint(item.text, "RIGHT", -4, 0)
                 item.text:SetJustifyH("LEFT")
                 item.text:SetWordWrap(false)
                 item.text:SetText(opt.label)

@@ -4,6 +4,7 @@
 ]]
 
 local MedaUI = LibStub("MedaUI-1.0")
+local AF = _G.AbstractFramework
 
 -- Radio group management
 MedaUI.RadioGroups = MedaUI.RadioGroups or {}
@@ -15,25 +16,24 @@ MedaUI.RadioGroups = MedaUI.RadioGroups or {}
 --- @return Frame The radio button container frame
 function MedaUI:CreateRadio(parent, label, group)
     local container = CreateFrame("Frame", nil, parent)
-    container:SetSize(200, 20)
+    AF.SetSize(container, 200, 20)
     container.group = group
 
     -- Radio circle (using a square with rounded appearance via backdrop)
     local box = CreateFrame("Button", nil, container, "BackdropTemplate")
-    box:SetSize(16, 16)
-    box:SetPoint("LEFT", 0, 0)
+    AF.SetSize(box, 16, 16)
+    AF.SetPoint(box, "LEFT", 0, 0)
     box:SetBackdrop(self:CreateBackdrop(true))
 
     -- Selected indicator (inner dot)
     box.dot = box:CreateTexture(nil, "OVERLAY")
-    box.dot:SetSize(8, 8)
-    box.dot:SetPoint("CENTER")
+    AF.SetSize(box.dot, 8, 8)
+    AF.SetPoint(box.dot, "CENTER")
     box.dot:Hide()
 
     -- Label (8px gap from box for consistent spacing)
-    container.label = container:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    container.label:SetPoint("LEFT", box, "RIGHT", 8, 0)
-    container.label:SetText(label)
+    container.label = AF.CreateFontString(container, label)
+    AF.SetPoint(container.label, "LEFT", box, "RIGHT", 8, 0)
 
     -- State
     container.selected = false

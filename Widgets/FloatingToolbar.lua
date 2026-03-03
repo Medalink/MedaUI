@@ -4,6 +4,8 @@
 ]]
 
 local MedaUI = LibStub("MedaUI-1.0")
+---@type AbstractFramework
+local AF = _G.AbstractFramework
 
 --- Create a floating toolbar
 --- @param name string Unique frame name
@@ -15,7 +17,7 @@ function MedaUI:CreateFloatingToolbar(name, width, title, config)
     config = config or {}
 
     local toolbar = CreateFrame("Frame", name, UIParent, "BackdropTemplate")
-    toolbar:SetSize(width, 80)
+    AF.SetSize(toolbar, width, 80)
     toolbar:SetFrameStrata("HIGH")
     toolbar:SetBackdrop(self:CreateBackdrop(true))
     toolbar:Hide()
@@ -52,7 +54,7 @@ function MedaUI:CreateFloatingToolbar(name, width, title, config)
     local yOffset = -8
     if title then
         local titleText = toolbar:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-        titleText:SetPoint("TOP", 0, -8)
+        AF.SetPoint(titleText, "TOP", 0, -8)
         titleText:SetText(title)
         toolbar.titleLabel = titleText
         yOffset = -26
@@ -61,11 +63,11 @@ function MedaUI:CreateFloatingToolbar(name, width, title, config)
     -- Close button (top right)
     if toolbar.closeable then
         local closeBtn = CreateFrame("Button", nil, toolbar)
-        closeBtn:SetSize(18, 18)
-        closeBtn:SetPoint("TOPRIGHT", -4, -4)
+        AF.SetSize(closeBtn, 18, 18)
+        AF.SetPoint(closeBtn, "TOPRIGHT", -4, -4)
 
         closeBtn.text = closeBtn:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-        closeBtn.text:SetPoint("CENTER", 0, 1)
+        AF.SetPoint(closeBtn.text, "CENTER", 0, 1)
         closeBtn.text:SetText("X")
 
         closeBtn:SetScript("OnClick", function()
@@ -89,24 +91,24 @@ function MedaUI:CreateFloatingToolbar(name, width, title, config)
 
     -- Instructions area
     local instructions = toolbar:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    instructions:SetPoint("TOPLEFT", 12, yOffset)
-    instructions:SetPoint("TOPRIGHT", -12, yOffset)
+    AF.SetPoint(instructions, "TOPLEFT", 12, yOffset)
+    AF.SetPoint(instructions, "TOPRIGHT", -12, yOffset)
     instructions:SetJustifyH("LEFT")
     instructions:SetWordWrap(true)
     toolbar.instructionsLabel = instructions
 
     -- Status area
     local status = toolbar:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    status:SetPoint("BOTTOMLEFT", 12, 12)
-    status:SetPoint("BOTTOMRIGHT", -12, 12)
+    AF.SetPoint(status, "BOTTOMLEFT", 12, 12)
+    AF.SetPoint(status, "BOTTOMRIGHT", -12, 12)
     status:SetJustifyH("LEFT")
     toolbar.statusLabel = status
 
     -- Button container
     toolbar.buttonContainer = CreateFrame("Frame", nil, toolbar)
-    toolbar.buttonContainer:SetHeight(30)
-    toolbar.buttonContainer:SetPoint("BOTTOMLEFT", 8, 36)
-    toolbar.buttonContainer:SetPoint("BOTTOMRIGHT", -8, 36)
+    AF.SetHeight(toolbar.buttonContainer, 30)
+    AF.SetPoint(toolbar.buttonContainer, "BOTTOMLEFT", 8, 36)
+    AF.SetPoint(toolbar.buttonContainer, "BOTTOMRIGHT", -8, 36)
 
     -- Apply theme
     local function ApplyTheme()
@@ -167,10 +169,10 @@ function MedaUI:CreateFloatingToolbar(name, width, title, config)
 
         -- Position based on existing buttons
         if #self.buttons == 0 then
-            btn:SetPoint("LEFT", 0, 0)
+            AF.SetPoint(btn, "LEFT", 0, 0)
         else
             local prevBtn = self.buttons[#self.buttons]
-            btn:SetPoint("LEFT", prevBtn, "RIGHT", 8, 0)
+            AF.SetPoint(btn, "LEFT", prevBtn, "RIGHT", 8, 0)
         end
 
         btn:SetScript("OnClick", onClick)
@@ -238,13 +240,13 @@ function MedaUI:CreateFloatingToolbar(name, width, title, config)
             end
         end
 
-        self:SetHeight(height)
+        AF.SetHeight(self, height)
     end
 
     --- Position the toolbar at screen center
     function toolbar:CenterOnScreen()
-        self:ClearAllPoints()
-        self:SetPoint("CENTER", UIParent, "CENTER", 0, 200)
+        AF.ClearPoints(self)
+        AF.SetPoint(self, "CENTER", UIParent, "CENTER", 0, 200)
     end
 
     --- Position the toolbar near a specific frame
@@ -252,8 +254,8 @@ function MedaUI:CreateFloatingToolbar(name, width, title, config)
     --- @param offset number|nil Vertical offset (default: 60)
     function toolbar:PositionNear(frame, offset)
         offset = offset or 60
-        self:ClearAllPoints()
-        self:SetPoint("TOP", frame, "BOTTOM", 0, -offset)
+        AF.ClearPoints(self)
+        AF.SetPoint(self, "TOP", frame, "BOTTOM", 0, -offset)
     end
 
     -- Register for ESC to close

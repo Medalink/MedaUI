@@ -4,6 +4,7 @@
 ]]
 
 local MedaUI = LibStub("MedaUI-1.0")
+local AF = _G.AbstractFramework
 
 --- Create a themed checkbox
 --- @param parent Frame The parent frame
@@ -11,23 +12,24 @@ local MedaUI = LibStub("MedaUI-1.0")
 --- @return Frame The checkbox container frame
 function MedaUI:CreateCheckbox(parent, label)
     local container = CreateFrame("Frame", nil, parent)
-    container:SetSize(200, 20)
+    AF.SetSize(container, 200, 20)
 
     -- Checkbox box
     local box = CreateFrame("Button", nil, container, "BackdropTemplate")
-    box:SetSize(16, 16)
-    box:SetPoint("LEFT", 0, 0)
+    AF.SetSize(box, 16, 16)
+    AF.SetPoint(box, "LEFT", 0, 0)
     box:SetBackdrop(self:CreateBackdrop(true))
 
-    -- Checkmark
-    box.check = box:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    box.check:SetPoint("CENTER", 0, 1)
-    box.check:SetText("")
+    -- Checkmark texture
+    box.check = box:CreateTexture(nil, "OVERLAY")
+    box.check:SetTexture("Interface\\AddOns\\MedaUI\\Textures\\checkmark.tga")
+    AF.SetPoint(box.check, "CENTER", 0, 0)
+    AF.SetSize(box.check, 12, 12)
+    box.check:Hide()
 
     -- Label (8px gap from box for consistent spacing)
-    container.label = container:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    container.label:SetPoint("LEFT", box, "RIGHT", 8, 0)
-    container.label:SetText(label)
+    container.label = AF.CreateFontString(container, label)
+    AF.SetPoint(container.label, "LEFT", box, "RIGHT", 8, 0)
 
     -- State
     container.checked = false
@@ -43,7 +45,6 @@ function MedaUI:CreateCheckbox(parent, label)
         else
             box:SetBackdropBorderColor(unpack(Theme.border))
         end
-        box.check:SetTextColor(unpack(Theme.gold))
         container.label:SetTextColor(unpack(Theme.text))
     end
     container._ApplyTheme = ApplyTheme
@@ -57,7 +58,7 @@ function MedaUI:CreateCheckbox(parent, label)
     -- Click behavior
     box:SetScript("OnClick", function()
         container.checked = not container.checked
-        box.check:SetText(container.checked and "x" or "")
+        if container.checked then box.check:Show() else box.check:Hide() end
         if container.OnValueChanged then
             container:OnValueChanged(container.checked)
         end
@@ -79,7 +80,7 @@ function MedaUI:CreateCheckbox(parent, label)
     -- API methods
     function container:SetChecked(value)
         self.checked = value
-        box.check:SetText(value and "x" or "")
+        if value then box.check:Show() else box.check:Hide() end
     end
 
     function container:GetChecked()

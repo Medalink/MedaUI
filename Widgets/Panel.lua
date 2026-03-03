@@ -1,9 +1,13 @@
 --[[
     MedaUI Panel Widget
     Creates themed movable panels/windows with title bars
+    Uses AbstractFramework for pixel-perfect positioning
 ]]
 
 local MedaUI = LibStub("MedaUI-1.0")
+
+---@type AbstractFramework
+local AF = _G.AbstractFramework
 
 --- Create a themed panel/window
 --- @param name string Unique frame name
@@ -12,11 +16,8 @@ local MedaUI = LibStub("MedaUI-1.0")
 --- @param title string|nil Panel title
 --- @return Frame The created panel frame
 function MedaUI:CreatePanel(name, width, height, title)
-    -- Main panel frame
-    local panel = CreateFrame("Frame", name, UIParent, "BackdropTemplate")
-    panel:SetSize(width, height)
-    panel:SetPoint("CENTER")
-    panel:SetBackdrop(self:CreateBackdrop(true))
+    local panel = AF.CreateBorderedFrame(UIParent, name, width, height)
+    AF.SetPoint(panel, "CENTER")
     panel:SetMovable(true)
     panel:EnableMouse(true)
     panel:SetClampedToScreen(true)
@@ -24,12 +25,10 @@ function MedaUI:CreatePanel(name, width, height, title)
 
     -- Title bar
     local titleBar = CreateFrame("Frame", nil, panel, "BackdropTemplate")
-    titleBar:SetHeight(28)
-    titleBar:SetPoint("TOPLEFT", 1, -1)
-    titleBar:SetPoint("TOPRIGHT", -1, -1)
-    titleBar:SetBackdrop({
-        bgFile = "Interface\\Buttons\\WHITE8x8",
-    })
+    AF.SetHeight(titleBar, 28)
+    AF.SetPoint(titleBar, "TOPLEFT", panel, "TOPLEFT", 1, -1)
+    AF.SetPoint(titleBar, "TOPRIGHT", panel, "TOPRIGHT", -1, -1)
+    titleBar:SetBackdrop({ bgFile = "Interface\\Buttons\\WHITE8x8" })
     titleBar:EnableMouse(true)
     titleBar:RegisterForDrag("LeftButton")
 
@@ -44,23 +43,22 @@ function MedaUI:CreatePanel(name, width, height, title)
         end
     end)
 
-    -- Title text with gradient support
     if title then
-        panel.titleText = titleBar:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-        panel.titleText:SetPoint("LEFT", 10, 0)
-        panel.titleText:SetText(title)
+        panel.titleText = AF.CreateFontString(titleBar, title)
+        AF.SetPoint(panel.titleText, "LEFT", titleBar, "LEFT", 10, 0)
     end
 
     -- Close button
     local closeBtn = CreateFrame("Button", nil, titleBar, "BackdropTemplate")
-    closeBtn:SetSize(20, 20)
-    closeBtn:SetPoint("RIGHT", -4, 0)
+    AF.SetSize(closeBtn, 20, 20)
+    AF.SetPoint(closeBtn, "RIGHT", titleBar, "RIGHT", -4, 0)
     closeBtn:SetBackdrop(self:CreateBackdrop(false))
     closeBtn:SetBackdropColor(0, 0, 0, 0)
 
-    closeBtn.text = closeBtn:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    closeBtn.text:SetPoint("CENTER", 0, 1)
-    closeBtn.text:SetText("x")
+    closeBtn.icon = closeBtn:CreateTexture(nil, "OVERLAY")
+    closeBtn.icon:SetTexture("Interface\\AddOns\\MedaUI\\Textures\\close-x.tga")
+    AF.SetPoint(closeBtn.icon, "CENTER", 0, 0)
+    AF.SetSize(closeBtn.icon, 12, 12)
 
     closeBtn:SetScript("OnClick", function()
         panel:Hide()
@@ -68,21 +66,21 @@ function MedaUI:CreatePanel(name, width, height, title)
 
     -- Content area
     panel.content = CreateFrame("Frame", nil, panel)
-    panel.content:SetPoint("TOPLEFT", 8, -36)
-    panel.content:SetPoint("BOTTOMRIGHT", -8, 8)
+    AF.SetPoint(panel.content, "TOPLEFT", panel, "TOPLEFT", 8, -36)
+    AF.SetPoint(panel.content, "BOTTOMRIGHT", panel, "BOTTOMRIGHT", -8, 8)
 
-    -- Addon icon watermark (optional, 128x128, bottom-right, 15% opacity)
+    -- Addon icon watermark
     panel.addonIcon = panel.content:CreateTexture(nil, "BACKGROUND")
-    panel.addonIcon:SetSize(128, 128)
-    panel.addonIcon:SetPoint("BOTTOMRIGHT", panel.content, "BOTTOMRIGHT", -8, 8)
+    AF.SetSize(panel.addonIcon, 128, 128)
+    AF.SetPoint(panel.addonIcon, "BOTTOMRIGHT", panel.content, "BOTTOMRIGHT", -8, 8)
     panel.addonIcon:SetAlpha(0.15)
-    panel.addonIcon:Hide()  -- Hidden by default
+    panel.addonIcon:Hide()
 
     -- Gold accent line under title
     local accent = titleBar:CreateTexture(nil, "OVERLAY")
-    accent:SetHeight(1)
-    accent:SetPoint("BOTTOMLEFT", 0, 0)
-    accent:SetPoint("BOTTOMRIGHT", 0, 0)
+    AF.SetHeight(accent, 1)
+    AF.SetPoint(accent, "BOTTOMLEFT", titleBar, "BOTTOMLEFT")
+    AF.SetPoint(accent, "BOTTOMRIGHT", titleBar, "BOTTOMRIGHT")
 
     -- Store references
     panel.titleBar = titleBar
@@ -100,31 +98,25 @@ function MedaUI:CreatePanel(name, width, height, title)
         panel:SetBackdropBorderColor(unpack(Theme.border))
         titleBar:SetBackdropColor(unpack(Theme.backgroundLight))
 
-        -- Title text color (using gold accent)
         if panel.titleText then
             panel.titleText:SetTextColor(unpack(Theme.gold))
         end
 
-        closeBtn.text:SetTextColor(unpack(Theme.textDim))
+        closeBtn.icon:SetAlpha(0.6)
         accent:SetColorTexture(unpack(Theme.goldDim))
     end
     panel._ApplyTheme = ApplyTheme
 
-    -- Register for theme updates
     panel._themeHandle = MedaUI:RegisterThemedWidget(panel, ApplyTheme)
-
-    -- Initial theme application
     ApplyTheme()
 
     -- Close button hover effects
     closeBtn:SetScript("OnEnter", function(self)
-        local Theme = MedaUI.Theme
-        self.text:SetTextColor(unpack(Theme.closeHover))
+        self.icon:SetAlpha(1.0)
     end)
 
     closeBtn:SetScript("OnLeave", function(self)
-        local Theme = MedaUI.Theme
-        self.text:SetTextColor(unpack(Theme.textDim))
+        self.icon:SetAlpha(0.6)
     end)
 
     -- API methods
@@ -138,8 +130,6 @@ function MedaUI:CreatePanel(name, width, height, title)
         return self.content
     end
 
-    --- Set the addon icon watermark
-    --- @param iconPath string The texture path for the icon
     function panel:SetAddonIcon(iconPath)
         if self.addonIcon and iconPath then
             self.addonIcon:SetTexture(iconPath)
@@ -147,7 +137,6 @@ function MedaUI:CreatePanel(name, width, height, title)
         end
     end
 
-    --- Clear the addon icon watermark
     function panel:ClearAddonIcon()
         if self.addonIcon then
             self.addonIcon:Hide()
@@ -155,23 +144,17 @@ function MedaUI:CreatePanel(name, width, height, title)
         end
     end
 
-    -- Store reference to native SetResizable before we override it
     local nativeSetResizable = panel.SetResizable
 
-    --- Enable resizing with min/max bounds
-    --- @param enabled boolean Whether resizing is enabled
-    --- @param config table|nil {minWidth, minHeight}
     function panel:SetResizable(enabled, config)
         self.isResizable = enabled
         config = config or {}
 
-        -- Call native Frame:SetResizable
         if nativeSetResizable then
             nativeSetResizable(self, enabled)
         end
 
         if enabled then
-            -- Create resize grip if it doesn't exist
             if not self.resizeGrip then
                 self.resizeGrip = MedaUI:AddResizeGrip(self, {
                     minWidth = config.minWidth or 200,
@@ -191,21 +174,14 @@ function MedaUI:CreatePanel(name, width, height, title)
         end
     end
 
-    --- Get the current size
-    --- @return number, number width, height
     function panel:GetPanelSize()
         return self:GetWidth(), self:GetHeight()
     end
 
-    --- Set the panel size
-    --- @param w number Width
-    --- @param h number Height
     function panel:SetPanelSize(w, h)
-        self:SetSize(w, h)
+        AF.SetSize(self, w, h)
     end
 
-    --- Get the current state (position and size)
-    --- @return table {position = {point, relativeTo, relativePoint, x, y}, size = {width, height}}
     function panel:GetState()
         local point, relativeTo, relativePoint, x, y = self:GetPoint()
         return {
@@ -223,20 +199,23 @@ function MedaUI:CreatePanel(name, width, height, title)
         }
     end
 
-    --- Restore panel state (position and size)
-    --- @param state table {position = {...}, size = {...}}
     function panel:RestoreState(state)
         if not state then return end
 
         if state.size then
-            if state.size.width then self:SetWidth(state.size.width) end
-            if state.size.height then self:SetHeight(state.size.height) end
+            if state.size.width and state.size.height then
+                AF.SetSize(self, state.size.width, state.size.height)
+            elseif state.size.width then
+                AF.SetWidth(self, state.size.width)
+            elseif state.size.height then
+                AF.SetHeight(self, state.size.height)
+            end
         end
 
         if state.position and state.position.point then
-            self:ClearAllPoints()
+            AF.ClearPoints(self)
             local relativeTo = state.position.relativeTo and _G[state.position.relativeTo] or UIParent
-            self:SetPoint(
+            AF.SetPoint(self,
                 state.position.point,
                 relativeTo,
                 state.position.relativePoint,

@@ -4,19 +4,21 @@
 ]]
 
 local MedaUI = LibStub("MedaUI-1.0")
+---@type AbstractFramework
+local AF = _G.AbstractFramework
 
 --- Create a badge (count indicator)
 --- @param parent Frame Parent frame to attach to
 --- @return Frame The badge frame
 function MedaUI:CreateBadge(parent)
     local badge = CreateFrame("Frame", nil, parent, "BackdropTemplate")
-    badge:SetSize(18, 16)
+    AF.SetSize(badge, 18, 16)
     badge:SetBackdrop(self:CreateBackdrop(false))
     badge:SetBackdropColor(0.8, 0.2, 0.2, 1) -- Red by default
 
     -- Round the corners slightly with a texture overlay
     badge.text = badge:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    badge.text:SetPoint("CENTER", 0, 0)
+    AF.SetPoint(badge.text, "CENTER", 0, 0)
     badge.text:SetTextColor(1, 1, 1, 1)
     badge.text:SetText("0")
 
@@ -54,10 +56,10 @@ function MedaUI:CreateBadge(parent)
             self:Show()
             if count > 99 then
                 self.text:SetText("99+")
-                self:SetWidth(26)
+                AF.SetWidth(self, 26)
             else
                 self.text:SetText(tostring(count))
-                self:SetWidth(count >= 10 and 22 or 18)
+                AF.SetWidth(self, count >= 10 and 22 or 18)
             end
         end
     end
@@ -84,9 +86,9 @@ function MedaUI:CreateBadge(parent)
     --- @param xOffset number X offset (default -2)
     --- @param yOffset number Y offset (default 2)
     function badge:AttachTo(frame, point, xOffset, yOffset)
-        self:ClearAllPoints()
+        AF.ClearPoints(self)
         self:SetParent(frame)
-        self:SetPoint(point or "TOPRIGHT", frame, point or "TOPRIGHT", xOffset or -2, yOffset or 2)
+        AF.SetPoint(self, point or "TOPRIGHT", frame, point or "TOPRIGHT", xOffset or -2, yOffset or 2)
         self:SetFrameLevel(frame:GetFrameLevel() + 10)
     end
 

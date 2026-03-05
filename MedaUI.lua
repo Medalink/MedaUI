@@ -12,10 +12,10 @@ if not MedaUI then return end  -- Newer version already loaded
 -- whether MedaUI is standalone or embedded (e.g. Libs\MedaUI\ inside an addon).
 do
     local info = debugstack(1, 1, 0) or ""
-    local prefix = info:match("(.-)[/\\]MedaUI%.lua")
-    if prefix then
-        prefix = prefix:gsub("/", "\\")
-        MedaUI.mediaPath = "Interface\\AddOns\\" .. prefix .. "\\Media\\"
+    local path = info:match("(Interface[/\\]AddOns[/\\].-)[/\\]MedaUI%.lua")
+    if path then
+        path = path:gsub("/", "\\")
+        MedaUI.mediaPath = path .. "\\Media\\"
     else
         MedaUI.mediaPath = "Interface\\AddOns\\MedaUI\\Media\\"
     end
@@ -347,30 +347,8 @@ end
 -- Media / Texture Registry
 -- ============================================================================
 
--- Get addon name from WoW (first arg to every file)
-local LOADED_BY_ADDON = ...
-
--- Dynamically determine the media path based on where MedaUI is loaded from
 local TEXTURE_EXT = ".tga"
-local MEDIA_PATH
-
-do
-    -- Try multiple path patterns to find the textures
-    -- Pattern 1: Embedded as library (Interface/AddOns/AddonName/Libs/MedaUI/Media/)
-    -- Pattern 2: Standalone addon (Interface/AddOns/MedaUI/Media/)
-
-    if LOADED_BY_ADDON and LOADED_BY_ADDON ~= "MedaUI" then
-        -- Loaded as embedded library - construct path based on loading addon
-        MEDIA_PATH = "Interface\\AddOns\\" .. LOADED_BY_ADDON .. "\\Libs\\MedaUI\\Media\\"
-    else
-        -- Standalone installation or addon name is MedaUI
-        MEDIA_PATH = "Interface\\AddOns\\MedaUI\\Media\\"
-    end
-end
-
--- Debug: Store path for inspection (can be viewed with /dump MedaUI._mediaPath)
-MedaUI._mediaPath = MEDIA_PATH
-MedaUI._loadedByAddon = LOADED_BY_ADDON
+local MEDIA_PATH = MedaUI.mediaPath
 
 -- Texture registry organized by category
 MedaUI.Media = MedaUI.Media or {

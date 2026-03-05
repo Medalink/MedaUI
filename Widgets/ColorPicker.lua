@@ -4,8 +4,7 @@
 ]]
 
 local MedaUI = LibStub("MedaUI-1.0")
----@type AbstractFramework
-local AF = _G.AbstractFramework
+local Pixel = LibStub("MedaUI-1.0").Pixel
 
 --- Create a themed color picker
 --- @param parent Frame The parent frame
@@ -19,7 +18,7 @@ function MedaUI:CreateColorPicker(parent, width, height, hasOpacity)
     hasOpacity = hasOpacity or false
 
     local container = CreateFrame("Frame", nil, parent, "BackdropTemplate")
-    AF.SetSize(container, width, height)
+    Pixel.SetSize(container, width, height)
 
     -- Swatch button (shows current color)
     local swatch = CreateFrame("Button", nil, container, "BackdropTemplate")
@@ -28,13 +27,13 @@ function MedaUI:CreateColorPicker(parent, width, height, hasOpacity)
 
     -- Color texture inside swatch
     local colorTex = swatch:CreateTexture(nil, "OVERLAY")
-    AF.SetPoint(colorTex, "TOPLEFT", 2, -2)
-    AF.SetPoint(colorTex, "BOTTOMRIGHT", -2, 2)
+    Pixel.SetPoint(colorTex, "TOPLEFT", 2, -2)
+    Pixel.SetPoint(colorTex, "BOTTOMRIGHT", -2, 2)
 
     -- Checkerboard pattern for transparency visualization
     local checkerboard = swatch:CreateTexture(nil, "BACKGROUND")
-    AF.SetPoint(checkerboard, "TOPLEFT", 2, -2)
-    AF.SetPoint(checkerboard, "BOTTOMRIGHT", -2, 2)
+    Pixel.SetPoint(checkerboard, "TOPLEFT", 2, -2)
+    Pixel.SetPoint(checkerboard, "BOTTOMRIGHT", -2, 2)
     checkerboard:SetColorTexture(0.3, 0.3, 0.3, 1)
 
     -- State

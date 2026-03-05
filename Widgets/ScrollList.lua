@@ -4,8 +4,7 @@
 ]]
 
 local MedaUI = LibStub("MedaUI-1.0")
----@type AbstractFramework
-local AF = _G.AbstractFramework
+local Pixel = LibStub("MedaUI-1.0").Pixel
 
 --- Create a scrollable list
 --- @param parent Frame Parent frame
@@ -19,7 +18,7 @@ function MedaUI:CreateScrollList(parent, width, height, config)
     local renderRow = config.renderRow
 
     local scrollList = CreateFrame("Frame", nil, parent, "BackdropTemplate")
-    AF.SetSize(scrollList, width, height)
+    Pixel.SetSize(scrollList, width, height)
     scrollList:SetBackdrop(self:CreateBackdrop(true))
 
     scrollList.data = {}
@@ -31,24 +30,17 @@ function MedaUI:CreateScrollList(parent, width, height, config)
     scrollList.visibleRows = {}
     scrollList.scrollOffset = 0
 
-    -- Scroll frame
-    local scrollFrame = CreateFrame("ScrollFrame", nil, scrollList, "UIPanelScrollFrameTemplate")
-    AF.SetPoint(scrollFrame, "TOPLEFT", 6, -6)
-    AF.SetPoint(scrollFrame, "BOTTOMRIGHT", -24, 6)
+    -- Scroll frame (AF custom scrollbar)
+    local scrollParent = self:CreateScrollFrame(scrollList)
+    Pixel.SetPoint(scrollParent, "TOPLEFT", 6, -6)
+    Pixel.SetPoint(scrollParent, "BOTTOMRIGHT", -6, 6)
+    scrollParent:SetScrollStep(rowHeight * 3)
 
-    -- Content frame
-    local content = CreateFrame("Frame", nil, scrollFrame)
-    AF.SetWidth(content, width - 28)
-    scrollFrame:SetScrollChild(content)
+    local scrollFrame = scrollParent.scrollFrame
+    local content = scrollParent.scrollContent
     scrollList.content = content
     scrollList.scrollFrame = scrollFrame
-
-    -- Style the scrollbar
-    local scrollBar = scrollFrame.ScrollBar
-    if scrollBar then
-        AF.SetPoint(scrollBar, "TOPLEFT", scrollFrame, "TOPRIGHT", 4, -16)
-        AF.SetPoint(scrollBar, "BOTTOMLEFT", scrollFrame, "BOTTOMRIGHT", 4, 16)
-    end
+    scrollList.scrollParent = scrollParent
 
     -- Calculate visible rows
     local visibleRowCount = math.ceil(height / rowHeight) + 1
@@ -76,7 +68,8 @@ function MedaUI:CreateScrollList(parent, width, height, config)
         local row = scrollList.rowPool[index]
         if not row then
             row = CreateFrame("Frame", nil, content, "BackdropTemplate")
-            AF.SetSize(row, width - 28, rowHeight)
+            Pixel.SetHeight(row, rowHeight)
+            Pixel.SetPoint(row, "RIGHT")
             row:SetBackdrop(MedaUI:CreateBackdrop(false))
             row.index = index
             scrollList.rowPool[index] = row
@@ -89,7 +82,7 @@ function MedaUI:CreateScrollList(parent, width, height, config)
         local Theme = MedaUI.Theme
         local dataSource = scrollList.filteredData or scrollList.data
         local totalHeight = #dataSource * rowHeight
-        AF.SetHeight(content, math.max(totalHeight, height - 8))
+        Pixel.SetHeight(content, math.max(totalHeight, height - 8))
 
         -- Hide all rows first
         for _, row in ipairs(scrollList.visibleRows) do
@@ -107,7 +100,7 @@ function MedaUI:CreateScrollList(parent, width, height, config)
         -- Show and render visible rows
         for i = firstVisible, lastVisible do
             local row = GetRow(i)
-            AF.SetPoint(row, "TOPLEFT", 0, -((i - 1) * rowHeight))
+            Pixel.SetPoint(row, "TOPLEFT", 0, -((i - 1) * rowHeight))
 
             -- Alternating row colors
             if i % 2 == 0 then
@@ -126,18 +119,9 @@ function MedaUI:CreateScrollList(parent, width, height, config)
         end
     end
 
-    -- Scroll event
-    scrollFrame:SetScript("OnVerticalScroll", function(self, offset)
+    -- Scroll event (hook AF's existing OnVerticalScroll)
+    scrollFrame:HookScript("OnVerticalScroll", function()
         UpdateRows()
-    end)
-
-    -- Mouse wheel scrolling
-    scrollList:EnableMouseWheel(true)
-    scrollList:SetScript("OnMouseWheel", function(self, delta)
-        local current = scrollFrame:GetVerticalScroll()
-        local max = content:GetHeight() - (height - 8)
-        local new = math.max(0, math.min(max, current - (delta * rowHeight * 3)))
-        scrollFrame:SetVerticalScroll(new)
     end)
 
     --- Set the data source
@@ -198,23 +182,19 @@ function MedaUI:CreateScrollList(parent, width, height, config)
 
     --- Scroll to bottom
     function scrollList:ScrollToBottom()
-        local dataSource = self.filteredData or self.data
-        local totalHeight = #dataSource * rowHeight
-        local max = math.max(0, totalHeight - (height - 8))
-        scrollFrame:SetVerticalScroll(max)
+        scrollParent:ScrollToBottom()
     end
 
     --- Scroll to top
     function scrollList:ScrollToTop()
-        scrollFrame:SetVerticalScroll(0)
+        scrollParent:ResetScroll()
     end
 
     --- Scroll to a specific index
     --- @param index number The index to scroll to
     function scrollList:ScrollToIndex(index)
         local scrollPos = (index - 1) * rowHeight
-        local max = content:GetHeight() - (height - 8)
-        scrollFrame:SetVerticalScroll(math.max(0, math.min(max, scrollPos)))
+        scrollParent:SetScroll(scrollPos)
     end
 
     --- Get the visible range

@@ -4,8 +4,7 @@
 ]]
 
 local MedaUI = LibStub("MedaUI-1.0")
----@type AbstractFramework
-local AF = _G.AbstractFramework
+local Pixel = LibStub("MedaUI-1.0").Pixel
 
 --- Create an auto-hiding container
 --- @param name string Unique frame name
@@ -16,7 +15,7 @@ function MedaUI:CreateAutoHideContainer(name, config)
 
     -- Create hitbox (always present for hover detection)
     local hitbox = CreateFrame("Frame", name .. "Hitbox", UIParent)
-    AF.SetSize(hitbox, config.width or 100, config.height or 100)
+    Pixel.SetSize(hitbox, config.width or 100, config.height or 100)
     hitbox:SetFrameStrata("MEDIUM")
     hitbox:SetFrameLevel(1)
     hitbox:EnableMouse(true)
@@ -32,8 +31,8 @@ function MedaUI:CreateAutoHideContainer(name, config)
 
     -- Create content area
     local content = CreateFrame("Frame", nil, container)
-    AF.SetPoint(content, "TOPLEFT", 4, -4)
-    AF.SetPoint(content, "BOTTOMRIGHT", -4, 4)
+    Pixel.SetPoint(content, "TOPLEFT", 4, -4)
+    Pixel.SetPoint(content, "BOTTOMRIGHT", -4, 4)
 
     -- State
     container.hitbox = hitbox
@@ -198,7 +197,7 @@ function MedaUI:CreateAutoHideContainer(name, config)
     --- @param width number Container width
     --- @param height number Container height
     function container:SetContainerSize(width, height)
-        AF.SetSize(self.hitbox, width, height)
+        Pixel.SetSize(self.hitbox, width, height)
     end
 
     --- Set fade durations
@@ -276,11 +275,11 @@ function MedaUI:CreateAutoHideContainer(name, config)
     --- @param x number X offset
     --- @param y number Y offset
     function container:SetContainerPosition(point, relativeTo, relativePoint, x, y)
-        AF.ClearPoints(hitbox)
+        Pixel.ClearPoints(hitbox)
         if type(relativeTo) == "string" then
             relativeTo = _G[relativeTo] or UIParent
         end
-        AF.SetPoint(hitbox, point, relativeTo, relativePoint or point, x, y)
+        Pixel.SetPoint(hitbox, point, relativeTo, relativePoint or point, x, y)
     end
 
     --- Show the container (force)

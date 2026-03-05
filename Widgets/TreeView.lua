@@ -4,8 +4,7 @@
 ]]
 
 local MedaUI = LibStub("MedaUI-1.0")
----@type AbstractFramework
-local AF = _G.AbstractFramework
+local Pixel = LibStub("MedaUI-1.0").Pixel
 
 --- Create a tree view
 --- @param parent Frame Parent frame
@@ -14,7 +13,7 @@ local AF = _G.AbstractFramework
 --- @return Frame The tree view frame
 function MedaUI:CreateTreeView(parent, width, height)
     local treeView = CreateFrame("Frame", nil, parent, "BackdropTemplate")
-    AF.SetSize(treeView, width, height)
+    Pixel.SetSize(treeView, width, height)
     treeView:SetBackdrop(self:CreateBackdrop(true))
 
     treeView.data = {}
@@ -26,17 +25,15 @@ function MedaUI:CreateTreeView(parent, width, height)
     treeView.indentSize = 16
     treeView.rowHeight = 22
 
-    -- Scroll frame
-    local scrollFrame = CreateFrame("ScrollFrame", nil, treeView, "UIPanelScrollFrameTemplate")
-    AF.SetPoint(scrollFrame, "TOPLEFT", 4, -4)
-    AF.SetPoint(scrollFrame, "BOTTOMRIGHT", -24, 4)
+    -- Scroll frame (AF custom scrollbar)
+    local scrollParent = self:CreateScrollFrame(treeView)
+    Pixel.SetPoint(scrollParent, "TOPLEFT", 4, -4)
+    Pixel.SetPoint(scrollParent, "BOTTOMRIGHT", -4, 4)
+    scrollParent:SetScrollStep(66)
 
-    -- Content frame
-    local content = CreateFrame("Frame", nil, scrollFrame)
-    AF.SetWidth(content, width - 28)
-    scrollFrame:SetScrollChild(content)
+    local content = scrollParent.scrollContent
     treeView.content = content
-    treeView.scrollFrame = scrollFrame
+    treeView.scrollParent = scrollParent
     treeView.rowPool = {}
     treeView.visibleRows = {}
 
@@ -88,23 +85,23 @@ function MedaUI:CreateTreeView(parent, width, height)
         local row = treeView.rowPool[index]
         if not row then
             row = CreateFrame("Button", nil, content, "BackdropTemplate")
-            AF.SetSize(row, width - 28, treeView.rowHeight)
+            Pixel.SetSize(row, width - 28, treeView.rowHeight)
             row:SetBackdrop(MedaUI:CreateBackdrop(false))
             row:RegisterForClicks("LeftButtonUp", "RightButtonUp")
 
             -- Expand/collapse button
             row.expandBtn = CreateFrame("Button", nil, row)
-            AF.SetSize(row.expandBtn, 16, 16)
-            AF.SetPoint(row.expandBtn, "LEFT", 0, 0)
+            Pixel.SetSize(row.expandBtn, 16, 16)
+            Pixel.SetPoint(row.expandBtn, "LEFT", 0, 0)
 
             row.expandBtn.text = row.expandBtn:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-            AF.SetPoint(row.expandBtn.text, "CENTER", 0, 0)
+            Pixel.SetPoint(row.expandBtn.text, "CENTER", 0, 0)
             row.expandBtn.text:SetText("+")
 
             -- Node label
             row.label = row:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-            AF.SetPoint(row.label, "LEFT", row.expandBtn, "RIGHT", 2, 0)
-            AF.SetPoint(row.label, "RIGHT", -4, 0)
+            Pixel.SetPoint(row.label, "LEFT", row.expandBtn, "RIGHT", 2, 0)
+            Pixel.SetPoint(row.label, "RIGHT", -4, 0)
             row.label:SetJustifyH("LEFT")
 
             treeView.rowPool[index] = row
@@ -120,7 +117,7 @@ function MedaUI:CreateTreeView(parent, width, height)
         treeView.flattenedData = FlattenTree(treeView.data)
 
         local totalHeight = #treeView.flattenedData * treeView.rowHeight
-        AF.SetHeight(content, math.max(totalHeight, height - 8))
+        Pixel.SetHeight(content, math.max(totalHeight, height - 8))
 
         -- Hide all rows
         for _, row in ipairs(treeView.visibleRows) do
@@ -131,11 +128,11 @@ function MedaUI:CreateTreeView(parent, width, height)
         -- Create visible rows
         for i, item in ipairs(treeView.flattenedData) do
             local row = GetRow(i)
-            AF.SetPoint(row, "TOPLEFT", 0, -((i - 1) * treeView.rowHeight))
+            Pixel.SetPoint(row, "TOPLEFT", 0, -((i - 1) * treeView.rowHeight))
 
             -- Indentation
             local indent = item.depth * treeView.indentSize
-            AF.SetPoint(row.expandBtn, "LEFT", indent, 0)
+            Pixel.SetPoint(row.expandBtn, "LEFT", indent, 0)
 
             -- Expand button
             if item.hasChildren then
@@ -157,7 +154,7 @@ function MedaUI:CreateTreeView(parent, width, height)
             -- Label
             row.label:SetText(item.node.label or "")
             row.label:SetTextColor(unpack(Theme.text))
-            AF.SetPoint(row.label, "LEFT", row.expandBtn, "RIGHT", item.hasChildren and 2 or -12, 0)
+            Pixel.SetPoint(row.label, "LEFT", row.expandBtn, "RIGHT", item.hasChildren and 2 or -12, 0)
 
             -- Selection highlight
             if treeView.selectedNode == item.node then
@@ -201,15 +198,6 @@ function MedaUI:CreateTreeView(parent, width, height)
             treeView.visibleRows[#treeView.visibleRows + 1] = row
         end
     end
-
-    -- Mouse wheel scrolling
-    treeView:EnableMouseWheel(true)
-    treeView:SetScript("OnMouseWheel", function(self, delta)
-        local current = scrollFrame:GetVerticalScroll()
-        local max = content:GetHeight() - (height - 8)
-        local new = math.max(0, math.min(max, current - (delta * treeView.rowHeight * 3)))
-        scrollFrame:SetVerticalScroll(new)
-    end)
 
     --- Set the tree data
     --- @param data table Array of {label, expanded?, children?} nodes

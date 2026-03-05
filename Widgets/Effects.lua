@@ -4,8 +4,7 @@
 ]]
 
 local MedaUI = LibStub("MedaUI-1.0")
----@type AbstractFramework
-local AF = _G.AbstractFramework
+local Pixel = LibStub("MedaUI-1.0").Pixel
 
 --- Create a pulsing highlight effect
 --- @param frame Frame The frame to apply the effect to
@@ -127,8 +126,8 @@ function MedaUI:CreateGlowEffect(frame, config)
 
     -- Create glow texture
     glow.texture = frame:CreateTexture(nil, "BACKGROUND")
-    AF.SetPoint(glow.texture, "TOPLEFT", -glow.size, glow.size)
-    AF.SetPoint(glow.texture, "BOTTOMRIGHT", glow.size, -glow.size)
+    Pixel.SetPoint(glow.texture, "TOPLEFT", -glow.size, glow.size)
+    Pixel.SetPoint(glow.texture, "BOTTOMRIGHT", glow.size, -glow.size)
     glow.texture:SetColorTexture(glow.color[1], glow.color[2], glow.color[3], glow.alpha)
     glow.texture:Hide()
 

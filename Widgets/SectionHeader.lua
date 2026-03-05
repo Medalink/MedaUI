@@ -4,7 +4,7 @@
 ]]
 
 local MedaUI = LibStub("MedaUI-1.0")
-local AF = _G.AbstractFramework
+local Pixel = LibStub("MedaUI-1.0").Pixel
 
 --- Create a themed section header with gold text and gradient underline
 --- @param parent Frame The parent frame
@@ -18,16 +18,16 @@ function MedaUI:CreateSectionHeader(parent, text, width)
 
     -- Container for theme management
     local container = CreateFrame("Frame", nil, parent)
-    AF.SetSize(container, width, 32)
+    Pixel.SetSize(container, width, 32)
 
     -- Header text
-    local header = AF.CreateFontString(container, text)
-    AF.SetPoint(header, "TOPLEFT", 0, 0)
+    local header = Pixel.CreateFontString(container, text)
+    Pixel.SetPoint(header, "TOPLEFT", 0, 0)
 
     -- Gradient line (2px height)
     local line = container:CreateTexture(nil, "ARTWORK")
-    AF.SetPoint(line, "TOPLEFT", header, "BOTTOMLEFT", 0, -4)
-    AF.SetSize(line, width, 2)
+    Pixel.SetPoint(line, "TOPLEFT", header, "BOTTOMLEFT", 0, -4)
+    Pixel.SetSize(line, width, 2)
 
     -- Apply theme colors
     local function ApplyTheme()
@@ -86,8 +86,8 @@ function MedaUI:CreateSectionHeader(parent, text, width)
     --- Set the line width
     --- @param newWidth number The new line width
     function container:SetLineWidth(newWidth)
-        AF.SetWidth(self.line, newWidth)
-        AF.SetWidth(self, newWidth)
+        Pixel.SetWidth(self.line, newWidth)
+        Pixel.SetWidth(self, newWidth)
     end
 
     return container

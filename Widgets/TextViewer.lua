@@ -4,8 +4,7 @@
 ]]
 
 local MedaUI = LibStub("MedaUI-1.0")
----@type AbstractFramework
-local AF = _G.AbstractFramework
+local Pixel = LibStub("MedaUI-1.0").Pixel
 
 --- Create a text viewer dialog
 --- @param title string Dialog title
@@ -20,8 +19,8 @@ function MedaUI:CreateTextViewer(title, width, height)
     local dialogName = "MedaUITextViewer_" .. tostring(math.random(100000, 999999))
 
     local viewer = CreateFrame("Frame", dialogName, UIParent, "BackdropTemplate")
-    AF.SetSize(viewer, width, height)
-    AF.SetPoint(viewer, "CENTER")
+    Pixel.SetSize(viewer, width, height)
+    Pixel.SetPoint(viewer, "CENTER")
     viewer:SetBackdrop(self:CreateBackdrop(true))
     viewer:SetFrameStrata("DIALOG")
     viewer:SetMovable(true)
@@ -39,16 +38,16 @@ function MedaUI:CreateTextViewer(title, width, height)
 
     -- Title bar
     local titleText = viewer:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    AF.SetPoint(titleText, "TOP", 0, -12)
+    Pixel.SetPoint(titleText, "TOP", 0, -12)
     titleText:SetText(title)
     viewer.titleLabel = titleText
 
     -- Close button
     local closeBtn = CreateFrame("Button", nil, viewer)
-    AF.SetSize(closeBtn, 20, 20)
-    AF.SetPoint(closeBtn, "TOPRIGHT", -5, -5)
+    Pixel.SetSize(closeBtn, 20, 20)
+    Pixel.SetPoint(closeBtn, "TOPRIGHT", -5, -5)
     closeBtn.text = closeBtn:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    AF.SetPoint(closeBtn.text, "CENTER", 0, 1)
+    Pixel.SetPoint(closeBtn.text, "CENTER", 0, 1)
     closeBtn.text:SetText("X")
     closeBtn:SetScript("OnClick", function()
         viewer:Hide()
@@ -62,47 +61,44 @@ function MedaUI:CreateTextViewer(title, width, height)
     end)
     viewer.closeBtn = closeBtn
 
-    -- Scroll frame for the edit box
-    local scrollFrame = CreateFrame("ScrollFrame", nil, viewer, "UIPanelScrollFrameTemplate")
-    AF.SetPoint(scrollFrame, "TOPLEFT", 10, -40)
-    AF.SetPoint(scrollFrame, "BOTTOMRIGHT", -30, 45)
-    viewer.scrollFrame = scrollFrame
-
-    -- Style the scrollbar
-    local scrollBar = scrollFrame.ScrollBar
-    if scrollBar then
-        AF.SetPoint(scrollBar, "TOPLEFT", scrollFrame, "TOPRIGHT", 2, -16)
-        AF.SetPoint(scrollBar, "BOTTOMLEFT", scrollFrame, "BOTTOMRIGHT", 2, 16)
-    end
+    -- Scroll frame for the edit box (AF custom scrollbar)
+    local scrollParent = self:CreateScrollFrame(viewer)
+    Pixel.SetPoint(scrollParent, "TOPLEFT", 10, -40)
+    Pixel.SetPoint(scrollParent, "BOTTOMRIGHT", -10, 45)
+    scrollParent:SetScrollStep(40)
+    viewer.scrollParent = scrollParent
 
     -- Edit box for text content
-    local editBox = CreateFrame("EditBox", nil, scrollFrame)
+    local editBox = CreateFrame("EditBox", nil, scrollParent.scrollContent)
     editBox:SetMultiLine(true)
     editBox:SetFontObject("GameFontHighlightSmall")
-    AF.SetWidth(editBox, scrollFrame:GetWidth() - 10)
+    editBox:SetPoint("TOPLEFT")
+    editBox:SetPoint("TOPRIGHT")
     editBox:SetAutoFocus(false)
     editBox:SetScript("OnEscapePressed", function()
         viewer:Hide()
     end)
-    scrollFrame:SetScrollChild(editBox)
+    editBox:HookScript("OnTextChanged", function(self)
+        scrollParent:SetContentHeight(self:GetHeight(), true, true)
+    end)
     viewer.editBox = editBox
 
     -- Button container at bottom
     local buttonContainer = CreateFrame("Frame", nil, viewer)
-    AF.SetHeight(buttonContainer, 30)
-    AF.SetPoint(buttonContainer, "BOTTOMLEFT", 10, 10)
-    AF.SetPoint(buttonContainer, "BOTTOMRIGHT", -10, 10)
+    Pixel.SetHeight(buttonContainer, 30)
+    Pixel.SetPoint(buttonContainer, "BOTTOMLEFT", 10, 10)
+    Pixel.SetPoint(buttonContainer, "BOTTOMRIGHT", -10, 10)
     viewer.buttonContainer = buttonContainer
 
     -- Copy instruction label
     local copyHint = viewer:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    AF.SetPoint(copyHint, "LEFT", buttonContainer, "LEFT", 0, 0)
+    Pixel.SetPoint(copyHint, "LEFT", buttonContainer, "LEFT", 0, 0)
     copyHint:SetText("Press Ctrl+C to copy")
     viewer.copyHint = copyHint
 
     -- Close button (bottom right)
     local closeBottomBtn = MedaUI:CreateButton(buttonContainer, "Close", 80, 24)
-    AF.SetPoint(closeBottomBtn, "RIGHT", 0, 0)
+    Pixel.SetPoint(closeBottomBtn, "RIGHT", 0, 0)
     closeBottomBtn:SetScript("OnClick", function()
         viewer:Hide()
     end)
@@ -110,7 +106,7 @@ function MedaUI:CreateTextViewer(title, width, height)
 
     -- Select All button
     local selectAllBtn = MedaUI:CreateButton(buttonContainer, "Select All", 80, 24)
-    AF.SetPoint(selectAllBtn, "RIGHT", closeBottomBtn, "LEFT", -8, 0)
+    Pixel.SetPoint(selectAllBtn, "RIGHT", closeBottomBtn, "LEFT", -8, 0)
     selectAllBtn:SetScript("OnClick", function()
         editBox:HighlightText()
         editBox:SetFocus()

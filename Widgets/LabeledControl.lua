@@ -4,8 +4,7 @@
 ]]
 
 local MedaUI = LibStub("MedaUI-1.0")
----@type AbstractFramework
-local AF = _G.AbstractFramework
+local Pixel = LibStub("MedaUI-1.0").Pixel
 
 --- Create a labeled slider
 --- @param parent Frame The parent frame
@@ -17,16 +16,16 @@ local AF = _G.AbstractFramework
 --- @return table The labeled control wrapper
 function MedaUI:CreateLabeledSlider(parent, labelText, width, min, max, step)
     local container = CreateFrame("Frame", nil, parent)
-    AF.SetSize(container, width + 10, 50)
+    Pixel.SetSize(container, width + 10, 50)
 
     -- Label
     local label = container:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    AF.SetPoint(label, "TOPLEFT", 0, 0)
+    Pixel.SetPoint(label, "TOPLEFT", 0, 0)
     label:SetText(labelText)
 
     -- Slider
     local slider = self:CreateSlider(container, width, min, max, step)
-    AF.SetPoint(slider, "TOPLEFT", label, "BOTTOMLEFT", 0, -12)
+    Pixel.SetPoint(slider, "TOPLEFT", label, "BOTTOMLEFT", 0, -12)
 
     -- Apply theme to label
     local function ApplyTheme()
@@ -78,16 +77,16 @@ end
 --- @return table The labeled control wrapper
 function MedaUI:CreateLabeledDropdown(parent, labelText, width, options, textureMode)
     local container = CreateFrame("Frame", nil, parent)
-    AF.SetSize(container, width + 10, 55)
+    Pixel.SetSize(container, width + 10, 55)
 
     -- Label
     local label = container:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    AF.SetPoint(label, "TOPLEFT", 0, 0)
+    Pixel.SetPoint(label, "TOPLEFT", 0, 0)
     label:SetText(labelText)
 
     -- Dropdown
     local dropdown = self:CreateDropdown(container, width, options, textureMode)
-    AF.SetPoint(dropdown, "TOPLEFT", label, "BOTTOMLEFT", 0, -4)
+    Pixel.SetPoint(dropdown, "TOPLEFT", label, "BOTTOMLEFT", 0, -4)
 
     -- Apply theme to label
     local function ApplyTheme()
@@ -143,16 +142,16 @@ end
 function MedaUI:CreateLabeledColorPicker(parent, labelText, size, hasAlpha)
     size = size or 26
     local container = CreateFrame("Frame", nil, parent)
-    AF.SetSize(container, 200, 26)
+    Pixel.SetSize(container, 200, 26)
 
     -- Label
     local label = container:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    AF.SetPoint(label, "LEFT", 0, 0)
+    Pixel.SetPoint(label, "LEFT", 0, 0)
     label:SetText(labelText)
 
     -- Color picker
     local colorPicker = self:CreateColorPicker(container, size, size, hasAlpha)
-    AF.SetPoint(colorPicker, "LEFT", label, "RIGHT", 10, 0)
+    Pixel.SetPoint(colorPicker, "LEFT", label, "RIGHT", 10, 0)
 
     -- Apply theme to label
     local function ApplyTheme()
@@ -207,16 +206,16 @@ function MedaUI:CreateLabeledCheckbox(parent, labelText, headerText)
     end
 
     local container = CreateFrame("Frame", nil, parent)
-    AF.SetSize(container, 200, 40)
+    Pixel.SetSize(container, 200, 40)
 
     -- Header label
     local header = container:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    AF.SetPoint(header, "TOPLEFT", 0, 0)
+    Pixel.SetPoint(header, "TOPLEFT", 0, 0)
     header:SetText(headerText)
 
     -- Checkbox
     local checkbox = self:CreateCheckbox(container, labelText)
-    AF.SetPoint(checkbox, "TOPLEFT", header, "BOTTOMLEFT", 0, -4)
+    Pixel.SetPoint(checkbox, "TOPLEFT", header, "BOTTOMLEFT", 0, -4)
 
     -- Apply theme to header
     local function ApplyTheme()
@@ -264,16 +263,16 @@ end
 function MedaUI:CreateLabeledEditBox(parent, labelText, width, height)
     height = height or 24
     local container = CreateFrame("Frame", nil, parent)
-    AF.SetSize(container, width + 10, 45)
+    Pixel.SetSize(container, width + 10, 45)
 
     -- Label
     local label = container:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    AF.SetPoint(label, "TOPLEFT", 0, 0)
+    Pixel.SetPoint(label, "TOPLEFT", 0, 0)
     label:SetText(labelText)
 
     -- Edit box
     local editBox = self:CreateEditBox(container, width, height)
-    AF.SetPoint(editBox, "TOPLEFT", label, "BOTTOMLEFT", 0, -4)
+    Pixel.SetPoint(editBox, "TOPLEFT", label, "BOTTOMLEFT", 0, -4)
 
     -- Apply theme to label
     local function ApplyTheme()

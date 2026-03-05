@@ -4,11 +4,10 @@
 ## Author: Medalink
 ## Version: 1.0.0
 ## X-Category: Library
-## Dependencies: AbstractFramework
-
 Libs\LibStub\LibStub.lua
 Libs\CallbackHandler-1.0\CallbackHandler-1.0.lua
 MedaUI.lua
+Pixel.lua
 Themes\Default.lua
 Themes\Bricks.lua
 Widgets\Widgets.xml

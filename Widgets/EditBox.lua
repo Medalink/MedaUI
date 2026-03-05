@@ -4,7 +4,7 @@
 ]]
 
 local MedaUI = LibStub("MedaUI-1.0")
-local AF = _G.AbstractFramework
+local Pixel = LibStub("MedaUI-1.0").Pixel
 
 --- Create a themed edit box
 --- @param parent Frame The parent frame
@@ -17,13 +17,13 @@ function MedaUI:CreateEditBox(parent, width, height, isMultiLine)
 
     -- Container with backdrop
     local container = CreateFrame("Frame", nil, parent, "BackdropTemplate")
-    AF.SetSize(container, width, height)
+    Pixel.SetSize(container, width, height)
     container:SetBackdrop(self:CreateBackdrop(true))
 
     -- EditBox
     local editBox = CreateFrame("EditBox", nil, container)
-    AF.SetPoint(editBox, "TOPLEFT", 6, -4)
-    AF.SetPoint(editBox, "BOTTOMRIGHT", -6, 4)
+    Pixel.SetPoint(editBox, "TOPLEFT", 6, -4)
+    Pixel.SetPoint(editBox, "BOTTOMRIGHT", -6, 4)
     editBox:SetFontObject("GameFontHighlight")
     editBox:SetAutoFocus(false)
     editBox:SetMultiLine(isMultiLine or false)

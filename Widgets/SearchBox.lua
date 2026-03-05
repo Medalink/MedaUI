@@ -4,8 +4,7 @@
 ]]
 
 local MedaUI = LibStub("MedaUI-1.0")
----@type AbstractFramework
-local AF = _G.AbstractFramework
+local Pixel = LibStub("MedaUI-1.0").Pixel
 
 --- Create a search box
 --- @param parent Frame Parent frame
@@ -13,7 +12,7 @@ local AF = _G.AbstractFramework
 --- @return Frame The search box frame
 function MedaUI:CreateSearchBox(parent, width)
     local searchBox = CreateFrame("Frame", nil, parent, "BackdropTemplate")
-    AF.SetSize(searchBox, width, 24)
+    Pixel.SetSize(searchBox, width, 24)
     searchBox:SetBackdrop(self:CreateBackdrop(true))
 
     searchBox.OnSearch = nil
@@ -23,33 +22,33 @@ function MedaUI:CreateSearchBox(parent, width)
 
     -- Search icon (use texture instead of emoji)
     searchBox.icon = searchBox:CreateTexture(nil, "OVERLAY")
-    AF.SetSize(searchBox.icon, 14, 14)
-    AF.SetPoint(searchBox.icon, "LEFT", 8, 0)
+    Pixel.SetSize(searchBox.icon, 14, 14)
+    Pixel.SetPoint(searchBox.icon, "LEFT", 8, 0)
     searchBox.icon:SetAtlas("common-search-magnifyingglass")
     searchBox.icon:SetDesaturated(true)
 
     -- Edit box for input
     searchBox.editBox = CreateFrame("EditBox", nil, searchBox)
-    AF.SetPoint(searchBox.editBox, "LEFT", 26, 0)
-    AF.SetPoint(searchBox.editBox, "RIGHT", -24, 0)
-    AF.SetHeight(searchBox.editBox, 20)
+    Pixel.SetPoint(searchBox.editBox, "LEFT", 26, 0)
+    Pixel.SetPoint(searchBox.editBox, "RIGHT", -24, 0)
+    Pixel.SetHeight(searchBox.editBox, 20)
     searchBox.editBox:SetFontObject(GameFontNormalSmall)
     searchBox.editBox:SetAutoFocus(false)
     searchBox.editBox:SetMaxLetters(100)
 
     -- Placeholder text
     searchBox.placeholder = searchBox:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    AF.SetPoint(searchBox.placeholder, "LEFT", searchBox.editBox, "LEFT", 2, 0)
+    Pixel.SetPoint(searchBox.placeholder, "LEFT", searchBox.editBox, "LEFT", 2, 0)
     searchBox.placeholder:SetText("Search...")
 
     -- Clear button
     searchBox.clearBtn = CreateFrame("Button", nil, searchBox)
-    AF.SetSize(searchBox.clearBtn, 16, 16)
-    AF.SetPoint(searchBox.clearBtn, "RIGHT", -6, 0)
+    Pixel.SetSize(searchBox.clearBtn, 16, 16)
+    Pixel.SetPoint(searchBox.clearBtn, "RIGHT", -6, 0)
     searchBox.clearBtn:Hide()
 
     searchBox.clearBtn.text = searchBox.clearBtn:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    AF.SetPoint(searchBox.clearBtn.text, "CENTER", 0, 1)
+    Pixel.SetPoint(searchBox.clearBtn.text, "CENTER", 0, 1)
     searchBox.clearBtn.text:SetText("x")
 
     -- Apply theme colors

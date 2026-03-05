@@ -4,8 +4,7 @@
 ]]
 
 local MedaUI = LibStub("MedaUI-1.0")
----@type AbstractFramework
-local AF = _G.AbstractFramework
+local Pixel = LibStub("MedaUI-1.0").Pixel
 
 --- Add resize functionality to a frame
 --- @param frame Frame The frame to make resizable
@@ -35,8 +34,8 @@ function MedaUI:AddResizeGrip(frame, config)
 
     for _, corner in ipairs(corners) do
         local handle = CreateFrame("Button", nil, frame)
-        AF.SetSize(handle, cornerSize, cornerSize)
-        AF.SetPoint(handle, corner.point)
+        Pixel.SetSize(handle, cornerSize, cornerSize)
+        Pixel.SetPoint(handle, corner.point)
         handle:EnableMouse(true)
         handle:RegisterForDrag("LeftButton")
         handle.direction = corner.point
@@ -45,9 +44,9 @@ function MedaUI:AddResizeGrip(frame, config)
         if corner.primary then
             handle._isHovered = false
             handle.triangle = handle:CreateTexture(nil, "OVERLAY")
-            AF.SetSize(handle.triangle, 14, 14)
-            AF.SetPoint(handle.triangle, "BOTTOMRIGHT", 0, 0)
-            handle.triangle:SetTexture("Interface\\AddOns\\AbstractFramework\\Media\\Textures\\Triangle_BottomRight.tga")
+            Pixel.SetSize(handle.triangle, 14, 14)
+            Pixel.SetPoint(handle.triangle, "BOTTOMRIGHT", 0, 0)
+            handle.triangle:SetTexture(MedaUI.mediaPath .. "Textures\\Triangle_BottomRight.tga")
 
             local function ApplyTheme()
                 local Theme = MedaUI.Theme
@@ -114,9 +113,9 @@ function MedaUI:AddResizeGrip(frame, config)
 
     -- Bottom edge handle
     local bottomHandle = CreateFrame("Button", nil, frame)
-    AF.SetHeight(bottomHandle, edgeSize)
-    AF.SetPoint(bottomHandle, "BOTTOMLEFT", cornerSize, 0)
-    AF.SetPoint(bottomHandle, "BOTTOMRIGHT", -cornerSize, 0)
+    Pixel.SetHeight(bottomHandle, edgeSize)
+    Pixel.SetPoint(bottomHandle, "BOTTOMLEFT", cornerSize, 0)
+    Pixel.SetPoint(bottomHandle, "BOTTOMRIGHT", -cornerSize, 0)
     bottomHandle:EnableMouse(true)
     bottomHandle:RegisterForDrag("LeftButton")
     bottomHandle.direction = "BOTTOM"
@@ -131,9 +130,9 @@ function MedaUI:AddResizeGrip(frame, config)
 
     -- Right edge handle
     local rightHandle = CreateFrame("Button", nil, frame)
-    AF.SetWidth(rightHandle, edgeSize)
-    AF.SetPoint(rightHandle, "TOPRIGHT", 0, -cornerSize)
-    AF.SetPoint(rightHandle, "BOTTOMRIGHT", 0, cornerSize)
+    Pixel.SetWidth(rightHandle, edgeSize)
+    Pixel.SetPoint(rightHandle, "TOPRIGHT", 0, -cornerSize)
+    Pixel.SetPoint(rightHandle, "BOTTOMRIGHT", 0, cornerSize)
     rightHandle:EnableMouse(true)
     rightHandle:RegisterForDrag("LeftButton")
     rightHandle.direction = "RIGHT"
@@ -148,9 +147,9 @@ function MedaUI:AddResizeGrip(frame, config)
 
     -- Left edge handle
     local leftHandle = CreateFrame("Button", nil, frame)
-    AF.SetWidth(leftHandle, edgeSize)
-    AF.SetPoint(leftHandle, "TOPLEFT", 0, -cornerSize)
-    AF.SetPoint(leftHandle, "BOTTOMLEFT", 0, cornerSize)
+    Pixel.SetWidth(leftHandle, edgeSize)
+    Pixel.SetPoint(leftHandle, "TOPLEFT", 0, -cornerSize)
+    Pixel.SetPoint(leftHandle, "BOTTOMLEFT", 0, cornerSize)
     leftHandle:EnableMouse(true)
     leftHandle:RegisterForDrag("LeftButton")
     leftHandle.direction = "LEFT"
@@ -165,9 +164,9 @@ function MedaUI:AddResizeGrip(frame, config)
 
     -- Top edge handle
     local topHandle = CreateFrame("Button", nil, frame)
-    AF.SetHeight(topHandle, edgeSize)
-    AF.SetPoint(topHandle, "TOPLEFT", cornerSize, 0)
-    AF.SetPoint(topHandle, "TOPRIGHT", -cornerSize, 0)
+    Pixel.SetHeight(topHandle, edgeSize)
+    Pixel.SetPoint(topHandle, "TOPLEFT", cornerSize, 0)
+    Pixel.SetPoint(topHandle, "TOPRIGHT", -cornerSize, 0)
     topHandle:EnableMouse(true)
     topHandle:RegisterForDrag("LeftButton")
     topHandle.direction = "TOP"

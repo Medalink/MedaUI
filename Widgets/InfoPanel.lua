@@ -5,12 +5,10 @@
 ]]
 
 local MedaUI = LibStub("MedaUI-1.0")
----@type AbstractFramework
-local AF = _G.AbstractFramework
+local Pixel = LibStub("MedaUI-1.0").Pixel
 
 local HEADER_HEIGHT = 30
 local FOOTER_HEIGHT = 28
-local SCROLL_STEP = 30
 local INSET = 8
 
 --- Create a themed, dismissable info panel with header, scrollable content, and footer.
@@ -38,7 +36,7 @@ function MedaUI:CreateInfoPanel(name, config)
     frame:SetClampedToScreen(true)
     frame:SetMovable(true)
     frame:EnableMouse(true)
-    AF.SetSize(frame, width, height)
+    Pixel.SetSize(frame, width, height)
     frame:SetBackdrop(MedaUI:CreateBackdrop(true))
 
     -- State
@@ -49,9 +47,9 @@ function MedaUI:CreateInfoPanel(name, config)
     -- Header bar
     -- ================================================================
     local header = CreateFrame("Frame", nil, frame)
-    AF.SetHeight(header, HEADER_HEIGHT)
-    AF.SetPoint(header, "TOPLEFT", 1, -1)
-    AF.SetPoint(header, "TOPRIGHT", -1, -1)
+    Pixel.SetHeight(header, HEADER_HEIGHT)
+    Pixel.SetPoint(header, "TOPLEFT", 1, -1)
+    Pixel.SetPoint(header, "TOPRIGHT", -1, -1)
     header:EnableMouse(true)
     header:RegisterForDrag("LeftButton")
 
@@ -69,8 +67,8 @@ function MedaUI:CreateInfoPanel(name, config)
 
     -- Header icon
     frame.headerIcon = header:CreateTexture(nil, "ARTWORK")
-    AF.SetSize(frame.headerIcon, 18, 18)
-    AF.SetPoint(frame.headerIcon, "LEFT", 8, 0)
+    Pixel.SetSize(frame.headerIcon, 18, 18)
+    Pixel.SetPoint(frame.headerIcon, "LEFT", 8, 0)
     frame.headerIcon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
     if config.icon then
         frame.headerIcon:SetTexture(config.icon)
@@ -80,63 +78,50 @@ function MedaUI:CreateInfoPanel(name, config)
 
     -- Header title
     frame.titleText = header:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    AF.SetPoint(frame.titleText, "LEFT", frame.headerIcon, "RIGHT", 6, 0)
-    AF.SetPoint(frame.titleText, "RIGHT", header, "RIGHT", -28, 0)
+    Pixel.SetPoint(frame.titleText, "LEFT", frame.headerIcon, "RIGHT", 6, 0)
+    Pixel.SetPoint(frame.titleText, "RIGHT", header, "RIGHT", -28, 0)
     frame.titleText:SetJustifyH("LEFT")
     frame.titleText:SetText(config.title or "")
 
     -- Gold accent line under header
     local accent = header:CreateTexture(nil, "OVERLAY")
-    AF.SetHeight(accent, 1)
-    AF.SetPoint(accent, "BOTTOMLEFT", 0, 0)
-    AF.SetPoint(accent, "BOTTOMRIGHT", 0, 0)
+    Pixel.SetHeight(accent, 1)
+    Pixel.SetPoint(accent, "BOTTOMLEFT", 0, 0)
+    Pixel.SetPoint(accent, "BOTTOMRIGHT", 0, 0)
 
-    -- Dismiss button
+    -- Dismiss button (uses standard WoW close button template to match MedaAuras style)
     local dismissBtn
     if config.dismissable ~= false then
-        dismissBtn = MedaUI:CreateIconButton(header, {
-            size = 18,
-            icon = "Interface\\Buttons\\UI-StopButton",
-            tooltip = "Dismiss",
-        })
-        AF.SetPoint(dismissBtn, "RIGHT", header, "RIGHT", -5, 0)
-        dismissBtn.OnClick = function()
+        dismissBtn = CreateFrame("Button", nil, header, "UIPanelCloseButton")
+        Pixel.SetSize(dismissBtn, 22, 22)
+        Pixel.SetPoint(dismissBtn, "RIGHT", header, "RIGHT", -1, 0)
+        dismissBtn:SetScript("OnClick", function()
             frame:Dismiss()
-        end
+        end)
     end
     frame.dismissBtn = dismissBtn
 
     -- ================================================================
-    -- Scroll frame and content
+    -- Scroll frame and content (AF custom scrollbar)
     -- ================================================================
-    local scrollFrame = CreateFrame("ScrollFrame", name .. "Scroll", frame, "UIPanelScrollFrameTemplate")
-    AF.SetPoint(scrollFrame, "TOPLEFT", INSET, -(HEADER_HEIGHT + 4))
-    AF.SetPoint(scrollFrame, "BOTTOMRIGHT", -INSET - 20, FOOTER_HEIGHT + 4)
+    local scrollParent = self:CreateScrollFrame(frame)
+    Pixel.SetPoint(scrollParent, "TOPLEFT", INSET, -(HEADER_HEIGHT + 4))
+    Pixel.SetPoint(scrollParent, "BOTTOMRIGHT", -INSET, FOOTER_HEIGHT + 4)
+    scrollParent:SetScrollStep(30)
 
-    local content = CreateFrame("Frame", name .. "Content", scrollFrame)
-    AF.SetWidth(content, width - INSET * 2 - 22)
-    AF.SetHeight(content, 1)
-    scrollFrame:SetScrollChild(content)
+    local content = scrollParent.scrollContent
+    Pixel.SetHeight(content, 1)
 
-    frame.scrollFrame = scrollFrame
+    frame.scrollParent = scrollParent
     frame.content = content
-
-    -- Mouse wheel scroll
-    frame:EnableMouseWheel(true)
-    frame:SetScript("OnMouseWheel", function(_, delta)
-        local cur = scrollFrame:GetVerticalScroll()
-        local maxScroll = math.max(0, content:GetHeight() - scrollFrame:GetHeight())
-        local newScroll = math.max(0, math.min(maxScroll, cur - delta * SCROLL_STEP))
-        scrollFrame:SetVerticalScroll(newScroll)
-    end)
 
     -- ================================================================
     -- Footer
     -- ================================================================
     local footer = CreateFrame("Frame", nil, frame)
-    AF.SetHeight(footer, FOOTER_HEIGHT)
-    AF.SetPoint(footer, "BOTTOMLEFT", 1, 1)
-    AF.SetPoint(footer, "BOTTOMRIGHT", -1, 1)
+    Pixel.SetHeight(footer, FOOTER_HEIGHT)
+    Pixel.SetPoint(footer, "BOTTOMLEFT", 1, 1)
+    Pixel.SetPoint(footer, "BOTTOMRIGHT", -1, 1)
 
     local footerBg = footer:CreateTexture(nil, "BACKGROUND")
     footerBg:SetAllPoints()
@@ -144,8 +129,8 @@ function MedaUI:CreateInfoPanel(name, config)
     frame.footerBg = footerBg
 
     frame.footerText = footer:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    AF.SetPoint(frame.footerText, "TOPLEFT", 8, -6)
-    AF.SetPoint(frame.footerText, "RIGHT", footer, "RIGHT", -8, 0)
+    Pixel.SetPoint(frame.footerText, "TOPLEFT", 8, -6)
+    Pixel.SetPoint(frame.footerText, "RIGHT", footer, "RIGHT", -8, 0)
     frame.footerText:SetJustifyH("LEFT")
     frame.footerText:SetWordWrap(true)
 
@@ -253,11 +238,11 @@ function MedaUI:CreateInfoPanel(name, config)
     end
 
     function frame:RestorePosition(tbl)
-        AF.ClearPoints(self)
+        Pixel.ClearPoints(self)
         if tbl then
-            AF.SetPoint(self, tbl.point or "CENTER", UIParent, tbl.point or "CENTER", tbl.x or 0, tbl.y or 0)
+            Pixel.SetPoint(self, tbl.point or "CENTER", UIParent, tbl.point or "CENTER", tbl.x or 0, tbl.y or 0)
         else
-            AF.SetPoint(self, "CENTER", UIParent, "CENTER", 0, 0)
+            Pixel.SetPoint(self, "CENTER", UIParent, "CENTER", 0, 0)
         end
     end
 
@@ -268,11 +253,11 @@ function MedaUI:CreateInfoPanel(name, config)
                 self.footerText:SetTextColor(r, g, b)
             end
             self.footer:Show()
-            AF.SetPoint(self.scrollFrame, "BOTTOMRIGHT", -INSET - 20, FOOTER_HEIGHT + 4)
+            Pixel.SetPoint(scrollParent, "BOTTOMRIGHT", -INSET, FOOTER_HEIGHT + 4)
         else
             self.footerText:SetText("")
             self.footer:Hide()
-            AF.SetPoint(self.scrollFrame, "BOTTOMRIGHT", -INSET - 20, INSET)
+            Pixel.SetPoint(scrollParent, "BOTTOMRIGHT", -INSET, INSET)
         end
     end
 
@@ -285,11 +270,11 @@ function MedaUI:CreateInfoPanel(name, config)
         for _, region in ipairs({ self.content:GetRegions() }) do
             region:Hide()
         end
-        AF.SetHeight(self.content, 1)
+        Pixel.SetHeight(self.content, 1)
     end
 
     function frame:SetContentHeight(h)
-        AF.SetHeight(self.content, h)
+        Pixel.SetHeight(self.content, h)
     end
 
     -- ================================================================
@@ -332,10 +317,6 @@ function MedaUI:CreateInfoPanel(name, config)
             end
         end
     end
-
-    frame:SetScript("OnSizeChanged", function(self, w, h)
-        AF.SetWidth(content, w - INSET * 2 - 22)
-    end)
 
     return frame
 end

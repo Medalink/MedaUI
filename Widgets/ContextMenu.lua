@@ -4,8 +4,7 @@
 ]]
 
 local MedaUI = LibStub("MedaUI-1.0")
----@type AbstractFramework
-local AF = _G.AbstractFramework
+local Pixel = LibStub("MedaUI-1.0").Pixel
 
 -- Shared menu pool
 local menuPool = {}
@@ -65,7 +64,7 @@ function MedaUI:CreateContextMenu(items)
         end
 
         local menuHeight = CalculateHeight(menuItems)
-        AF.SetSize(frame, menuWidth, menuHeight)
+        Pixel.SetSize(frame, menuWidth, menuHeight)
 
         local yOffset = -4
         for i, item in ipairs(menuItems) do
@@ -77,14 +76,14 @@ function MedaUI:CreateContextMenu(items)
                     itemFrame = CreateFrame("Frame", nil, frame)
                     itemFrame.isSeparator = true
                     itemFrame.line = itemFrame:CreateTexture(nil, "ARTWORK")
-                    AF.SetHeight(itemFrame.line, 1)
-                    AF.SetPoint(itemFrame.line, "LEFT", 8, 0)
-                    AF.SetPoint(itemFrame.line, "RIGHT", -8, 0)
+                    Pixel.SetHeight(itemFrame.line, 1)
+                    Pixel.SetPoint(itemFrame.line, "LEFT", 8, 0)
+                    Pixel.SetPoint(itemFrame.line, "RIGHT", -8, 0)
                     frame.itemFrames[i] = itemFrame
                 end
                 itemFrame.line:SetColorTexture(unpack(Theme.border))
-                AF.SetSize(itemFrame, menuWidth - 8, separatorHeight)
-                AF.SetPoint(itemFrame, "TOPLEFT", 4, yOffset)
+                Pixel.SetSize(itemFrame, menuWidth - 8, separatorHeight)
+                Pixel.SetPoint(itemFrame, "TOPLEFT", 4, yOffset)
                 itemFrame:Show()
                 yOffset = yOffset - separatorHeight
             else
@@ -95,18 +94,18 @@ function MedaUI:CreateContextMenu(items)
                     itemFrame:SetBackdrop(MedaUI:CreateBackdrop(false))
 
                     itemFrame.text = itemFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-                    AF.SetPoint(itemFrame.text, "LEFT", 12, 0)
+                    Pixel.SetPoint(itemFrame.text, "LEFT", 12, 0)
                     itemFrame.text:SetJustifyH("LEFT")
 
                     itemFrame.arrow = itemFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-                    AF.SetPoint(itemFrame.arrow, "RIGHT", -8, 0)
+                    Pixel.SetPoint(itemFrame.arrow, "RIGHT", -8, 0)
                     itemFrame.arrow:SetText(">")
 
                     frame.itemFrames[i] = itemFrame
                 end
 
-                AF.SetSize(itemFrame, menuWidth - 8, itemHeight)
-                AF.SetPoint(itemFrame, "TOPLEFT", 4, yOffset)
+                Pixel.SetSize(itemFrame, menuWidth - 8, itemHeight)
+                Pixel.SetPoint(itemFrame, "TOPLEFT", 4, yOffset)
                 itemFrame:SetBackdropColor(0, 0, 0, 0)
 
                 itemFrame.text:SetText(item.label or "")
@@ -175,11 +174,11 @@ function MedaUI:CreateContextMenu(items)
         BuildMenu(self.frame, self.items, nil)
 
         -- Position menu
-        AF.ClearPoints(self.frame)
+        Pixel.ClearPoints(self.frame)
         if parent then
-            AF.SetPoint(self.frame, "TOPLEFT", parent, "TOPLEFT", x, y)
+            Pixel.SetPoint(self.frame, "TOPLEFT", parent, "TOPLEFT", x, y)
         else
-            AF.SetPoint(self.frame, "TOPLEFT", UIParent, "BOTTOMLEFT", x, y)
+            Pixel.SetPoint(self.frame, "TOPLEFT", UIParent, "BOTTOMLEFT", x, y)
         end
 
         -- Keep on screen
@@ -190,17 +189,17 @@ function MedaUI:CreateContextMenu(items)
 
         if left + menuWidth > screenWidth then
             local newX = x - menuWidth
-            AF.ClearPoints(self.frame)
+            Pixel.ClearPoints(self.frame)
             if parent then
-                AF.SetPoint(self.frame, "TOPRIGHT", parent, "TOPLEFT", x, y)
+                Pixel.SetPoint(self.frame, "TOPRIGHT", parent, "TOPLEFT", x, y)
             else
-                AF.SetPoint(self.frame, "TOPLEFT", UIParent, "BOTTOMLEFT", screenWidth - menuWidth, y)
+                Pixel.SetPoint(self.frame, "TOPLEFT", UIParent, "BOTTOMLEFT", screenWidth - menuWidth, y)
             end
         end
 
         if top - menuHeight < 0 then
-            AF.ClearPoints(self.frame)
-            AF.SetPoint(self.frame, "BOTTOMLEFT", UIParent, "BOTTOMLEFT", x, 0)
+            Pixel.ClearPoints(self.frame)
+            Pixel.SetPoint(self.frame, "BOTTOMLEFT", UIParent, "BOTTOMLEFT", x, 0)
         end
 
         activeMenus[self] = true
@@ -247,8 +246,8 @@ function MedaUI:CreateContextMenu(items)
         local subFrame = CreateMenuFrame()
         BuildMenu(subFrame, submenuItems, self)
 
-        AF.ClearPoints(subFrame)
-        AF.SetPoint(subFrame, "TOPLEFT", parentItem, "TOPRIGHT", 2, 0)
+        Pixel.ClearPoints(subFrame)
+        Pixel.SetPoint(subFrame, "TOPLEFT", parentItem, "TOPRIGHT", 2, 0)
 
         self.submenus[#self.submenus + 1] = subFrame
     end

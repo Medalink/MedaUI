@@ -5,8 +5,7 @@
 ]]
 
 local MedaUI = LibStub("MedaUI-1.0")
----@type AbstractFramework
-local AF = _G.AbstractFramework
+local Pixel = LibStub("MedaUI-1.0").Pixel
 
 --- Create a notification banner that auto-hides with an optional countdown bar.
 --- @param name string Unique global frame name
@@ -46,7 +45,7 @@ function MedaUI:CreateNotificationBanner(name, config)
     frame:SetClampedToScreen(true)
     frame:SetMovable(true)
     frame:EnableMouse(true)
-    AF.SetSize(frame, config.width or 220, config.height or 36)
+    Pixel.SetSize(frame, config.width or 220, config.height or 36)
     frame:RegisterForDrag("LeftButton")
 
     MedaUI:ApplyBackdrop(frame, "backgroundDark", "border")
@@ -66,14 +65,14 @@ function MedaUI:CreateNotificationBanner(name, config)
 
     -- Text
     frame.text = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    AF.SetPoint(frame.text, "CENTER", 0, 0)
+    Pixel.SetPoint(frame.text, "CENTER", 0, 0)
     frame.text:SetJustifyH("CENTER")
 
     -- Bar background
     frame.barBg = CreateFrame("Frame", nil, frame)
-    AF.SetPoint(frame.barBg, "TOPLEFT", frame, "BOTTOMLEFT", 2, 0)
-    AF.SetPoint(frame.barBg, "TOPRIGHT", frame, "BOTTOMRIGHT", -2, 0)
-    AF.SetHeight(frame.barBg, (config.barHeight or 4) + 2)
+    Pixel.SetPoint(frame.barBg, "TOPLEFT", frame, "BOTTOMLEFT", 2, 0)
+    Pixel.SetPoint(frame.barBg, "TOPRIGHT", frame, "BOTTOMRIGHT", -2, 0)
+    Pixel.SetHeight(frame.barBg, (config.barHeight or 4) + 2)
 
     local bgTex = frame.barBg:CreateTexture(nil, "BACKGROUND")
     bgTex:SetAllPoints()
@@ -81,9 +80,9 @@ function MedaUI:CreateNotificationBanner(name, config)
 
     -- Countdown bar
     frame.bar = CreateFrame("StatusBar", nil, frame)
-    AF.SetPoint(frame.bar, "TOPLEFT", frame, "BOTTOMLEFT", 2, 0)
-    AF.SetPoint(frame.bar, "TOPRIGHT", frame, "BOTTOMRIGHT", -2, 0)
-    AF.SetHeight(frame.bar, config.barHeight or 4)
+    Pixel.SetPoint(frame.bar, "TOPLEFT", frame, "BOTTOMLEFT", 2, 0)
+    Pixel.SetPoint(frame.bar, "TOPRIGHT", frame, "BOTTOMRIGHT", -2, 0)
+    Pixel.SetHeight(frame.bar, config.barHeight or 4)
     frame.bar:SetStatusBarTexture("Interface\\Buttons\\WHITE8x8")
     frame.bar:SetMinMaxValues(0, 1)
     frame.bar:SetValue(1)
@@ -126,7 +125,7 @@ function MedaUI:CreateNotificationBanner(name, config)
         self.text:SetText(text or "")
 
         local textW = self.text:GetStringWidth()
-        AF.SetWidth(self, math.max(textW + 30, 160))
+        Pixel.SetWidth(self, math.max(textW + 30, 160))
 
         local dur = duration or self._duration
         self._duration = dur
@@ -152,8 +151,8 @@ function MedaUI:CreateNotificationBanner(name, config)
     end
 
     function frame:SetBarHeight(h)
-        AF.SetHeight(self.bar, h)
-        AF.SetHeight(self.barBg, h + 2)
+        Pixel.SetHeight(self.bar, h)
+        Pixel.SetHeight(self.barBg, h + 2)
     end
 
     function frame:SetShowBar(show)
@@ -194,11 +193,11 @@ function MedaUI:CreateNotificationBanner(name, config)
     end
 
     function frame:RestorePosition(tbl)
-        AF.ClearPoints(self)
+        Pixel.ClearPoints(self)
         if tbl then
-            AF.SetPoint(self, tbl.point or "TOP", UIParent, tbl.point or "TOP", tbl.x or 0, tbl.y or -100)
+            Pixel.SetPoint(self, tbl.point or "TOP", UIParent, tbl.point or "TOP", tbl.x or 0, tbl.y or -100)
         else
-            AF.SetPoint(self, "TOP", UIParent, "TOP", 0, -100)
+            Pixel.SetPoint(self, "TOP", UIParent, "TOP", 0, -100)
         end
     end
 
@@ -214,7 +213,7 @@ function MedaUI:CreateNotificationBanner(name, config)
         self.text:SetText(text or "Preview")
 
         local textW = self.text:GetStringWidth()
-        AF.SetWidth(self, math.max(textW + 30, 160))
+        Pixel.SetWidth(self, math.max(textW + 30, 160))
 
         if self.bar:IsShown() then
             self.bar:SetValue(0.65)

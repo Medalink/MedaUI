@@ -4,7 +4,7 @@
 ]]
 
 local MedaUI = LibStub("MedaUI-1.0")
-local AF = _G.AbstractFramework
+local Pixel = LibStub("MedaUI-1.0").Pixel
 
 --- Create a themed checkbox
 --- @param parent Frame The parent frame
@@ -12,24 +12,24 @@ local AF = _G.AbstractFramework
 --- @return Frame The checkbox container frame
 function MedaUI:CreateCheckbox(parent, label)
     local container = CreateFrame("Frame", nil, parent)
-    AF.SetSize(container, 200, 20)
+    Pixel.SetSize(container, 200, 20)
 
     -- Checkbox box
     local box = CreateFrame("Button", nil, container, "BackdropTemplate")
-    AF.SetSize(box, 16, 16)
-    AF.SetPoint(box, "LEFT", 0, 0)
+    Pixel.SetSize(box, 16, 16)
+    Pixel.SetPoint(box, "LEFT", 0, 0)
     box:SetBackdrop(self:CreateBackdrop(true))
 
     -- Checkmark texture
     box.check = box:CreateTexture(nil, "OVERLAY")
-    box.check:SetTexture("Interface\\AddOns\\MedaUI\\Textures\\checkmark.tga")
-    AF.SetPoint(box.check, "CENTER", 0, 0)
-    AF.SetSize(box.check, 12, 12)
+    box.check:SetTexture(MedaUI.mediaPath .. "Textures\\checkmark.tga")
+    Pixel.SetPoint(box.check, "CENTER", 0, 0)
+    Pixel.SetSize(box.check, 12, 12)
     box.check:Hide()
 
     -- Label (8px gap from box for consistent spacing)
-    container.label = AF.CreateFontString(container, label)
-    AF.SetPoint(container.label, "LEFT", box, "RIGHT", 8, 0)
+    container.label = Pixel.CreateFontString(container, label)
+    Pixel.SetPoint(container.label, "LEFT", box, "RIGHT", 8, 0)
 
     -- State
     container.checked = false

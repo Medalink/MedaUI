@@ -4,8 +4,7 @@
 ]]
 
 local MedaUI = LibStub("MedaUI-1.0")
----@type AbstractFramework
-local AF = _G.AbstractFramework
+local Pixel = LibStub("MedaUI-1.0").Pixel
 
 -- Try to get LibDataBroker and LibDBIcon
 local LDB = LibStub("LibDataBroker-1.1", true)
@@ -24,7 +23,7 @@ function MedaUI:CreateMinimapButton(name, icon, onClick, onRightClick, savedVars
         return nil
     end
 
-    -- Create the data broker object
+    -- Create or retrieve the data broker object (NewDataObject returns nil if name already registered)
     local dataObj = LDB:NewDataObject(name, {
         type = "launcher",
         icon = icon,
@@ -45,10 +44,30 @@ function MedaUI:CreateMinimapButton(name, icon, onClick, onRightClick, savedVars
         end,
     })
 
-    -- Register with LibDBIcon
-    -- Use provided saved vars table or create a default
+    if not dataObj then
+        dataObj = LDB:GetDataObjectByName(name)
+        if dataObj then
+            dataObj.icon = icon
+            dataObj.OnClick = function(self, button)
+                if button == "LeftButton" and onClick then
+                    onClick()
+                elseif button == "RightButton" and onRightClick then
+                    onRightClick()
+                end
+            end
+        end
+    end
+
+    if not dataObj then
+        print("|cFFFF0000MedaUI:|r Failed to create data broker object for minimap button: " .. name)
+        return nil
+    end
+
+    -- Register with LibDBIcon (skip if already registered after a reload)
     local minimapData = savedVarsTable and savedVarsTable.minimap or { hide = false }
-    LDBIcon:Register(name, dataObj, minimapData)
+    if not LDBIcon:IsRegistered(name) then
+        LDBIcon:Register(name, dataObj, minimapData)
+    end
 
     -- Return the data object for further customization
     dataObj.ShowButton = function()

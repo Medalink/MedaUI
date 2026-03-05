@@ -4,8 +4,7 @@
 ]]
 
 local MedaUI = LibStub("MedaUI-1.0")
----@type AbstractFramework
-local AF = _G.AbstractFramework
+local Pixel = LibStub("MedaUI-1.0").Pixel
 
 --- Create a two-column layout helper
 --- @param parent Frame The parent frame
@@ -42,7 +41,7 @@ function MedaUI:CreateTwoColumnLayout(parent, config)
     --- @return Frame The widget (for chaining)
     function layout:AddToLeft(widget, yOffset)
         yOffset = yOffset or 0
-        AF.SetPoint(widget, "TOPLEFT", self.parent, "TOPLEFT", self.leftX, self.leftY + yOffset)
+        Pixel.SetPoint(widget, "TOPLEFT", self.parent, "TOPLEFT", self.leftX, self.leftY + yOffset)
         table.insert(self.widgets, widget)
         return widget
     end
@@ -53,7 +52,7 @@ function MedaUI:CreateTwoColumnLayout(parent, config)
     --- @return Frame The widget (for chaining)
     function layout:AddToRight(widget, yOffset)
         yOffset = yOffset or 0
-        AF.SetPoint(widget, "TOPLEFT", self.parent, "TOPLEFT", self.rightX, self.rightY + yOffset)
+        Pixel.SetPoint(widget, "TOPLEFT", self.parent, "TOPLEFT", self.rightX, self.rightY + yOffset)
         table.insert(self.widgets, widget)
         return widget
     end
@@ -122,7 +121,7 @@ function MedaUI:CreateTwoColumnLayout(parent, config)
     function layout:AddSectionHeader(text, width)
         width = width or (self.rightX - self.leftX + self.rightWidth)
         local container = MedaUI:CreateSectionHeader(self.parent, text, width)
-        AF.SetPoint(container, "TOPLEFT", self.parent, "TOPLEFT", self.leftX, self:GetCurrentY())
+        Pixel.SetPoint(container, "TOPLEFT", self.parent, "TOPLEFT", self.leftX, self:GetCurrentY())
         self:NextRow(32)
         table.insert(self.widgets, container)
         return container
@@ -134,7 +133,7 @@ function MedaUI:CreateTwoColumnLayout(parent, config)
     --- @return Frame The widget
     function layout:AddFullWidth(widget, yOffset)
         yOffset = yOffset or 0
-        AF.SetPoint(widget, "TOPLEFT", self.parent, "TOPLEFT", self.leftX, self:GetCurrentY() + yOffset)
+        Pixel.SetPoint(widget, "TOPLEFT", self.parent, "TOPLEFT", self.leftX, self:GetCurrentY() + yOffset)
         table.insert(self.widgets, widget)
         return widget
     end

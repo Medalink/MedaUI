@@ -9,7 +9,7 @@
 ]]
 
 local MedaUI = LibStub("MedaUI-1.0")
-local AF = _G.AbstractFramework
+local Pixel = LibStub("MedaUI-1.0").Pixel
 
 -- Dropdown counter for unique names
 local dropdownCounter = 0
@@ -37,7 +37,7 @@ function MedaUI:CreateDropdown(parent, width, options, textureMode)
     local name = "MedaUIDropdown" .. dropdownCounter
 
     local dropdown = CreateFrame("Frame", name, parent, "BackdropTemplate")
-    AF.SetSize(dropdown, width, 24)
+    Pixel.SetSize(dropdown, width, 24)
     dropdown:SetBackdrop(self:CreateBackdrop(true))
 
     dropdown.options = options or {}
@@ -55,8 +55,8 @@ function MedaUI:CreateDropdown(parent, width, options, textureMode)
     -- ================================================================
     if textureMode == "fill" then
         dropdown.fillTex = dropdown:CreateTexture(nil, "BORDER")
-        AF.SetPoint(dropdown.fillTex, "TOPLEFT", 1, -1)
-        AF.SetPoint(dropdown.fillTex, "BOTTOMRIGHT", -23, 1)
+        Pixel.SetPoint(dropdown.fillTex, "TOPLEFT", 1, -1)
+        Pixel.SetPoint(dropdown.fillTex, "BOTTOMRIGHT", -23, 1)
         dropdown.fillTex:Hide()
     end
 
@@ -66,15 +66,15 @@ function MedaUI:CreateDropdown(parent, width, options, textureMode)
     if textureMode == "preview" then
         local pvSize = 48
         local pv = CreateFrame("Frame", nil, dropdown, "BackdropTemplate")
-        AF.SetSize(pv, pvSize, pvSize)
-        AF.SetPoint(pv, "LEFT", dropdown, "RIGHT", 6, 0)
+        Pixel.SetSize(pv, pvSize, pvSize)
+        Pixel.SetPoint(pv, "LEFT", dropdown, "RIGHT", 6, 0)
         pv:SetBackdrop(self:CreateBackdrop(true))
         pv:SetBackdropColor(0.04, 0.04, 0.06, 0.9)
         pv:SetBackdropBorderColor(0.25, 0.25, 0.35, 0.6)
 
         local pvTex = pv:CreateTexture(nil, "ARTWORK")
-        AF.SetPoint(pvTex, "TOPLEFT", 3, -3)
-        AF.SetPoint(pvTex, "BOTTOMRIGHT", -3, 3)
+        Pixel.SetPoint(pvTex, "TOPLEFT", 3, -3)
+        Pixel.SetPoint(pvTex, "BOTTOMRIGHT", -3, 3)
         pvTex:SetTexCoord(0, 1, 0, 1)
         pv.tex = pvTex
 
@@ -83,8 +83,8 @@ function MedaUI:CreateDropdown(parent, width, options, textureMode)
 
     -- Selected text display
     dropdown.text = dropdown:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    AF.SetPoint(dropdown.text, "LEFT", 8, 0)
-    AF.SetPoint(dropdown.text, "RIGHT", -26, 0)
+    Pixel.SetPoint(dropdown.text, "LEFT", 8, 0)
+    Pixel.SetPoint(dropdown.text, "RIGHT", -26, 0)
     dropdown.text:SetJustifyH("LEFT")
     dropdown.text:SetWordWrap(false)
     dropdown.text:SetText("Select...")
@@ -96,13 +96,13 @@ function MedaUI:CreateDropdown(parent, width, options, textureMode)
 
     -- Arrow separator line
     dropdown.arrowSeparator = dropdown:CreateTexture(nil, "ARTWORK")
-    AF.SetSize(dropdown.arrowSeparator, 1, 16)
-    AF.SetPoint(dropdown.arrowSeparator, "RIGHT", -22, 0)
+    Pixel.SetSize(dropdown.arrowSeparator, 1, 16)
+    Pixel.SetPoint(dropdown.arrowSeparator, "RIGHT", -22, 0)
 
     -- Arrow icon (texture-based chevron)
     dropdown.arrow = dropdown:CreateTexture(nil, "OVERLAY")
-    AF.SetSize(dropdown.arrow, 12, 12)
-    AF.SetPoint(dropdown.arrow, "RIGHT", -6, 0)
+    Pixel.SetSize(dropdown.arrow, 12, 12)
+    Pixel.SetPoint(dropdown.arrow, "RIGHT", -6, 0)
 
     -- Try Atlas first, fall back to rotated expand arrow
     local atlasSet = pcall(function()
@@ -125,20 +125,18 @@ function MedaUI:CreateDropdown(parent, width, options, textureMode)
     dropdown.menu = CreateFrame("Frame", name .. "Menu", dropdown, "BackdropTemplate")
     dropdown.menu:SetBackdrop(self:CreateBackdrop(true))
     dropdown.menu:SetFrameStrata("FULLSCREEN_DIALOG")
-    AF.SetPoint(dropdown.menu, "TOPLEFT", dropdown, "BOTTOMLEFT", 0, -2)
-    AF.SetWidth(dropdown.menu, width)
+    Pixel.SetPoint(dropdown.menu, "TOPLEFT", dropdown, "BOTTOMLEFT", 0, -2)
+    Pixel.SetWidth(dropdown.menu, width)
     dropdown.menu:Hide()
     dropdown.menu.items = {}
 
-    -- Scroll frame for menu items
-    dropdown.menu.scrollFrame = CreateFrame("ScrollFrame", name .. "MenuScroll", dropdown.menu, "UIPanelScrollFrameTemplate")
-    AF.SetPoint(dropdown.menu.scrollFrame, "TOPLEFT", 2, -2)
-    AF.SetPoint(dropdown.menu.scrollFrame, "BOTTOMRIGHT", -20, 2)
+    -- Scroll frame for menu items (AF custom scrollbar)
+    dropdown.menu.scrollParent = self:CreateScrollFrame(dropdown.menu)
+    Pixel.SetPoint(dropdown.menu.scrollParent, "TOPLEFT", 2, -2)
+    Pixel.SetPoint(dropdown.menu.scrollParent, "BOTTOMRIGHT", -2, 2)
+    dropdown.menu.scrollParent:SetScrollStep(66)
 
-    -- Scroll child (content)
-    dropdown.menu.scrollChild = CreateFrame("Frame", nil, dropdown.menu.scrollFrame)
-    AF.SetWidth(dropdown.menu.scrollChild, width - 24)
-    dropdown.menu.scrollFrame:SetScrollChild(dropdown.menu.scrollChild)
+    dropdown.menu.scrollChild = dropdown.menu.scrollParent.scrollContent
 
     -- Apply theme colors
     local function ApplyTheme()
@@ -194,13 +192,14 @@ function MedaUI:CreateDropdown(parent, width, options, textureMode)
         local maxVisibleItems = 10
         local totalHeight = #dropdown.options * itemHeight
         local menuHeight = math.min(totalHeight + 4, maxVisibleItems * itemHeight + 4)
-        AF.SetHeight(dropdown.menu, menuHeight)
-        AF.SetHeight(dropdown.menu.scrollChild, totalHeight)
+        Pixel.SetHeight(dropdown.menu, menuHeight)
+        dropdown.menu.scrollParent:SetContentHeight(totalHeight, true, true)
 
         for i, opt in ipairs(dropdown.options) do
             local item = CreateFrame("Button", nil, dropdown.menu.scrollChild, "BackdropTemplate")
-            AF.SetSize(item, width - 24, itemHeight)
-            AF.SetPoint(item, "TOPLEFT", 0, -(i - 1) * itemHeight)
+            Pixel.SetHeight(item, itemHeight)
+            Pixel.SetPoint(item, "TOPLEFT", 0, -(i - 1) * itemHeight)
+            Pixel.SetPoint(item, "RIGHT")
             item:SetBackdrop(MedaUI:CreateBackdrop(false))
             item:SetBackdropColor(0, 0, 0, 0)
 
@@ -216,8 +215,8 @@ function MedaUI:CreateDropdown(parent, width, options, textureMode)
                 fill:SetAlpha(0.85)
 
                 item.text = item:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-                AF.SetPoint(item.text, "LEFT", 8, 0)
-                AF.SetPoint(item.text, "RIGHT", -4, 0)
+                Pixel.SetPoint(item.text, "LEFT", 8, 0)
+                Pixel.SetPoint(item.text, "RIGHT", -4, 0)
                 item.text:SetJustifyH("LEFT")
                 item.text:SetWordWrap(false)
                 item.text:SetText(opt.label)
@@ -226,8 +225,8 @@ function MedaUI:CreateDropdown(parent, width, options, textureMode)
                 item.text:SetShadowColor(0, 0, 0, 1)
             else
                 item.text = item:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-                AF.SetPoint(item.text, "LEFT", 8, 0)
-                AF.SetPoint(item.text, "RIGHT", -4, 0)
+                Pixel.SetPoint(item.text, "LEFT", 8, 0)
+                Pixel.SetPoint(item.text, "RIGHT", -4, 0)
                 item.text:SetJustifyH("LEFT")
                 item.text:SetWordWrap(false)
                 item.text:SetText(opt.label)
@@ -264,20 +263,24 @@ function MedaUI:CreateDropdown(parent, width, options, textureMode)
                 end)
             end
 
-            item:SetScript("OnClick", function(self)
-                dropdown:SetSelected(self.value)
-                dropdown.menu:Hide()
-                dropdown.isOpen = false
-                dropdown.arrow:SetRotation(math.rad(90))  -- Point down
-                local Theme = MedaUI.Theme
-                dropdown:SetBackdropBorderColor(unpack(Theme.border))
-            end)
+            if opt.disabled then
+                item:Disable()
+            else
+                item:SetScript("OnClick", function(self)
+                    dropdown:SetSelected(self.value)
+                    dropdown.menu:Hide()
+                    dropdown.isOpen = false
+                    dropdown.arrow:SetRotation(math.rad(90))  -- Point down
+                    local Theme = MedaUI.Theme
+                    dropdown:SetBackdropBorderColor(unpack(Theme.border))
+                end)
+            end
 
             dropdown.menu.items[i] = item
         end
 
         -- Reset scroll position
-        dropdown.menu.scrollFrame:SetVerticalScroll(0)
+        dropdown.menu.scrollParent:ResetScroll()
     end
 
     -- Toggle dropdown

@@ -4,8 +4,7 @@
 ]]
 
 local MedaUI = LibStub("MedaUI-1.0")
----@type AbstractFramework
-local AF = _G.AbstractFramework
+local Pixel = LibStub("MedaUI-1.0").Pixel
 
 --- Create a tab bar
 --- @param parent Frame Parent frame
@@ -13,7 +12,7 @@ local AF = _G.AbstractFramework
 --- @return Frame The tab bar frame
 function MedaUI:CreateTabBar(parent, tabs)
     local tabBar = CreateFrame("Frame", nil, parent, "BackdropTemplate")
-    AF.SetHeight(tabBar, 28)
+    Pixel.SetHeight(tabBar, 28)
     tabBar:SetBackdrop(self:CreateBackdrop(false))
 
     tabBar.tabs = {}
@@ -51,7 +50,7 @@ function MedaUI:CreateTabBar(parent, tabs)
     local xOffset = tabPadding
     for i, tabDef in ipairs(tabs) do
         local tab = CreateFrame("Button", nil, tabBar, "BackdropTemplate")
-        AF.SetHeight(tab, 26)
+        Pixel.SetHeight(tab, 26)
         tab:SetBackdrop(self:CreateBackdrop(false))
 
         tab.id = tabDef.id
@@ -59,27 +58,27 @@ function MedaUI:CreateTabBar(parent, tabs)
 
         -- Tab text
         tab.text = tab:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-        AF.SetPoint(tab.text, "CENTER", 0, 0)
+        Pixel.SetPoint(tab.text, "CENTER", 0, 0)
         tab.text:SetText(tabDef.label)
 
         -- Calculate tab width based on actual text width + padding
         local textWidth = tab.text:GetStringWidth()
         local tabWidth = math.max(minTabWidth, textWidth + tabHorizontalPadding)
-        AF.SetSize(tab, tabWidth, 26)
-        AF.SetPoint(tab, "LEFT", xOffset, 0)
+        Pixel.SetSize(tab, tabWidth, 26)
+        Pixel.SetPoint(tab, "LEFT", xOffset, 0)
         xOffset = xOffset + tabWidth + tabPadding
 
         -- Active indicator (gold line at bottom)
         tab.activeIndicator = tab:CreateTexture(nil, "OVERLAY")
-        AF.SetHeight(tab.activeIndicator, 2)
-        AF.SetPoint(tab.activeIndicator, "BOTTOMLEFT", 0, 0)
-        AF.SetPoint(tab.activeIndicator, "BOTTOMRIGHT", 0, 0)
+        Pixel.SetHeight(tab.activeIndicator, 2)
+        Pixel.SetPoint(tab.activeIndicator, "BOTTOMLEFT", 0, 0)
+        Pixel.SetPoint(tab.activeIndicator, "BOTTOMRIGHT", 0, 0)
         tab.activeIndicator:Hide()
 
         -- Badge (optional)
         if tabDef.badge then
             tab.badge = MedaUI:CreateBadge(tab)
-            AF.SetPoint(tab.badge, "RIGHT", tab, "RIGHT", -4, 0)
+            Pixel.SetPoint(tab.badge, "RIGHT", tab, "RIGHT", -4, 0)
             tab.badge:SetCount(tabDef.badge)
         end
 
@@ -110,7 +109,7 @@ function MedaUI:CreateTabBar(parent, tabs)
     end
 
     -- Set total width (xOffset already includes final padding)
-    AF.SetWidth(tabBar, xOffset)
+    Pixel.SetWidth(tabBar, xOffset)
 
     -- Initial theme application
     ApplyTheme()
@@ -156,7 +155,7 @@ function MedaUI:CreateTabBar(parent, tabs)
         if tab then
             if not tab.badge then
                 tab.badge = MedaUI:CreateBadge(tab)
-                AF.SetPoint(tab.badge, "RIGHT", tab, "RIGHT", -4, 0)
+                Pixel.SetPoint(tab.badge, "RIGHT", tab, "RIGHT", -4, 0)
             end
             tab.badge:SetCount(count)
         end

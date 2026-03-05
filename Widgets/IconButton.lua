@@ -5,8 +5,7 @@
 ]]
 
 local MedaUI = LibStub("MedaUI-1.0")
----@type AbstractFramework
-local AF = _G.AbstractFramework
+local Pixel = LibStub("MedaUI-1.0").Pixel
 
 local DEFAULT_SIZE = 18
 local ICON_PADDING = 2
@@ -20,14 +19,14 @@ function MedaUI:CreateIconButton(parent, config)
     local size = config.size or DEFAULT_SIZE
 
     local button = CreateFrame("Button", nil, parent, "BackdropTemplate")
-    AF.SetSize(button, size, size)
+    Pixel.SetSize(button, size, size)
     button:SetBackdrop(self:CreateBackdrop(true))
     button:RegisterForClicks("LeftButtonUp", "RightButtonUp")
 
     -- Icon texture
     button.icon = button:CreateTexture(nil, "ARTWORK")
-    AF.SetPoint(button.icon, "TOPLEFT", ICON_PADDING, -ICON_PADDING)
-    AF.SetPoint(button.icon, "BOTTOMRIGHT", -ICON_PADDING, ICON_PADDING)
+    Pixel.SetPoint(button.icon, "TOPLEFT", ICON_PADDING, -ICON_PADDING)
+    Pixel.SetPoint(button.icon, "BOTTOMRIGHT", -ICON_PADDING, ICON_PADDING)
     if config.icon then
         button.icon:SetTexture(config.icon)
     end

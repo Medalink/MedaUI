@@ -4,8 +4,7 @@
 ]]
 
 local MedaUI = LibStub("MedaUI-1.0")
----@type AbstractFramework
-local AF = _G.AbstractFramework
+local Pixel = LibStub("MedaUI-1.0").Pixel
 
 --- Create a theme selector dropdown
 --- @param parent Frame Parent frame
@@ -24,21 +23,21 @@ function MedaUI:CreateThemeSelector(parent, width, config)
     local previewSpacing = showPreview and 8 or 0
     local dropdownWidth = width - previewWidth - previewSpacing
 
-    AF.SetSize(container, width, 24)
+    Pixel.SetSize(container, width, 24)
 
     -- Preview swatch (shows accent color of current theme)
     local previewSwatch
     if showPreview then
         previewSwatch = CreateFrame("Frame", nil, container, "BackdropTemplate")
-        AF.SetSize(previewSwatch, 24, 24)
-        AF.SetPoint(previewSwatch, "LEFT", 0, 0)
+        Pixel.SetSize(previewSwatch, 24, 24)
+        Pixel.SetPoint(previewSwatch, "LEFT", 0, 0)
         previewSwatch:SetBackdrop(self:CreateBackdrop(true))
         previewSwatch:SetBackdropBorderColor(unpack(MedaUI.Theme.border))
 
         -- Inner color texture
         previewSwatch.colorTex = previewSwatch:CreateTexture(nil, "OVERLAY")
-        AF.SetPoint(previewSwatch.colorTex, "TOPLEFT", 2, -2)
-        AF.SetPoint(previewSwatch.colorTex, "BOTTOMRIGHT", -2, 2)
+        Pixel.SetPoint(previewSwatch.colorTex, "TOPLEFT", 2, -2)
+        Pixel.SetPoint(previewSwatch.colorTex, "BOTTOMRIGHT", -2, 2)
 
         container.previewSwatch = previewSwatch
     end
@@ -59,9 +58,9 @@ function MedaUI:CreateThemeSelector(parent, width, config)
     -- Create dropdown
     local dropdown = self:CreateDropdown(container, dropdownWidth, BuildOptions())
     if showPreview then
-        AF.SetPoint(dropdown, "LEFT", previewSwatch, "RIGHT", previewSpacing, 0)
+        Pixel.SetPoint(dropdown, "LEFT", previewSwatch, "RIGHT", previewSpacing, 0)
     else
-        AF.SetPoint(dropdown, "LEFT", 0, 0)
+        Pixel.SetPoint(dropdown, "LEFT", 0, 0)
     end
 
     container.dropdown = dropdown

@@ -8,8 +8,18 @@ local MAJOR, MINOR = "MedaUI-1.0", 1
 local MedaUI = LibStub:NewLibrary(MAJOR, MINOR)
 if not MedaUI then return end  -- Newer version already loaded
 
----@type AbstractFramework
-local AF = _G.AbstractFramework
+-- Resolve the media base path from our load location so textures work
+-- whether MedaUI is standalone or embedded (e.g. Libs\MedaUI\ inside an addon).
+do
+    local info = debugstack(1, 1, 0) or ""
+    local prefix = info:match("(.-)[/\\]MedaUI%.lua")
+    if prefix then
+        prefix = prefix:gsub("/", "\\")
+        MedaUI.mediaPath = "Interface\\AddOns\\" .. prefix .. "\\Media\\"
+    else
+        MedaUI.mediaPath = "Interface\\AddOns\\MedaUI\\Media\\"
+    end
+end
 
 -- ============================================================================
 -- Theme System Infrastructure
@@ -83,11 +93,6 @@ function MedaUI:SetTheme(name)
                 -- Silent fail, or could log error
             end
         end
-    end
-
-    -- Update AF accent color to match MedaUI's current accent
-    if AF and self.Theme.gold then
-        AF.SetAddonAccentColor("MedaUI", self.Theme.gold)
     end
 
     -- Fire callback for external listeners
@@ -259,11 +264,41 @@ function MedaUI:GetCombatColor(inCombat)
 end
 
 -- ============================================================================
+-- Themed Scroll Frame
+-- ============================================================================
+
+--- Create a scroll frame whose scrollbar thumb matches the active MedaUI
+--- theme. Color/border are always transparent ("none") so the scroll frame
+--- can be embedded inside existing themed containers.
+--- @param parent Frame Parent frame
+--- @param name string|nil Optional global frame name
+--- @param width number|nil Fixed width (nil = use anchors)
+--- @param height number|nil Fixed height (nil = use anchors)
+--- @return table The scroll frame (scrollParent)
+function MedaUI:CreateScrollFrame(parent, name, width, height)
+    local scrollParent = self.Pixel.CreateScrollFrame(parent, name, width, height, "none", "none")
+
+    local function ApplyThemeToScrollbar()
+        local color = self.Theme.gold or self.Theme.accent or {0.9, 0.7, 0.15, 1}
+        local thumb = scrollParent.scrollThumb
+        if thumb then
+            thumb.r, thumb.g, thumb.b = color[1], color[2], color[3]
+            thumb:SetBackdropColor(color[1], color[2], color[3], 0.7)
+        end
+    end
+
+    ApplyThemeToScrollbar()
+    self:RegisterThemedWidget(scrollParent, ApplyThemeToScrollbar)
+
+    return scrollParent
+end
+
+-- ============================================================================
 -- Utility Functions
 -- ============================================================================
 
 --- Create a standard backdrop table for themed frames.
---- Prefer using AF.ApplyDefaultBackdrop(frame) then overriding colors.
+--- Prefer using Pixel.CreateBorderedFrame then overriding colors.
 --- @param hasEdge boolean Whether to include an edge/border
 --- @return table Backdrop configuration table
 function MedaUI:CreateBackdrop(hasEdge)
@@ -278,8 +313,7 @@ function MedaUI:CreateBackdrop(hasEdge)
     return backdrop
 end
 
---- Create a themed frame using AF as the foundation.
---- Applies AF's pixel-perfect backdrop then overrides with MedaUI theme colors.
+--- Create a themed frame with pixel-perfect backdrop and MedaUI theme colors.
 --- @param parent Frame The parent frame
 --- @param name string|nil Optional global frame name
 --- @param width number|nil Width
@@ -288,7 +322,7 @@ end
 --- @param borderKey string|nil Border color key (default: "border")
 --- @return Frame The frame with BackdropTemplate and pixel updater
 function MedaUI:CreateThemedFrame(parent, name, width, height, bgKey, borderKey)
-    local frame = AF.CreateBorderedFrame(parent, name, width, height)
+    local frame = self.Pixel.CreateBorderedFrame(parent, name, width, height)
     self:ApplyBackdrop(frame, bgKey or "background", borderKey or "border")
     return frame
 end

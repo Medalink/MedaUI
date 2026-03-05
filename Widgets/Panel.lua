@@ -1,13 +1,12 @@
 --[[
     MedaUI Panel Widget
     Creates themed movable panels/windows with title bars
-    Uses AbstractFramework for pixel-perfect positioning
+    Uses MedaUI.Pixel for pixel-perfect positioning
 ]]
 
 local MedaUI = LibStub("MedaUI-1.0")
 
----@type AbstractFramework
-local AF = _G.AbstractFramework
+local Pixel = LibStub("MedaUI-1.0").Pixel
 
 --- Create a themed panel/window
 --- @param name string Unique frame name
@@ -16,8 +15,8 @@ local AF = _G.AbstractFramework
 --- @param title string|nil Panel title
 --- @return Frame The created panel frame
 function MedaUI:CreatePanel(name, width, height, title)
-    local panel = AF.CreateBorderedFrame(UIParent, name, width, height)
-    AF.SetPoint(panel, "CENTER")
+    local panel = Pixel.CreateBorderedFrame(UIParent, name, width, height)
+    Pixel.SetPoint(panel, "CENTER")
     panel:SetMovable(true)
     panel:EnableMouse(true)
     panel:SetClampedToScreen(true)
@@ -25,9 +24,9 @@ function MedaUI:CreatePanel(name, width, height, title)
 
     -- Title bar
     local titleBar = CreateFrame("Frame", nil, panel, "BackdropTemplate")
-    AF.SetHeight(titleBar, 28)
-    AF.SetPoint(titleBar, "TOPLEFT", panel, "TOPLEFT", 1, -1)
-    AF.SetPoint(titleBar, "TOPRIGHT", panel, "TOPRIGHT", -1, -1)
+    Pixel.SetHeight(titleBar, 28)
+    Pixel.SetPoint(titleBar, "TOPLEFT", panel, "TOPLEFT", 1, -1)
+    Pixel.SetPoint(titleBar, "TOPRIGHT", panel, "TOPRIGHT", -1, -1)
     titleBar:SetBackdrop({ bgFile = "Interface\\Buttons\\WHITE8x8" })
     titleBar:EnableMouse(true)
     titleBar:RegisterForDrag("LeftButton")
@@ -44,21 +43,21 @@ function MedaUI:CreatePanel(name, width, height, title)
     end)
 
     if title then
-        panel.titleText = AF.CreateFontString(titleBar, title)
-        AF.SetPoint(panel.titleText, "LEFT", titleBar, "LEFT", 10, 0)
+        panel.titleText = Pixel.CreateFontString(titleBar, title)
+        Pixel.SetPoint(panel.titleText, "LEFT", titleBar, "LEFT", 10, 0)
     end
 
     -- Close button
     local closeBtn = CreateFrame("Button", nil, titleBar, "BackdropTemplate")
-    AF.SetSize(closeBtn, 20, 20)
-    AF.SetPoint(closeBtn, "RIGHT", titleBar, "RIGHT", -4, 0)
+    Pixel.SetSize(closeBtn, 20, 20)
+    Pixel.SetPoint(closeBtn, "RIGHT", titleBar, "RIGHT", -4, 0)
     closeBtn:SetBackdrop(self:CreateBackdrop(false))
     closeBtn:SetBackdropColor(0, 0, 0, 0)
 
     closeBtn.icon = closeBtn:CreateTexture(nil, "OVERLAY")
-    closeBtn.icon:SetTexture("Interface\\AddOns\\MedaUI\\Textures\\close-x.tga")
-    AF.SetPoint(closeBtn.icon, "CENTER", 0, 0)
-    AF.SetSize(closeBtn.icon, 12, 12)
+    closeBtn.icon:SetTexture(MedaUI.mediaPath .. "Textures\\close-x.tga")
+    Pixel.SetPoint(closeBtn.icon, "CENTER", 0, 0)
+    Pixel.SetSize(closeBtn.icon, 12, 12)
 
     closeBtn:SetScript("OnClick", function()
         panel:Hide()
@@ -66,21 +65,21 @@ function MedaUI:CreatePanel(name, width, height, title)
 
     -- Content area
     panel.content = CreateFrame("Frame", nil, panel)
-    AF.SetPoint(panel.content, "TOPLEFT", panel, "TOPLEFT", 8, -36)
-    AF.SetPoint(panel.content, "BOTTOMRIGHT", panel, "BOTTOMRIGHT", -8, 8)
+    Pixel.SetPoint(panel.content, "TOPLEFT", panel, "TOPLEFT", 8, -36)
+    Pixel.SetPoint(panel.content, "BOTTOMRIGHT", panel, "BOTTOMRIGHT", -8, 8)
 
     -- Addon icon watermark
     panel.addonIcon = panel.content:CreateTexture(nil, "BACKGROUND")
-    AF.SetSize(panel.addonIcon, 128, 128)
-    AF.SetPoint(panel.addonIcon, "BOTTOMRIGHT", panel.content, "BOTTOMRIGHT", -8, 8)
+    Pixel.SetSize(panel.addonIcon, 128, 128)
+    Pixel.SetPoint(panel.addonIcon, "BOTTOMRIGHT", panel.content, "BOTTOMRIGHT", -8, 8)
     panel.addonIcon:SetAlpha(0.15)
     panel.addonIcon:Hide()
 
     -- Gold accent line under title
     local accent = titleBar:CreateTexture(nil, "OVERLAY")
-    AF.SetHeight(accent, 1)
-    AF.SetPoint(accent, "BOTTOMLEFT", titleBar, "BOTTOMLEFT")
-    AF.SetPoint(accent, "BOTTOMRIGHT", titleBar, "BOTTOMRIGHT")
+    Pixel.SetHeight(accent, 1)
+    Pixel.SetPoint(accent, "BOTTOMLEFT", titleBar, "BOTTOMLEFT")
+    Pixel.SetPoint(accent, "BOTTOMRIGHT", titleBar, "BOTTOMRIGHT")
 
     -- Store references
     panel.titleBar = titleBar
@@ -179,7 +178,7 @@ function MedaUI:CreatePanel(name, width, height, title)
     end
 
     function panel:SetPanelSize(w, h)
-        AF.SetSize(self, w, h)
+        Pixel.SetSize(self, w, h)
     end
 
     function panel:GetState()
@@ -204,18 +203,18 @@ function MedaUI:CreatePanel(name, width, height, title)
 
         if state.size then
             if state.size.width and state.size.height then
-                AF.SetSize(self, state.size.width, state.size.height)
+                Pixel.SetSize(self, state.size.width, state.size.height)
             elseif state.size.width then
-                AF.SetWidth(self, state.size.width)
+                Pixel.SetWidth(self, state.size.width)
             elseif state.size.height then
-                AF.SetHeight(self, state.size.height)
+                Pixel.SetHeight(self, state.size.height)
             end
         end
 
         if state.position and state.position.point then
-            AF.ClearPoints(self)
+            Pixel.ClearPoints(self)
             local relativeTo = state.position.relativeTo and _G[state.position.relativeTo] or UIParent
-            AF.SetPoint(self,
+            Pixel.SetPoint(self,
                 state.position.point,
                 relativeTo,
                 state.position.relativePoint,

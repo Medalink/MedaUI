@@ -5,8 +5,7 @@
 ]]
 
 local MedaUI = LibStub("MedaUI-1.0")
----@type AbstractFramework
-local AF = _G.AbstractFramework
+local Pixel = LibStub("MedaUI-1.0").Pixel
 
 local DEFAULT_WIDTH = 280
 local DEFAULT_ICON_SIZE = 20
@@ -34,39 +33,39 @@ function MedaUI:CreateStatusRow(parent, config)
     local showNote = config.showNote ~= false
 
     local row = CreateFrame("Frame", nil, parent)
-    AF.SetWidth(row, width)
+    Pixel.SetWidth(row, width)
 
     -- Accent bar (left edge, severity-colored)
     row.accent = row:CreateTexture(nil, "ARTWORK")
-    AF.SetPoint(row.accent, "TOPLEFT", 0, 0)
-    AF.SetPoint(row.accent, "BOTTOMLEFT", 0, 0)
-    AF.SetWidth(row.accent, accentWidth)
+    Pixel.SetPoint(row.accent, "TOPLEFT", 0, 0)
+    Pixel.SetPoint(row.accent, "BOTTOMLEFT", 0, 0)
+    Pixel.SetWidth(row.accent, accentWidth)
     row.accent:SetColorTexture(0.4, 0.4, 0.4, 1)
 
     -- Icon (square, zoom-cropped)
     row.icon = row:CreateTexture(nil, "ARTWORK")
-    AF.SetSize(row.icon, iconSize, iconSize)
-    AF.SetPoint(row.icon, "TOPLEFT", accentWidth + 6, -2)
+    Pixel.SetSize(row.icon, iconSize, iconSize)
+    Pixel.SetPoint(row.icon, "TOPLEFT", accentWidth + 6, -2)
     row.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
 
     -- Label text (bold, left of icon)
     row.label = row:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    AF.SetPoint(row.label, "TOPLEFT", row.icon, "TOPRIGHT", TEXT_LEFT_PAD, -1)
-    AF.SetPoint(row.label, "RIGHT", row, "RIGHT", -136, 0)
+    Pixel.SetPoint(row.label, "TOPLEFT", row.icon, "TOPRIGHT", TEXT_LEFT_PAD, -1)
+    Pixel.SetPoint(row.label, "RIGHT", row, "RIGHT", -136, 0)
     row.label:SetJustifyH("LEFT")
     row.label:SetWordWrap(false)
 
     -- Status text (right-aligned)
     row.status = row:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    AF.SetPoint(row.status, "TOPRIGHT", row, "TOPRIGHT", -4, -3)
+    Pixel.SetPoint(row.status, "TOPRIGHT", row, "TOPRIGHT", -4, -3)
     row.status:SetJustifyH("RIGHT")
     row.status:SetWordWrap(false)
-    AF.SetWidth(row.status, 130)
+    Pixel.SetWidth(row.status, 130)
 
     -- Note sub-line (dim, full width, below icon row)
     row.note = row:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    AF.SetPoint(row.note, "TOPLEFT", row.icon, "BOTTOMLEFT", 0, -NOTE_TOP_PAD)
-    AF.SetPoint(row.note, "RIGHT", row, "RIGHT", -4, 0)
+    Pixel.SetPoint(row.note, "TOPLEFT", row.icon, "BOTTOMLEFT", 0, -NOTE_TOP_PAD)
+    Pixel.SetPoint(row.note, "RIGHT", row, "RIGHT", -4, 0)
     row.note:SetJustifyH("LEFT")
     row.note:SetWordWrap(true)
     if not showNote then row.note:Hide() end
@@ -100,7 +99,7 @@ function MedaUI:CreateStatusRow(parent, config)
         if row._showNote and row.note:IsShown() and row.note:GetText() and row.note:GetText() ~= "" then
             h = h + row.note:GetStringHeight() + NOTE_TOP_PAD
         end
-        AF.SetHeight(row, math.max(h, iconSize + 6))
+        Pixel.SetHeight(row, math.max(h, iconSize + 6))
     end
 
     -- Theme support
@@ -116,7 +115,7 @@ function MedaUI:CreateStatusRow(parent, config)
     ApplyTheme()
 
     -- Initial height
-    AF.SetHeight(row, iconSize + 6)
+    Pixel.SetHeight(row, iconSize + 6)
 
     -- ----------------------------------------------------------------
     -- Public API

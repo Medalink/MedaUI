@@ -77,6 +77,12 @@ MedaUI:RegisterTheme("bricks", {
     codeBorder = { 0.28, 0.28, 0.35, 1 },
     codeLineNumber = { 0.45, 0.45, 0.52, 1 },
     codeHighlight = { 0.25, 0.30, 0.45, 1 },
+    codeKeyword = { 0.53, 0.67, 0.95, 1 },
+    codeLiteral = { 0.72, 0.78, 0.97, 1 },
+    codeComment = { 0.45, 0.72, 0.55, 1 },
+    codeString = { 0.90, 0.63, 0.35, 1 },
+    codeNumber = { 0.48, 0.82, 1.0, 1 },
+    codeFunction = { 0.84, 0.87, 0.98, 1 },
 
     -- Tree styling
     treeIndent = 16,

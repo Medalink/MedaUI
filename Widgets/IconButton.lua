@@ -50,18 +50,17 @@ function MedaUI:CreateIconButton(parent, config)
             return
         end
 
+        button.icon:SetAlpha(1)
+
         if button._isHovered then
             button:SetBackdropColor(unpack(Theme.buttonHover))
             button:SetBackdropBorderColor(unpack(Theme.gold))
-            button.icon:SetAlpha(1)
         elseif button._active then
             button:SetBackdropColor(unpack(Theme.buttonHover))
             button:SetBackdropBorderColor(unpack(Theme.border))
-            button.icon:SetAlpha(0.9)
         else
             button:SetBackdropColor(unpack(Theme.button))
             button:SetBackdropBorderColor(unpack(Theme.border))
-            button.icon:SetAlpha(0.7)
         end
     end
     button._ApplyTheme = ApplyTheme

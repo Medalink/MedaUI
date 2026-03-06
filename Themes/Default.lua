@@ -77,6 +77,12 @@ MedaUI:RegisterTheme("default", {
     codeBorder = { 0.25, 0.25, 0.26, 1 },
     codeLineNumber = { 0.4, 0.4, 0.4, 1 },
     codeHighlight = { 0.3, 0.3, 0.1, 1 },
+    codeKeyword = { 0.93, 0.76, 0.28, 1 },
+    codeLiteral = { 0.88, 0.68, 0.28, 1 },
+    codeComment = { 0.42, 0.68, 0.44, 1 },
+    codeString = { 0.86, 0.58, 0.32, 1 },
+    codeNumber = { 0.42, 0.76, 1.0, 1 },
+    codeFunction = { 0.82, 0.86, 1.0, 1 },
 
     -- Tree styling
     treeIndent = 16,

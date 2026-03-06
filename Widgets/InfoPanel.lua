@@ -265,7 +265,7 @@ function MedaUI:CreateInfoPanel(name, config)
         local kids = { self.content:GetChildren() }
         for _, child in ipairs(kids) do
             child:Hide()
-            child:SetParent(nil)
+            child:ClearAllPoints()
         end
         for _, region in ipairs({ self.content:GetRegions() }) do
             region:Hide()

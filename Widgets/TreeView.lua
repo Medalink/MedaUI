@@ -6,6 +6,48 @@
 local MedaUI = LibStub("MedaUI-1.0")
 local Pixel = LibStub("MedaUI-1.0").Pixel
 
+local function TreeRow_OnEnter(self)
+    local tv = self._treeView
+    if tv and tv.selectedNode ~= self._node then
+        local Theme = MedaUI.Theme
+        self:SetBackdropColor(unpack(Theme.buttonHover))
+    end
+end
+
+local function TreeRow_OnLeave(self)
+    local tv = self._treeView
+    if tv and tv.selectedNode ~= self._node then
+        self:SetBackdropColor(0, 0, 0, 0)
+    end
+end
+
+local function TreeRow_OnClick(self, button)
+    local tv = self._treeView
+    if not tv then return end
+    if button == "LeftButton" then
+        tv:SelectNode(self._node)
+        if tv.OnNodeClick then
+            tv:OnNodeClick(self._node, self._path)
+        end
+    elseif button == "RightButton" then
+        if tv.OnNodeRightClick then
+            tv:OnNodeRightClick(self._node, self._path)
+        end
+    end
+end
+
+local function ExpandBtn_OnClick(self)
+    local row = self:GetParent()
+    local tv = row._treeView
+    if not tv then return end
+    local node = row._node
+    node.expanded = not node.expanded
+    if tv.OnNodeExpand then
+        tv:OnNodeExpand(node, node.expanded)
+    end
+    tv:Refresh()
+end
+
 --- Create a tree view
 --- @param parent Frame Parent frame
 --- @param width number Tree width
@@ -31,11 +73,14 @@ function MedaUI:CreateTreeView(parent, width, height)
     Pixel.SetPoint(scrollParent, "BOTTOMRIGHT", -4, 4)
     scrollParent:SetScrollStep(66)
 
+    local scrollFrame = scrollParent.scrollFrame
     local content = scrollParent.scrollContent
     treeView.content = content
     treeView.scrollParent = scrollParent
     treeView.rowPool = {}
     treeView.visibleRows = {}
+
+    local visibleRowCount = math.ceil(height / treeView.rowHeight) + 1
 
     -- Apply theme colors
     local function ApplyTheme()
@@ -45,24 +90,22 @@ function MedaUI:CreateTreeView(parent, width, height)
     end
     treeView._ApplyTheme = ApplyTheme
 
-    -- Register for theme updates
     treeView._themeHandle = MedaUI:RegisterThemedWidget(treeView, function()
         ApplyTheme()
         treeView:Refresh()
     end)
 
-    -- Initial theme application
     ApplyTheme()
 
-    -- Flatten tree data for display
-    local function FlattenTree(nodes, depth, path, output)
-        depth = depth or 0
-        path = path or {}
-        output = output or {}
-
+    -- Flatten tree data for display (avoids {unpack(path)} per node)
+    local pathBuf = {}
+    local function FlattenTree(nodes, depth, output)
         for i, node in ipairs(nodes) do
-            local nodePath = {unpack(path)}
-            nodePath[#nodePath + 1] = i
+            depth = depth or 0
+            pathBuf[depth + 1] = i
+            -- Build path by copying only the needed portion of the buffer
+            local nodePath = {}
+            for d = 1, depth + 1 do nodePath[d] = pathBuf[d] end
 
             output[#output + 1] = {
                 node = node,
@@ -73,131 +116,119 @@ function MedaUI:CreateTreeView(parent, width, height)
             }
 
             if node.expanded and node.children then
-                FlattenTree(node.children, depth + 1, nodePath, output)
+                FlattenTree(node.children, depth + 1, output)
             end
         end
-
         return output
     end
 
-    -- Get row from pool
-    local function GetRow(index)
-        local row = treeView.rowPool[index]
+    -- Slot-based row pool
+    local function GetRow(slot)
+        local row = treeView.rowPool[slot]
         if not row then
             row = CreateFrame("Button", nil, content, "BackdropTemplate")
             Pixel.SetSize(row, width - 28, treeView.rowHeight)
             row:SetBackdrop(MedaUI:CreateBackdrop(false))
             row:RegisterForClicks("LeftButtonUp", "RightButtonUp")
+            row._treeView = treeView
 
-            -- Expand/collapse button
             row.expandBtn = CreateFrame("Button", nil, row)
             Pixel.SetSize(row.expandBtn, 16, 16)
             Pixel.SetPoint(row.expandBtn, "LEFT", 0, 0)
 
             row.expandBtn.text = row.expandBtn:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
             Pixel.SetPoint(row.expandBtn.text, "CENTER", 0, 0)
-            row.expandBtn.text:SetText("+")
 
-            -- Node label
             row.label = row:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
             Pixel.SetPoint(row.label, "LEFT", row.expandBtn, "RIGHT", 2, 0)
             Pixel.SetPoint(row.label, "RIGHT", -4, 0)
             row.label:SetJustifyH("LEFT")
 
-            treeView.rowPool[index] = row
+            row:SetScript("OnEnter", TreeRow_OnEnter)
+            row:SetScript("OnLeave", TreeRow_OnLeave)
+            row:SetScript("OnClick", TreeRow_OnClick)
+            row.expandBtn:SetScript("OnClick", ExpandBtn_OnClick)
+
+            treeView.rowPool[slot] = row
         end
         return row
     end
 
-    -- Update display
-    local function UpdateDisplay()
+    -- Render only the visible portion of flattenedData
+    local function RenderVisible()
         local Theme = MedaUI.Theme
+        local flat = treeView.flattenedData
+        local rh = treeView.rowHeight
 
-        -- Flatten current tree state
-        treeView.flattenedData = FlattenTree(treeView.data)
-
-        local totalHeight = #treeView.flattenedData * treeView.rowHeight
-        Pixel.SetHeight(content, math.max(totalHeight, height - 8))
-
-        -- Hide all rows
         for _, row in ipairs(treeView.visibleRows) do
             row:Hide()
         end
         wipe(treeView.visibleRows)
 
-        -- Create visible rows
-        for i, item in ipairs(treeView.flattenedData) do
-            local row = GetRow(i)
-            Pixel.SetPoint(row, "TOPLEFT", 0, -((i - 1) * treeView.rowHeight))
+        if #flat == 0 then return end
 
-            -- Indentation
+        local scrollPos = scrollFrame:GetVerticalScroll()
+        local firstVisible = math.floor(scrollPos / rh) + 1
+        local lastVisible = math.min(firstVisible + visibleRowCount, #flat)
+
+        local slot = 0
+        for i = firstVisible, lastVisible do
+            slot = slot + 1
+            local item = flat[i]
+            local row = GetRow(slot)
+
+            row:ClearAllPoints()
+            Pixel.SetPoint(row, "TOPLEFT", 0, -((i - 1) * rh))
+
             local indent = item.depth * treeView.indentSize
+            row.expandBtn:ClearAllPoints()
             Pixel.SetPoint(row.expandBtn, "LEFT", indent, 0)
 
-            -- Expand button
             if item.hasChildren then
                 row.expandBtn:Show()
                 row.expandBtn.text:SetText(item.expanded and "-" or "+")
                 row.expandBtn.text:SetTextColor(unpack(Theme.textDim))
-                row.expandBtn:SetScript("OnClick", function()
-                    item.node.expanded = not item.node.expanded
-                    if treeView.OnNodeExpand then
-                        treeView:OnNodeExpand(item.node, item.node.expanded)
-                    end
-                    UpdateDisplay()
-                end)
             else
                 row.expandBtn:Hide()
                 row.expandBtn.text:SetText("")
             end
 
-            -- Label
             row.label:SetText(item.node.label or "")
             row.label:SetTextColor(unpack(Theme.text))
+            row.label:ClearAllPoints()
             Pixel.SetPoint(row.label, "LEFT", row.expandBtn, "RIGHT", item.hasChildren and 2 or -12, 0)
+            Pixel.SetPoint(row.label, "RIGHT", -4, 0)
 
-            -- Selection highlight
             if treeView.selectedNode == item.node then
                 row:SetBackdropColor(unpack(Theme.highlight))
             else
                 row:SetBackdropColor(0, 0, 0, 0)
             end
 
-            -- Row data
+            row._node = item.node
+            row._path = item.path
             row.nodeData = item
-
-            -- Hover effect
-            row:SetScript("OnEnter", function(self)
-                if treeView.selectedNode ~= self.nodeData.node then
-                    local Theme = MedaUI.Theme
-                    self:SetBackdropColor(unpack(Theme.buttonHover))
-                end
-            end)
-
-            row:SetScript("OnLeave", function(self)
-                if treeView.selectedNode ~= self.nodeData.node then
-                    self:SetBackdropColor(0, 0, 0, 0)
-                end
-            end)
-
-            -- Click handlers
-            row:SetScript("OnClick", function(self, button)
-                if button == "LeftButton" then
-                    treeView:SelectNode(self.nodeData.node)
-                    if treeView.OnNodeClick then
-                        treeView:OnNodeClick(self.nodeData.node, self.nodeData.path)
-                    end
-                elseif button == "RightButton" then
-                    if treeView.OnNodeRightClick then
-                        treeView:OnNodeRightClick(self.nodeData.node, self.nodeData.path)
-                    end
-                end
-            end)
 
             row:Show()
             treeView.visibleRows[#treeView.visibleRows + 1] = row
         end
     end
+
+    -- Full update: flatten then render visible
+    local function UpdateDisplay()
+        wipe(treeView.flattenedData)
+        FlattenTree(treeView.data, 0, treeView.flattenedData)
+
+        local totalHeight = #treeView.flattenedData * treeView.rowHeight
+        Pixel.SetHeight(content, math.max(totalHeight, height - 8))
+
+        RenderVisible()
+    end
+
+    -- Re-render visible rows on scroll
+    scrollFrame:HookScript("OnVerticalScroll", function()
+        RenderVisible()
+    end)
 
     --- Set the tree data
     --- @param data table Array of {label, expanded?, children?} nodes
@@ -211,13 +242,13 @@ function MedaUI:CreateTreeView(parent, width, height)
     --- @param node table The node to select
     function treeView:SelectNode(node)
         self.selectedNode = node
-        UpdateDisplay()
+        RenderVisible()
     end
 
     --- Clear selection
     function treeView:ClearSelection()
         self.selectedNode = nil
-        UpdateDisplay()
+        RenderVisible()
     end
 
     --- Expand all nodes

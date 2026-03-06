@@ -53,7 +53,8 @@ function MedaUI:CreateTextViewer(title, width, height)
         viewer:Hide()
     end)
     closeBtn:SetScript("OnEnter", function(self)
-        self.text:SetTextColor(1, 0.3, 0.3)
+        local Theme = MedaUI.Theme
+        self.text:SetTextColor(unpack(Theme.text))
     end)
     closeBtn:SetScript("OnLeave", function(self)
         local Theme = MedaUI.Theme

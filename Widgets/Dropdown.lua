@@ -178,108 +178,143 @@ function MedaUI:CreateDropdown(parent, width, options, textureMode)
     -- Initial theme application
     ApplyTheme()
 
-    -- Build options list
+    -- Shared item handlers (capture dropdown via item._dropdown)
+    local function ItemOnEnter(self)
+        local Theme = MedaUI.Theme
+        self:SetBackdropColor(unpack(Theme.buttonHover))
+    end
+
+    local function ItemOnEnterPreview(self)
+        local Theme = MedaUI.Theme
+        self:SetBackdropColor(unpack(Theme.buttonHover))
+        local dd = self._dropdown
+        if self._texture and dd and dd.previewPanel then
+            dd.previewPanel.tex:SetTexture(self._texture)
+        end
+    end
+
+    local function ItemOnLeave(self)
+        self:SetBackdropColor(0, 0, 0, 0)
+    end
+
+    local function ItemOnLeavePreview(self)
+        self:SetBackdropColor(0, 0, 0, 0)
+        local dd = self._dropdown
+        if dd and dd._selectedTexture and dd.previewPanel then
+            dd.previewPanel.tex:SetTexture(dd._selectedTexture)
+        end
+    end
+
+    local function ItemOnClick(self)
+        local dd = self._dropdown
+        if not dd then return end
+        dd:SetSelected(self.value)
+        dd.menu:Hide()
+        dd.isOpen = false
+        dd.arrow:SetRotation(math.rad(90))
+        local Theme = MedaUI.Theme
+        dd:SetBackdropBorderColor(unpack(Theme.border))
+    end
+
+    local itemBackdrop = MedaUI:CreateBackdrop(false)
+
+    local function AcquireItem(dd, index)
+        local items = dd.menu.items
+        local item = items[index]
+        if item then return item, false end
+
+        item = CreateFrame("Button", nil, dd.menu.scrollChild, "BackdropTemplate")
+        item:SetBackdrop(itemBackdrop)
+        item._dropdown = dd
+
+        item.text = item:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+        Pixel.SetPoint(item.text, "LEFT", 8, 0)
+        Pixel.SetPoint(item.text, "RIGHT", -4, 0)
+        item.text:SetJustifyH("LEFT")
+        item.text:SetWordWrap(false)
+
+        if textureMode == "fill" then
+            item._fillTex = item:CreateTexture(nil, "ARTWORK")
+            item._fillTex:SetAllPoints()
+            item._fillTex:Hide()
+            item.text:SetShadowOffset(2, -2)
+            item.text:SetShadowColor(0, 0, 0, 1)
+        end
+
+        if textureMode == "preview" then
+            item:SetScript("OnEnter", ItemOnEnterPreview)
+            item:SetScript("OnLeave", ItemOnLeavePreview)
+        else
+            item:SetScript("OnEnter", ItemOnEnter)
+            item:SetScript("OnLeave", ItemOnLeave)
+        end
+
+        items[index] = item
+        return item, true
+    end
+
+    -- Build options list (reuses existing item frames)
     local function BuildMenu()
         local Theme = MedaUI.Theme
-        -- Clear existing items
-        for _, item in ipairs(dropdown.menu.items) do
-            item:Hide()
-            item:SetParent(nil)
-        end
-        wipe(dropdown.menu.items)
-
+        local opts = dropdown.options
         local itemHeight = (textureMode == "fill") and 24 or 22
         local maxVisibleItems = 10
-        local totalHeight = #dropdown.options * itemHeight
+        local totalHeight = #opts * itemHeight
         local menuHeight = math.min(totalHeight + 4, maxVisibleItems * itemHeight + 4)
         Pixel.SetHeight(dropdown.menu, menuHeight)
         dropdown.menu.scrollParent:SetContentHeight(totalHeight, true, true)
 
-        for i, opt in ipairs(dropdown.options) do
-            local item = CreateFrame("Button", nil, dropdown.menu.scrollChild, "BackdropTemplate")
+        for i, opt in ipairs(opts) do
+            local item = AcquireItem(dropdown, i)
+
+            item:ClearAllPoints()
             Pixel.SetHeight(item, itemHeight)
             Pixel.SetPoint(item, "TOPLEFT", 0, -(i - 1) * itemHeight)
             Pixel.SetPoint(item, "RIGHT")
-            item:SetBackdrop(MedaUI:CreateBackdrop(false))
             item:SetBackdropColor(0, 0, 0, 0)
 
             item.value = opt.value
             item.label = opt.label
             item._texture = opt.texture
 
-            -- Fill mode: texture fills entire item row
-            if textureMode == "fill" and opt.texture then
-                local fill = item:CreateTexture(nil, "ARTWORK")
-                fill:SetAllPoints()
-                fill:SetTexture(opt.texture)
-                fill:SetAlpha(0.85)
-
-                item.text = item:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-                Pixel.SetPoint(item.text, "LEFT", 8, 0)
-                Pixel.SetPoint(item.text, "RIGHT", -4, 0)
-                item.text:SetJustifyH("LEFT")
-                item.text:SetWordWrap(false)
-                item.text:SetText(opt.label)
-                item.text:SetTextColor(1, 1, 1, 1)
-                item.text:SetShadowOffset(2, -2)
-                item.text:SetShadowColor(0, 0, 0, 1)
+            if textureMode == "fill" and item._fillTex then
+                if opt.texture then
+                    item._fillTex:SetTexture(opt.texture)
+                    item._fillTex:SetAlpha(0.85)
+                    item._fillTex:Show()
+                    item.text:SetTextColor(1, 1, 1, 1)
+                else
+                    item._fillTex:Hide()
+                    item.text:SetTextColor(unpack(Theme.text))
+                end
             else
-                item.text = item:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-                Pixel.SetPoint(item.text, "LEFT", 8, 0)
-                Pixel.SetPoint(item.text, "RIGHT", -4, 0)
-                item.text:SetJustifyH("LEFT")
-                item.text:SetWordWrap(false)
-                item.text:SetText(opt.label)
                 item.text:SetTextColor(unpack(Theme.text))
-
                 if textureMode == "font" and opt.path then
                     local fo = GetFontPreviewObject(opt.path, 12)
                     if fo then item.text:SetFontObject(fo) end
+                elseif textureMode == "font" then
+                    item.text:SetFontObject(GameFontNormalSmall)
                 end
             end
 
-            -- Hover / leave
-            if textureMode == "preview" then
-                item:SetScript("OnEnter", function(self)
-                    local Theme = MedaUI.Theme
-                    self:SetBackdropColor(unpack(Theme.buttonHover))
-                    if self._texture and dropdown.previewPanel then
-                        dropdown.previewPanel.tex:SetTexture(self._texture)
-                    end
-                end)
-                item:SetScript("OnLeave", function(self)
-                    self:SetBackdropColor(0, 0, 0, 0)
-                    if dropdown._selectedTexture and dropdown.previewPanel then
-                        dropdown.previewPanel.tex:SetTexture(dropdown._selectedTexture)
-                    end
-                end)
-            else
-                item:SetScript("OnEnter", function(self)
-                    local Theme = MedaUI.Theme
-                    self:SetBackdropColor(unpack(Theme.buttonHover))
-                end)
-                item:SetScript("OnLeave", function(self)
-                    self:SetBackdropColor(0, 0, 0, 0)
-                end)
-            end
+            item.text:SetText(opt.label)
 
             if opt.disabled then
                 item:Disable()
+                item:SetScript("OnClick", nil)
             else
-                item:SetScript("OnClick", function(self)
-                    dropdown:SetSelected(self.value)
-                    dropdown.menu:Hide()
-                    dropdown.isOpen = false
-                    dropdown.arrow:SetRotation(math.rad(90))  -- Point down
-                    local Theme = MedaUI.Theme
-                    dropdown:SetBackdropBorderColor(unpack(Theme.border))
-                end)
+                item:Enable()
+                item:SetScript("OnClick", ItemOnClick)
             end
 
-            dropdown.menu.items[i] = item
+            item:Show()
         end
 
-        -- Reset scroll position
+        -- Hide excess items from a previous larger option set
+        for i = #opts + 1, #dropdown.menu.items do
+            dropdown.menu.items[i]:Hide()
+        end
+
         dropdown.menu.scrollParent:ResetScroll()
     end
 

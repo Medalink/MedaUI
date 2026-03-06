@@ -24,11 +24,10 @@ function MedaUI:AddResizeGrip(frame, config)
     local cornerSize = 16
     local edgeSize = 8
 
-    -- Corner handles
+    -- Corner handles (TOPRIGHT omitted to avoid conflicting with title bar close button)
     local corners = {
         { point = "BOTTOMRIGHT", primary = true },
         { point = "BOTTOMLEFT", primary = false },
-        { point = "TOPRIGHT", primary = false },
         { point = "TOPLEFT", primary = false },
     }
 

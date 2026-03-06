@@ -138,7 +138,6 @@ function MedaUI:CreateEditBox(parent, width, height, isMultiLine)
     end
 
     function container:SetPlaceholder(text)
-        -- Simple placeholder implementation
         self.placeholder = text
         if self.editBox:GetText() == "" then
             self.editBox:SetText(text)
@@ -146,21 +145,26 @@ function MedaUI:CreateEditBox(parent, width, height, isMultiLine)
             self.editBox:SetTextColor(unpack(Theme.textDim))
         end
 
-        self.editBox:HookScript("OnEditFocusGained", function(eb)
-            if eb:GetText() == self.placeholder then
-                eb:SetText("")
-                local Theme = MedaUI.Theme
-                eb:SetTextColor(unpack(Theme.text))
-            end
-        end)
+        -- Only install hooks once; subsequent calls just update self.placeholder
+        if not self._placeholderHooked then
+            self._placeholderHooked = true
 
-        self.editBox:HookScript("OnEditFocusLost", function(eb)
-            if eb:GetText() == "" then
-                eb:SetText(self.placeholder)
-                local Theme = MedaUI.Theme
-                eb:SetTextColor(unpack(Theme.textDim))
-            end
-        end)
+            self.editBox:HookScript("OnEditFocusGained", function(eb)
+                if self.placeholder and eb:GetText() == self.placeholder then
+                    eb:SetText("")
+                    local Theme = MedaUI.Theme
+                    eb:SetTextColor(unpack(Theme.text))
+                end
+            end)
+
+            self.editBox:HookScript("OnEditFocusLost", function(eb)
+                if self.placeholder and eb:GetText() == "" then
+                    eb:SetText(self.placeholder)
+                    local Theme = MedaUI.Theme
+                    eb:SetTextColor(unpack(Theme.textDim))
+                end
+            end)
+        end
     end
 
     function container:ClearFocus()

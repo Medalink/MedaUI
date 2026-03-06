@@ -297,20 +297,22 @@ end
 -- Utility Functions
 -- ============================================================================
 
---- Create a standard backdrop table for themed frames.
---- Prefer using Pixel.CreateBorderedFrame then overriding colors.
+-- Pre-built backdrop tables shared across all callers
+local BACKDROP_WITH_EDGE = {
+    bgFile = "Interface\\Buttons\\WHITE8x8",
+    edgeFile = "Interface\\Buttons\\WHITE8x8",
+    edgeSize = 1,
+    insets = { left = 1, right = 1, top = 1, bottom = 1 },
+}
+local BACKDROP_NO_EDGE = {
+    bgFile = "Interface\\Buttons\\WHITE8x8",
+}
+
+--- Return a shared backdrop table for themed frames.
 --- @param hasEdge boolean Whether to include an edge/border
---- @return table Backdrop configuration table
+--- @return table Backdrop configuration table (shared; do not mutate)
 function MedaUI:CreateBackdrop(hasEdge)
-    local backdrop = {
-        bgFile = "Interface\\Buttons\\WHITE8x8",
-    }
-    if hasEdge then
-        backdrop.edgeFile = "Interface\\Buttons\\WHITE8x8"
-        backdrop.edgeSize = 1
-        backdrop.insets = { left = 1, right = 1, top = 1, bottom = 1 }
-    end
-    return backdrop
+    return hasEdge and BACKDROP_WITH_EDGE or BACKDROP_NO_EDGE
 end
 
 --- Create a themed frame with pixel-perfect backdrop and MedaUI theme colors.

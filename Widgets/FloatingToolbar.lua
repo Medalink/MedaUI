@@ -77,7 +77,8 @@ function MedaUI:CreateFloatingToolbar(name, width, title, config)
         end)
 
         closeBtn:SetScript("OnEnter", function(self)
-            self.text:SetTextColor(1, 0.3, 0.3)
+            local Theme = MedaUI.Theme
+            self.text:SetTextColor(unpack(Theme.text))
         end)
 
         closeBtn:SetScript("OnLeave", function(self)
@@ -164,9 +165,16 @@ function MedaUI:CreateFloatingToolbar(name, width, title, config)
     --- @param onClick function Click handler
     --- @return Button The created button
     function toolbar:AddButton(label, onClick)
-        local btn = MedaUI:CreateButton(self.buttonContainer, label, nil, 24)
+        local btn = tremove(self._buttonPool)
+        if btn then
+            btn:SetParent(self.buttonContainer)
+            btn.text:SetText(label)
+            btn:Show()
+        else
+            btn = MedaUI:CreateButton(self.buttonContainer, label, nil, 24)
+        end
 
-        -- Position based on existing buttons
+        btn:ClearAllPoints()
         if #self.buttons == 0 then
             Pixel.SetPoint(btn, "LEFT", 0, 0)
         else
@@ -213,11 +221,17 @@ function MedaUI:CreateFloatingToolbar(name, width, title, config)
         end
     end
 
-    --- Clear all buttons
+    toolbar._buttonPool = {}
+
+    --- Clear all buttons (pools them for reuse)
     function toolbar:ClearButtons()
         for _, btn in ipairs(self.buttons) do
             btn:Hide()
-            btn:SetParent(nil)
+            btn:ClearAllPoints()
+            btn:SetScript("OnClick", nil)
+            btn.isToggle = nil
+            btn.getActive = nil
+            self._buttonPool[#self._buttonPool + 1] = btn
         end
         wipe(self.buttons)
     end

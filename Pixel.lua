@@ -4,7 +4,7 @@ MedaUI.Pixel = Pixel
 
 local floor, ceil, abs = math.floor, math.ceil, math.abs
 local max, min = math.max, math.min
-local select, type, format = select, type, string.format
+local select, type = select, type
 local Mixin, CreateFrame = Mixin, CreateFrame
 local GetPhysicalScreenSize = GetPhysicalScreenSize
 local GetCursorPosition = GetCursorPosition
@@ -13,10 +13,21 @@ local GetCursorPosition = GetCursorPosition
 -- Pixel-Snapping Core
 -- ============================================================================
 
+local cachedPixelFactor
 local function GetPixelFactor()
+    if cachedPixelFactor then return cachedPixelFactor end
     local _, h = GetPhysicalScreenSize()
-    return 768.0 / h
+    cachedPixelFactor = 768.0 / h
+    return cachedPixelFactor
 end
+
+-- Invalidate cache when display size or UI scale changes
+local scaleWatcher = CreateFrame("Frame")
+scaleWatcher:RegisterEvent("UI_SCALE_CHANGED")
+scaleWatcher:RegisterEvent("DISPLAY_SIZE_CHANGED")
+scaleWatcher:SetScript("OnEvent", function()
+    cachedPixelFactor = nil
+end)
 
 local function Round(n)
     return n < 0 and ceil(n - 0.5) or floor(n + 0.5)
@@ -255,7 +266,7 @@ local function ScrollContent_OnSizeChanged(scrollContent)
     local scrollThumb = scrollParent.scrollThumb
 
     local p = scrollFrame:GetHeight() / scrollContent:GetHeight()
-    p = tonumber(format("%.3f", p))
+    p = floor(p * 1000 + 0.5) / 1000
     if p < 1 then
         local height = max(scrollBar:GetHeight() * p, MIN_SCROLL_THUMB_HEIGHT)
         scrollThumb:SetHeight(height)

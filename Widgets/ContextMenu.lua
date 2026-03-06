@@ -9,6 +9,7 @@ local Pixel = LibStub("MedaUI-1.0").Pixel
 -- Shared menu pool
 local menuPool = {}
 local activeMenus = {}
+local closeHandlerPool = {}
 
 --- Create a context menu
 --- @param items table Array of menu items
@@ -54,11 +55,35 @@ function MedaUI:CreateContextMenu(items)
         return frame
     end
 
-    -- Build menu items
+    -- Shared item handlers (read data from frame fields)
+    local function MenuItem_OnEnter(self)
+        if not self._disabled then
+            local Theme = MedaUI.Theme
+            self:SetBackdropColor(unpack(Theme.buttonHover))
+        end
+        if self._submenu then
+            self._menuObj:ShowSubmenu(self._submenu, self)
+        else
+            self._menuObj:HideSubmenus()
+        end
+    end
+
+    local function MenuItem_OnLeave(self)
+        self:SetBackdropColor(0, 0, 0, 0)
+    end
+
+    local function MenuItem_OnClick(self)
+        local itemData = self._itemData
+        if itemData and itemData.onClick then
+            itemData.onClick(itemData)
+        end
+        self._menuObj:Hide()
+    end
+
+    -- Build menu items (reuses existing itemFrames)
     local function BuildMenu(frame, menuItems, parentMenu)
         local Theme = MedaUI.Theme
 
-        -- Hide existing items
         for _, itemFrame in ipairs(frame.itemFrames) do
             itemFrame:Hide()
         end
@@ -71,7 +96,6 @@ function MedaUI:CreateContextMenu(items)
             local itemFrame = frame.itemFrames[i]
 
             if item.separator then
-                -- Separator
                 if not itemFrame or not itemFrame.isSeparator then
                     itemFrame = CreateFrame("Frame", nil, frame)
                     itemFrame.isSeparator = true
@@ -87,7 +111,6 @@ function MedaUI:CreateContextMenu(items)
                 itemFrame:Show()
                 yOffset = yOffset - separatorHeight
             else
-                -- Regular item
                 if not itemFrame or itemFrame.isSeparator then
                     itemFrame = CreateFrame("Button", nil, frame, "BackdropTemplate")
                     itemFrame.isSeparator = false
@@ -101,8 +124,17 @@ function MedaUI:CreateContextMenu(items)
                     Pixel.SetPoint(itemFrame.arrow, "RIGHT", -8, 0)
                     itemFrame.arrow:SetText(">")
 
+                    itemFrame:SetScript("OnEnter", MenuItem_OnEnter)
+                    itemFrame:SetScript("OnLeave", MenuItem_OnLeave)
+
                     frame.itemFrames[i] = itemFrame
                 end
+
+                -- Store data on the frame for shared handlers
+                itemFrame._menuObj = menu
+                itemFrame._itemData = item
+                itemFrame._disabled = item.disabled
+                itemFrame._submenu = item.submenu
 
                 Pixel.SetSize(itemFrame, menuWidth - 8, itemHeight)
                 Pixel.SetPoint(itemFrame, "TOPLEFT", 4, yOffset)
@@ -110,7 +142,6 @@ function MedaUI:CreateContextMenu(items)
 
                 itemFrame.text:SetText(item.label or "")
 
-                -- Disabled state
                 if item.disabled then
                     itemFrame.text:SetTextColor(unpack(Theme.textDisabled))
                     itemFrame:SetScript("OnClick", nil)
@@ -118,43 +149,15 @@ function MedaUI:CreateContextMenu(items)
                     itemFrame.text:SetTextColor(unpack(Theme.text))
                 end
 
-                -- Submenu arrow
                 if item.submenu then
                     itemFrame.arrow:Show()
                     itemFrame.arrow:SetTextColor(unpack(Theme.textDim))
+                    itemFrame:SetScript("OnClick", nil)
                 else
                     itemFrame.arrow:Hide()
-                end
-
-                -- Hover effects
-                itemFrame:SetScript("OnEnter", function(self)
                     if not item.disabled then
-                        local Theme = MedaUI.Theme
-                        self:SetBackdropColor(unpack(Theme.buttonHover))
+                        itemFrame:SetScript("OnClick", MenuItem_OnClick)
                     end
-
-                    -- Show submenu if present
-                    if item.submenu then
-                        menu:ShowSubmenu(item.submenu, self)
-                    else
-                        menu:HideSubmenus()
-                    end
-                end)
-
-                itemFrame:SetScript("OnLeave", function(self)
-                    self:SetBackdropColor(0, 0, 0, 0)
-                end)
-
-                -- Click handler
-                if not item.disabled and not item.submenu then
-                    itemFrame:SetScript("OnClick", function()
-                        if item.onClick then
-                            item.onClick(item)
-                        end
-                        menu:Hide()
-                    end)
-                else
-                    itemFrame:SetScript("OnClick", nil)
                 end
 
                 itemFrame:Show()
@@ -204,30 +207,21 @@ function MedaUI:CreateContextMenu(items)
 
         activeMenus[self] = true
 
-        -- Auto-close when clicking elsewhere
-        self.closeHandler = CreateFrame("Button", nil, UIParent)
-        self.closeHandler:SetAllPoints(UIParent)
-        self.closeHandler:SetFrameStrata("FULLSCREEN")
-        self.closeHandler:SetScript("OnClick", function()
-            menu:Hide()
+        -- Reuse or create the click-away close handler
+        local handler = tremove(closeHandlerPool)
+        if not handler then
+            handler = CreateFrame("Button", nil, UIParent)
+        else
+            handler:SetParent(UIParent)
+        end
+        handler:SetAllPoints(UIParent)
+        handler:SetFrameStrata("FULLSCREEN")
+        handler._menu = menu
+        handler:SetScript("OnClick", function(h)
+            h._menu:Hide()
         end)
-        self.closeHandler:SetScript("OnEnter", function()
-            -- Give a small delay before closing
-            C_Timer.After(0.1, function()
-                if not MouseIsOver(self.frame) then
-                    local overSubmenu = false
-                    for _, sub in ipairs(self.submenus) do
-                        if sub:IsShown() and MouseIsOver(sub) then
-                            overSubmenu = true
-                            break
-                        end
-                    end
-                    if not overSubmenu then
-                        -- menu:Hide()
-                    end
-                end
-            end)
-        end)
+        handler:Show()
+        self.closeHandler = handler
     end
 
     --- Show the menu at cursor position
@@ -273,7 +267,8 @@ function MedaUI:CreateContextMenu(items)
 
         if self.closeHandler then
             self.closeHandler:Hide()
-            self.closeHandler:SetParent(nil)
+            self.closeHandler._menu = nil
+            closeHandlerPool[#closeHandlerPool + 1] = self.closeHandler
             self.closeHandler = nil
         end
 

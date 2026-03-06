@@ -64,11 +64,14 @@ function MedaUI:CreateCodeBlock(parent, width, height, config)
         codeBlock:CopyToClipboard()
     end)
 
-    -- Line pool
+    -- Slot-based pools (keyed by visible slot, not line index)
     codeBlock.linePool = {}
     codeBlock.lineNumberPool = {}
+    codeBlock.visibleLines = {}
 
     local lineHeight = 14
+    local scrollFrame = scrollParent.scrollFrame
+    local visibleLineCount = math.ceil(height / lineHeight) + 2
 
     -- Apply theme colors
     local function ApplyTheme()
@@ -84,16 +87,13 @@ function MedaUI:CreateCodeBlock(parent, width, height, config)
     end
     codeBlock._ApplyTheme = ApplyTheme
 
-    -- Register for theme updates
     codeBlock._themeHandle = MedaUI:RegisterThemedWidget(codeBlock, function()
         ApplyTheme()
         codeBlock:Refresh()
     end)
 
-    -- Initial theme application
     ApplyTheme()
 
-    -- Copy button hover effects
     codeBlock.copyBtn:SetScript("OnEnter", function(self)
         local Theme = MedaUI.Theme
         self:SetBackdropColor(unpack(Theme.buttonHover))
@@ -106,61 +106,77 @@ function MedaUI:CreateCodeBlock(parent, width, height, config)
         self.text:SetTextColor(unpack(Theme.textDim))
     end)
 
-    -- Update display
-    local function UpdateDisplay()
+    local function GetLineFrame(slot)
+        local line = codeBlock.linePool[slot]
+        if not line then
+            line = CreateFrame("Frame", nil, content, "BackdropTemplate")
+            Pixel.SetHeight(line, lineHeight)
+            line:SetBackdrop(MedaUI:CreateBackdrop(false))
+
+            line.text = line:CreateFontString(nil, "OVERLAY")
+            line.text:SetFont("Fonts\\FRIZQT__.TTF", 10, "")
+            Pixel.SetPoint(line.text, "LEFT", 4, 0)
+            Pixel.SetPoint(line.text, "RIGHT", -4, 0)
+            line.text:SetJustifyH("LEFT")
+
+            codeBlock.linePool[slot] = line
+        end
+        return line
+    end
+
+    local function GetLineNumber(slot)
+        local lineNum = codeBlock.lineNumberPool[slot]
+        if not lineNum then
+            lineNum = codeBlock.gutter:CreateFontString(nil, "OVERLAY")
+            lineNum:SetFont("Fonts\\FRIZQT__.TTF", 10, "")
+            lineNum:SetJustifyH("RIGHT")
+            Pixel.SetWidth(lineNum, gutterWidth - 8)
+            codeBlock.lineNumberPool[slot] = lineNum
+        end
+        return lineNum
+    end
+
+    -- Render only visible lines based on scroll position
+    local function RenderVisible()
         local Theme = MedaUI.Theme
         local lines = codeBlock.lines
-        local totalHeight = #lines * lineHeight + 8
-        Pixel.SetHeight(content, math.max(totalHeight, height - 8))
 
-        -- Hide existing lines
-        for _, line in ipairs(codeBlock.linePool) do
-            line:Hide()
+        -- Hide previously visible
+        for _, entry in ipairs(codeBlock.visibleLines) do
+            entry.frame:Hide()
+            if entry.lineNum then entry.lineNum:Hide() end
         end
-        for _, lineNum in ipairs(codeBlock.lineNumberPool) do
-            lineNum:Hide()
-        end
+        wipe(codeBlock.visibleLines)
 
-        -- Create/show lines
-        for i, lineText in ipairs(lines) do
+        if #lines == 0 then return end
+
+        local scrollPos = scrollFrame:GetVerticalScroll()
+        local firstVisible = math.max(1, math.floor(scrollPos / lineHeight))
+        local lastVisible = math.min(firstVisible + visibleLineCount, #lines)
+
+        local slot = 0
+        for i = firstVisible, lastVisible do
+            slot = slot + 1
+
             -- Line number
+            local lineNumObj
             if showLineNumbers then
-                local lineNum = codeBlock.lineNumberPool[i]
-                if not lineNum then
-                    lineNum = codeBlock.gutter:CreateFontString(nil, "OVERLAY")
-                    lineNum:SetFont("Fonts\\FRIZQT__.TTF", 10, "")
-                    lineNum:SetJustifyH("RIGHT")
-                    Pixel.SetWidth(lineNum, gutterWidth - 8)
-                    codeBlock.lineNumberPool[i] = lineNum
-                end
-                Pixel.SetPoint(lineNum, "TOPRIGHT", -4, -4 - (i - 1) * lineHeight)
-                lineNum:SetText(tostring(i))
-                lineNum:SetTextColor(unpack(Theme.codeLineNumber))
-                lineNum:Show()
+                lineNumObj = GetLineNumber(slot)
+                lineNumObj:ClearAllPoints()
+                Pixel.SetPoint(lineNumObj, "TOPRIGHT", -4, -4 - (i - 1) * lineHeight)
+                lineNumObj:SetText(tostring(i))
+                lineNumObj:SetTextColor(unpack(Theme.codeLineNumber))
+                lineNumObj:Show()
             end
 
             -- Line content
-            local line = codeBlock.linePool[i]
-            if not line then
-                line = CreateFrame("Frame", nil, content, "BackdropTemplate")
-                Pixel.SetHeight(line, lineHeight)
-                line:SetBackdrop(MedaUI:CreateBackdrop(false))
-
-                line.text = line:CreateFontString(nil, "OVERLAY")
-                line.text:SetFont("Fonts\\FRIZQT__.TTF", 10, "")
-                Pixel.SetPoint(line.text, "LEFT", 4, 0)
-                Pixel.SetPoint(line.text, "RIGHT", -4, 0)
-                line.text:SetJustifyH("LEFT")
-
-                codeBlock.linePool[i] = line
-            end
-
+            local line = GetLineFrame(slot)
+            line:ClearAllPoints()
             Pixel.SetPoint(line, "TOPLEFT", 0, -4 - (i - 1) * lineHeight)
             Pixel.SetPoint(line, "RIGHT", 0, 0)
-            line.text:SetText(lineText)
+            line.text:SetText(lines[i])
             line.text:SetTextColor(unpack(Theme.text))
 
-            -- Highlight line
             if codeBlock.highlightLine == i then
                 line:SetBackdropColor(unpack(Theme.codeHighlight))
             else
@@ -168,16 +184,29 @@ function MedaUI:CreateCodeBlock(parent, width, height, config)
             end
 
             line:Show()
+            codeBlock.visibleLines[slot] = { frame = line, lineNum = lineNumObj }
         end
     end
+
+    -- Full update: set content height then render visible
+    local function UpdateDisplay()
+        local lines = codeBlock.lines
+        local totalHeight = #lines * lineHeight + 8
+        Pixel.SetHeight(content, math.max(totalHeight, height - 8))
+        RenderVisible()
+    end
+
+    -- Re-render on scroll
+    scrollFrame:HookScript("OnVerticalScroll", function()
+        RenderVisible()
+    end)
 
     --- Set the code text
     --- @param text string The code text
     function codeBlock:SetText(text)
         self.text = text or ""
-        self.lines = {}
+        wipe(self.lines)
 
-        -- Split into lines
         for line in (text .. "\n"):gmatch("([^\n]*)\n") do
             self.lines[#self.lines + 1] = line
         end
@@ -195,7 +224,7 @@ function MedaUI:CreateCodeBlock(parent, width, height, config)
     --- @param lineNumber number|nil The line number to highlight
     function codeBlock:SetHighlightLine(lineNumber)
         self.highlightLine = lineNumber
-        UpdateDisplay()
+        RenderVisible()
         if lineNumber then
             self:ScrollToLine(lineNumber)
         end
@@ -204,7 +233,7 @@ function MedaUI:CreateCodeBlock(parent, width, height, config)
     --- Clear highlight
     function codeBlock:ClearHighlight()
         self.highlightLine = nil
-        UpdateDisplay()
+        RenderVisible()
     end
 
     --- Scroll to a specific line

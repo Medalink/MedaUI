@@ -101,7 +101,7 @@ function MedaUI:CreatePanel(name, width, height, title)
             panel.titleText:SetTextColor(unpack(Theme.gold))
         end
 
-        closeBtn.icon:SetAlpha(0.6)
+        closeBtn.icon:SetAlpha(1)
         accent:SetColorTexture(unpack(Theme.goldDim))
     end
     panel._ApplyTheme = ApplyTheme
@@ -109,13 +109,12 @@ function MedaUI:CreatePanel(name, width, height, title)
     panel._themeHandle = MedaUI:RegisterThemedWidget(panel, ApplyTheme)
     ApplyTheme()
 
-    -- Close button hover effects
     closeBtn:SetScript("OnEnter", function(self)
-        self.icon:SetAlpha(1.0)
+        self:SetBackdropColor(1, 0.3, 0.3, 0.15)
     end)
 
     closeBtn:SetScript("OnLeave", function(self)
-        self.icon:SetAlpha(0.6)
+        self:SetBackdropColor(0, 0, 0, 0)
     end)
 
     -- API methods

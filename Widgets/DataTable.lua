@@ -6,6 +6,52 @@
 local MedaUI = LibStub("MedaUI-1.0")
 local Pixel = LibStub("MedaUI-1.0").Pixel
 
+local PLAIN_BACKDROP = { bgFile = "Interface\\Buttons\\WHITE8x8" }
+
+local function Row_OnEnter(self)
+    local Theme = MedaUI.Theme
+    self:SetBackdropColor(unpack(Theme.highlight))
+end
+
+local function Row_OnLeave(self)
+    local dt = self._dataTable
+    if dt and dt.selectedRow == self then
+        local Theme = MedaUI.Theme
+        self:SetBackdropColor(unpack(Theme.highlight))
+    else
+        self:SetBackdropColor(unpack(self.bgColor))
+    end
+end
+
+local function Row_OnClick(self)
+    local dt = self._dataTable
+    if not dt then return end
+    local Theme = MedaUI.Theme
+
+    if dt.selectable then
+        if dt.selectedRow and dt.selectedRow ~= self then
+            dt.selectedRow:SetBackdropColor(unpack(dt.selectedRow.bgColor))
+        end
+        dt.selectedRow = self
+        self:SetBackdropColor(unpack(Theme.highlight))
+
+        if dt.OnSelectionChanged then
+            dt:OnSelectionChanged(self.data, self.dataIndex)
+        end
+    end
+
+    if dt.OnRowClick then
+        dt:OnRowClick(self, self.data, self.dataIndex)
+    end
+end
+
+local function Row_OnDoubleClick(self)
+    local dt = self._dataTable
+    if dt and dt.OnRowDoubleClick then
+        dt:OnRowDoubleClick(self, self.data, self.dataIndex)
+    end
+end
+
 --- Create a data table widget
 --- @param parent Frame The parent frame
 --- @param width number Table width
@@ -33,6 +79,10 @@ function MedaUI:CreateDataTable(parent, width, height, config)
     table.rows = {}
     table.headerRow = nil
 
+    -- Pools
+    table._rowPool = {}
+    table._groupHeaderPool = {}
+
     -- Callbacks
     table.OnRowClick = nil
     table.OnRowDoubleClick = nil
@@ -57,9 +107,7 @@ function MedaUI:CreateDataTable(parent, width, height, config)
         Pixel.SetHeight(headerFrame, headerHeight)
         Pixel.SetPoint(headerFrame, "TOPLEFT", 1, -1)
         Pixel.SetPoint(headerFrame, "TOPRIGHT", -1, -1)
-        headerFrame:SetBackdrop({
-            bgFile = "Interface\\Buttons\\WHITE8x8",
-        })
+        headerFrame:SetBackdrop(PLAIN_BACKDROP)
         table.headerRow = headerFrame
     end
 
@@ -82,16 +130,13 @@ function MedaUI:CreateDataTable(parent, width, height, config)
     function table:SetColumns(columns)
         self.columns = columns
 
-        -- Update header if visible
         if self.headerRow then
-            -- Clear existing header labels
             for _, child in ipairs({self.headerRow:GetRegions()}) do
                 if child:GetObjectType() == "FontString" then
                     child:Hide()
                 end
             end
 
-            -- Create new header labels
             local xPos = 8
             for _, col in ipairs(columns) do
                 local headerLabel = self.headerRow:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
@@ -131,99 +176,80 @@ function MedaUI:CreateDataTable(parent, width, height, config)
         self:Refresh()
     end
 
-    --- Refresh the display
-    function table:Refresh()
-        local Theme = MedaUI.Theme
-
-        -- Clear existing rows
-        for _, row in ipairs(self.rows) do
-            row:Hide()
-            row:SetParent(nil)
-        end
-        wipe(self.rows)
-
-        local yOffset = 0
-        local rowIndex = 0
-
-        -- Render grouped data
-        if #self.groups > 0 then
-            for _, group in ipairs(self.groups) do
-                -- Group header
-                local groupHeader = CreateFrame("Frame", nil, self.scrollChild, "BackdropTemplate")
-                Pixel.SetSize(groupHeader, self.scrollChild:GetWidth(), self.rowHeight + 4)
-                Pixel.SetPoint(groupHeader, "TOPLEFT", 0, yOffset)
-                groupHeader:SetBackdrop({
-                    bgFile = "Interface\\Buttons\\WHITE8x8",
-                })
-                groupHeader:SetBackdropColor(unpack(Theme.rowHeader))
-
-                local headerText = groupHeader:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-                Pixel.SetPoint(headerText, "LEFT", 8, 0)
-                headerText:SetText(group.header)
-                headerText:SetTextColor(unpack(Theme.gold))
-
-                self.rows[#self.rows + 1] = groupHeader
-                yOffset = yOffset - (self.rowHeight + 4)
-
-                -- Group items
-                for _, item in ipairs(group.items) do
-                    rowIndex = rowIndex + 1
-                    local row = self:CreateRow(item, rowIndex, yOffset)
-                    self.rows[#self.rows + 1] = row
-                    yOffset = yOffset - self.rowHeight
-                end
-
-                yOffset = yOffset - 8  -- Gap between groups
-            end
-        else
-            -- Render flat data
-            for _, item in ipairs(self.data) do
-                rowIndex = rowIndex + 1
-                local row = self:CreateRow(item, rowIndex, yOffset)
-                self.rows[#self.rows + 1] = row
-                yOffset = yOffset - self.rowHeight
-            end
+    local function AcquireRow(dt)
+        local row = tremove(dt._rowPool)
+        if row then
+            row:SetParent(dt.scrollChild)
+            row:Show()
+            return row
         end
 
-        -- Update scroll child height
-        Pixel.SetHeight(self.scrollChild, math.abs(yOffset) + 10)
+        row = CreateFrame("Button", nil, dt.scrollChild, "BackdropTemplate")
+        row:SetBackdrop(PLAIN_BACKDROP)
+        row._dataTable = dt
+        row._cells = {}
+        row:SetScript("OnEnter", Row_OnEnter)
+        row:SetScript("OnLeave", Row_OnLeave)
+        row:SetScript("OnClick", Row_OnClick)
+        row:SetScript("OnDoubleClick", Row_OnDoubleClick)
+        return row
     end
 
-    --- Create a data row
-    --- @param data table The data for this row
-    --- @param index number The row index (1-based)
-    --- @param yOffset number The Y position
-    --- @return Frame The row frame
-    function table:CreateRow(data, index, yOffset)
-        local Theme = MedaUI.Theme
-
-        local row = CreateFrame("Button", nil, self.scrollChild, "BackdropTemplate")
-        Pixel.SetSize(row, self.scrollChild:GetWidth(), self.rowHeight)
-        Pixel.SetPoint(row, "TOPLEFT", 0, yOffset)
-        row:SetBackdrop({
-            bgFile = "Interface\\Buttons\\WHITE8x8",
-        })
-
-        -- Alternating row colors
-        if self.alternateColors then
-            if index % 2 == 0 then
-                row:SetBackdropColor(unpack(Theme.rowEven))
-            else
-                row:SetBackdropColor(unpack(Theme.rowOdd))
-            end
-        else
-            row:SetBackdropColor(unpack(Theme.rowOdd))
+    local function AcquireGroupHeader(dt)
+        local hdr = tremove(dt._groupHeaderPool)
+        if hdr then
+            hdr:SetParent(dt.scrollChild)
+            hdr:Show()
+            return hdr
         end
 
-        -- Store data reference and index
+        hdr = CreateFrame("Frame", nil, dt.scrollChild, "BackdropTemplate")
+        hdr:SetBackdrop(PLAIN_BACKDROP)
+        hdr._isGroupHeader = true
+        hdr._text = hdr:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+        Pixel.SetPoint(hdr._text, "LEFT", 8, 0)
+        return hdr
+    end
+
+    local function ReleaseRows(dt)
+        for i = #dt.rows, 1, -1 do
+            local row = dt.rows[i]
+            row:Hide()
+            row:ClearAllPoints()
+            if row._isGroupHeader then
+                dt._groupHeaderPool[#dt._groupHeaderPool + 1] = row
+            else
+                dt._rowPool[#dt._rowPool + 1] = row
+            end
+            dt.rows[i] = nil
+        end
+    end
+
+    local function PopulateRow(dt, row, data, index, yOffset)
+        local Theme = MedaUI.Theme
+        local columns = dt.columns
+
+        Pixel.SetSize(row, dt.scrollChild:GetWidth(), dt.rowHeight)
+        Pixel.SetPoint(row, "TOPLEFT", 0, yOffset)
+
         row.data = data
         row.dataIndex = index
-        row.bgColor = index % 2 == 0 and Theme.rowEven or Theme.rowOdd
+        row.bgColor = (dt.alternateColors and index % 2 == 0) and Theme.rowEven or Theme.rowOdd
+        row:SetBackdropColor(unpack(row.bgColor))
 
-        -- Create column cells
-        local xPos = 8
-        for _, col in ipairs(self.columns) do
-            local cellText = row:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+        local numCols = #columns
+        for ci = 1, numCols do
+            local col = columns[ci]
+            local cellText = row._cells[ci]
+            if not cellText then
+                cellText = row:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+                row._cells[ci] = cellText
+            end
+
+            local xPos = 8
+            for k = 1, ci - 1 do xPos = xPos + columns[k].width end
+
+            cellText:ClearAllPoints()
             Pixel.SetPoint(cellText, "LEFT", xPos, 0)
             Pixel.SetWidth(cellText, col.width - 5)
             cellText:SetJustifyH(col.align or "LEFT")
@@ -231,7 +257,6 @@ function MedaUI:CreateDataTable(parent, width, height, config)
             local value = data[col.key] or ""
             cellText:SetText(tostring(value))
 
-            -- Apply column-specific color if defined
             if col.colorKey and data[col.colorKey] then
                 local color = data[col.colorKey]
                 if type(color) == "table" then
@@ -243,51 +268,57 @@ function MedaUI:CreateDataTable(parent, width, height, config)
                 cellText:SetTextColor(unpack(Theme.text))
             end
 
-            xPos = xPos + col.width
+            cellText:Show()
         end
 
-        -- Hover effect
-        row:SetScript("OnEnter", function(self)
-            self:SetBackdropColor(unpack(Theme.highlight))
-        end)
+        -- Hide excess cells from a previous column layout
+        for ci = numCols + 1, #row._cells do
+            row._cells[ci]:Hide()
+        end
+    end
 
-        row:SetScript("OnLeave", function(self)
-            if table.selectedRow == self then
-                self:SetBackdropColor(unpack(Theme.highlight))
-            else
-                self:SetBackdropColor(unpack(self.bgColor))
-            end
-        end)
+    --- Refresh the display
+    function table:Refresh()
+        local Theme = MedaUI.Theme
 
-        -- Click handler
-        row:SetScript("OnClick", function(self)
-            if table.selectable then
-                -- Deselect previous row
-                if table.selectedRow and table.selectedRow ~= self then
-                    table.selectedRow:SetBackdropColor(unpack(table.selectedRow.bgColor))
+        ReleaseRows(self)
+
+        local yOffset = 0
+        local rowIndex = 0
+
+        if #self.groups > 0 then
+            for _, group in ipairs(self.groups) do
+                local groupHeader = AcquireGroupHeader(self)
+                Pixel.SetSize(groupHeader, self.scrollChild:GetWidth(), self.rowHeight + 4)
+                Pixel.SetPoint(groupHeader, "TOPLEFT", 0, yOffset)
+                groupHeader:SetBackdropColor(unpack(Theme.rowHeader))
+                groupHeader._text:SetText(group.header)
+                groupHeader._text:SetTextColor(unpack(Theme.gold))
+
+                self.rows[#self.rows + 1] = groupHeader
+                yOffset = yOffset - (self.rowHeight + 4)
+
+                for _, item in ipairs(group.items) do
+                    rowIndex = rowIndex + 1
+                    local row = AcquireRow(self)
+                    PopulateRow(self, row, item, rowIndex, yOffset)
+                    self.rows[#self.rows + 1] = row
+                    yOffset = yOffset - self.rowHeight
                 end
 
-                -- Select this row
-                table.selectedRow = self
-                self:SetBackdropColor(unpack(Theme.highlight))
-
-                if table.OnSelectionChanged then
-                    table:OnSelectionChanged(self.data, self.dataIndex)
-                end
+                yOffset = yOffset - 8
             end
-
-            if table.OnRowClick then
-                table:OnRowClick(self, self.data, self.dataIndex)
+        else
+            for _, item in ipairs(self.data) do
+                rowIndex = rowIndex + 1
+                local row = AcquireRow(self)
+                PopulateRow(self, row, item, rowIndex, yOffset)
+                self.rows[#self.rows + 1] = row
+                yOffset = yOffset - self.rowHeight
             end
-        end)
+        end
 
-        row:SetScript("OnDoubleClick", function(self)
-            if table.OnRowDoubleClick then
-                table:OnRowDoubleClick(self, self.data, self.dataIndex)
-            end
-        end)
-
-        return row
+        Pixel.SetHeight(self.scrollChild, math.abs(yOffset) + 10)
     end
 
     --- Get the selected row data

@@ -51,44 +51,46 @@ function MedaUI:CreateAutoHideContainer(name, config)
     container.OnHide = nil
     container.OnMove = nil
 
-    -- Setup animations
-    local function SetupAnimations()
-        -- Fade in animation
-        container.fadeIn = container:CreateAnimationGroup()
-        local fadeInAlpha = container.fadeIn:CreateAnimation("Alpha")
-        fadeInAlpha:SetFromAlpha(0)
-        fadeInAlpha:SetToAlpha(1)
+    -- Create animation groups once; durations updated in-place via UpdateAnimationDurations
+    container.fadeIn = container:CreateAnimationGroup()
+    local fadeInAlpha = container.fadeIn:CreateAnimation("Alpha")
+    fadeInAlpha:SetFromAlpha(0)
+    fadeInAlpha:SetToAlpha(1)
+    fadeInAlpha:SetDuration(container.fadeInDuration)
+    fadeInAlpha:SetSmoothing("OUT")
+    container._fadeInAlpha = fadeInAlpha
+
+    container.fadeIn:SetScript("OnPlay", function()
+        container:Show()
+    end)
+
+    container.fadeIn:SetScript("OnFinished", function()
+        container:SetAlpha(1)
+        if container.OnShow then
+            container:OnShow()
+        end
+    end)
+
+    container.fadeOut = container:CreateAnimationGroup()
+    local fadeOutAlpha = container.fadeOut:CreateAnimation("Alpha")
+    fadeOutAlpha:SetFromAlpha(1)
+    fadeOutAlpha:SetToAlpha(0)
+    fadeOutAlpha:SetDuration(container.fadeOutDuration)
+    fadeOutAlpha:SetSmoothing("IN")
+    container._fadeOutAlpha = fadeOutAlpha
+
+    container.fadeOut:SetScript("OnFinished", function()
+        container:SetAlpha(0)
+        container:Hide()
+        if container.OnHide then
+            container:OnHide()
+        end
+    end)
+
+    local function UpdateAnimationDurations()
         fadeInAlpha:SetDuration(container.fadeInDuration)
-        fadeInAlpha:SetSmoothing("OUT")
-
-        container.fadeIn:SetScript("OnPlay", function()
-            container:Show()
-        end)
-
-        container.fadeIn:SetScript("OnFinished", function()
-            container:SetAlpha(1)
-            if container.OnShow then
-                container:OnShow()
-            end
-        end)
-
-        -- Fade out animation
-        container.fadeOut = container:CreateAnimationGroup()
-        local fadeOutAlpha = container.fadeOut:CreateAnimation("Alpha")
-        fadeOutAlpha:SetFromAlpha(1)
-        fadeOutAlpha:SetToAlpha(0)
         fadeOutAlpha:SetDuration(container.fadeOutDuration)
-        fadeOutAlpha:SetSmoothing("IN")
-
-        container.fadeOut:SetScript("OnFinished", function()
-            container:SetAlpha(0)
-            container:Hide()
-            if container.OnHide then
-                container:OnHide()
-            end
-        end)
     end
-    SetupAnimations()
 
     -- Mouse enter handler
     local function OnMouseEnter()
@@ -206,8 +208,7 @@ function MedaUI:CreateAutoHideContainer(name, config)
     function container:SetFadeDurations(fadeIn, fadeOut)
         self.fadeInDuration = fadeIn
         self.fadeOutDuration = fadeOut
-        -- Recreate animations with new durations
-        SetupAnimations()
+        UpdateAnimationDurations()
     end
 
     --- Set hide delay

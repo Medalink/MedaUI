@@ -63,16 +63,15 @@ function MedaUI:CreateScrollList(parent, width, height, config)
     -- Initial theme application
     ApplyTheme()
 
-    -- Create row pool
-    local function GetRow(index)
-        local row = scrollList.rowPool[index]
+    -- Slot-based row pool: keyed by visible slot (1..visibleRowCount+1), not data index
+    local function GetRow(slot)
+        local row = scrollList.rowPool[slot]
         if not row then
             row = CreateFrame("Frame", nil, content, "BackdropTemplate")
             Pixel.SetHeight(row, rowHeight)
             Pixel.SetPoint(row, "RIGHT")
             row:SetBackdrop(MedaUI:CreateBackdrop(false))
-            row.index = index
-            scrollList.rowPool[index] = row
+            scrollList.rowPool[slot] = row
         end
         return row
     end
@@ -97,10 +96,14 @@ function MedaUI:CreateScrollList(parent, width, height, config)
         local firstVisible = math.floor(scrollPos / rowHeight) + 1
         local lastVisible = math.min(firstVisible + visibleRowCount, #dataSource)
 
-        -- Show and render visible rows
+        -- Show and render visible rows using slot-based pool
+        local slot = 0
         for i = firstVisible, lastVisible do
-            local row = GetRow(i)
+            slot = slot + 1
+            local row = GetRow(slot)
+            row:ClearAllPoints()
             Pixel.SetPoint(row, "TOPLEFT", 0, -((i - 1) * rowHeight))
+            Pixel.SetPoint(row, "RIGHT")
 
             -- Alternating row colors
             if i % 2 == 0 then

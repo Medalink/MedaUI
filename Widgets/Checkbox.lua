@@ -41,10 +41,11 @@ function MedaUI:CreateCheckbox(parent, label)
         local Theme = MedaUI.Theme
         box:SetBackdropColor(unpack(Theme.input))
         if container._isHovered then
-            box:SetBackdropBorderColor(unpack(Theme.gold))
+            box:SetBackdropBorderColor(unpack(Theme.goldDim))
         else
             box:SetBackdropBorderColor(unpack(Theme.border))
         end
+        box.check:SetVertexColor(1, 1, 1, 1)
         container.label:SetTextColor(unpack(Theme.text))
     end
     container._ApplyTheme = ApplyTheme
@@ -68,7 +69,7 @@ function MedaUI:CreateCheckbox(parent, label)
     box:SetScript("OnEnter", function(self)
         container._isHovered = true
         local Theme = MedaUI.Theme
-        self:SetBackdropBorderColor(unpack(Theme.gold))
+        self:SetBackdropBorderColor(unpack(Theme.goldDim))
     end)
 
     box:SetScript("OnLeave", function(self)

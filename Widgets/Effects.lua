@@ -6,6 +6,8 @@
 local MedaUI = LibStub("MedaUI-1.0")
 local Pixel = LibStub("MedaUI-1.0").Pixel
 
+local sin, pi = math.sin, math.pi
+
 --- Create a pulsing highlight effect
 --- @param frame Frame The frame to apply the effect to
 --- @param config table|nil Configuration {color, minAlpha, maxAlpha, speed, texture}
@@ -40,8 +42,8 @@ function MedaUI:CreatePulseEffect(frame, config)
         pulse.elapsed = pulse.elapsed + elapsed
 
         -- Sine wave for smooth pulsing
-        local t = pulse.elapsed * pulse.speed * math.pi * 2
-        local alpha = pulse.minAlpha + (pulse.maxAlpha - pulse.minAlpha) * (0.5 + 0.5 * math.sin(t))
+        local t = pulse.elapsed * pulse.speed * pi * 2
+        local alpha = pulse.minAlpha + (pulse.maxAlpha - pulse.minAlpha) * (0.5 + 0.5 * sin(t))
 
         pulse.overlay:SetAlpha(alpha)
     end

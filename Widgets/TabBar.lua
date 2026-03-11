@@ -85,6 +85,7 @@ function MedaUI:CreateTabBar(parent, tabs)
         -- Hover effects
         tab:SetScript("OnEnter", function(self)
             if tabBar.activeTab ~= self.id then
+                MedaUI:PlaySound("hover")
                 local Theme = MedaUI.Theme
                 self:SetBackdropColor(unpack(Theme.buttonHover))
                 self.text:SetTextColor(unpack(Theme.text))
@@ -101,6 +102,7 @@ function MedaUI:CreateTabBar(parent, tabs)
 
         -- Click handler
         tab:SetScript("OnClick", function(self)
+            MedaUI:PlaySound("tabSwitch")
             tabBar:SetActiveTab(self.id)
         end)
 

@@ -331,6 +331,7 @@ function MedaUI:CreateDropdown(parent, width, options, textureMode)
                 dropdown:SetBackdropBorderColor(unpack(Theme.border))
             end
         else
+            MedaUI:PlaySound("dropdownOpen")
             BuildMenu()
             dropdown.menu:Show()
             dropdown.isOpen = true
@@ -347,6 +348,7 @@ function MedaUI:CreateDropdown(parent, width, options, textureMode)
     dropdown.button:SetScript("OnEnter", function()
         if dropdown.enabled then
             dropdown._isHovered = true
+            MedaUI:PlaySound("hover")
             local Theme = MedaUI.Theme
             dropdown:SetBackdropBorderColor(unpack(Theme.gold))
         end

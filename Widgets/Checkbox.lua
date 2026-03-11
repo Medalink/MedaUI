@@ -58,6 +58,7 @@ function MedaUI:CreateCheckbox(parent, label)
 
     -- Click behavior
     box:SetScript("OnClick", function()
+        MedaUI:PlaySound("click")
         container.checked = not container.checked
         if container.checked then box.check:Show() else box.check:Hide() end
         if container.OnValueChanged then
@@ -68,6 +69,7 @@ function MedaUI:CreateCheckbox(parent, label)
     -- Hover effect
     box:SetScript("OnEnter", function(self)
         container._isHovered = true
+        MedaUI:PlaySound("hover")
         local Theme = MedaUI.Theme
         self:SetBackdropBorderColor(unpack(Theme.goldDim))
     end)

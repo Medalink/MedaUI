@@ -189,6 +189,25 @@ end
 -- MedaUI:CreateMinimapButton(name, icon, onClick, onRightClick)
 
 -- ============================================================================
+-- UI Sound Playback
+-- ============================================================================
+
+--- Play a named UI sound from the MedaUI Media/Sounds folder.
+--- @param name string Sound name (e.g. "toggleOn", "click", "hover")
+function MedaUI:PlaySound(name)
+    if not name then return end
+    local path = self.mediaPath .. "Sounds\\" .. name .. ".ogg"
+    pcall(PlaySoundFile, path, "Master")
+end
+
+--- Play a sound file by full path (wraps pcall + Master channel).
+--- @param path string Full sound path (e.g. from GetSoundPath)
+function MedaUI:PlaySoundPath(path)
+    if not path then return end
+    pcall(PlaySoundFile, path, "Master")
+end
+
+-- ============================================================================
 -- Status Color Utilities
 -- ============================================================================
 

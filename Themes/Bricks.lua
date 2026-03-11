@@ -8,11 +8,11 @@ local MedaUI = LibStub("MedaUI-1.0")
 MedaUI:RegisterTheme("bricks", {
     -- Font Size Hierarchy
     fontSize = {
-        xs = 10,      -- Small labels, hints
-        sm = 11,      -- Secondary text, descriptions
-        md = 12,      -- Body text, widget labels (default)
-        lg = 14,      -- Section headers
-        xl = 16,      -- Panel titles
+        xs = 10,
+        sm = 11,
+        md = 13,
+        lg = 14,
+        xl = 15,
     },
 
     -- Spacing System
@@ -24,59 +24,59 @@ MedaUI:RegisterTheme("bricks", {
         xl = 24,
     },
 
-    -- Gradient Colors (blue-based for this theme)
-    titleGradientStart = { 0.38, 0.53, 0.87, 1 },
-    titleGradientEnd = { 0.53, 0.67, 0.95, 1 },
-    sectionGradientStart = { 0.38, 0.53, 0.87, 0.8 },
-    sectionGradientEnd = { 0.38, 0.53, 0.87, 0.1 },
+    -- Gradient Colors (blue-based, subtle)
+    titleGradientStart = { 0.38, 0.53, 0.87, 0.45 },
+    titleGradientEnd = { 0.53, 0.67, 0.95, 0.12 },
+    sectionGradientStart = { 0.38, 0.53, 0.87, 0.45 },
+    sectionGradientEnd = { 0.38, 0.53, 0.87, 0.04 },
 
-    -- Backgrounds (cool-tinted darks)
-    background = { 0.11, 0.11, 0.14, 0.97 },      -- #1C1C24
-    backgroundLight = { 0.15, 0.15, 0.19, 1 },    -- #262630
-    backgroundDark = { 0.07, 0.07, 0.10, 1 },     -- #121219
+    -- Backgrounds (deep blue-black)
+    background = { 0.06, 0.07, 0.09, 0.985 },
+    backgroundLight = { 0.085, 0.095, 0.12, 1 },
+    backgroundDark = { 0.035, 0.04, 0.055, 1 },
 
-    -- Borders (subtle blue-tinted)
-    border = { 0.22, 0.22, 0.28, 0.6 },
-    borderLight = { 0.28, 0.28, 0.35, 0.4 },
+    -- Borders (white at low alpha)
+    border = { 1, 1, 1, 0.05 },
+    borderLight = { 1, 1, 1, 0.09 },
 
     -- Blue accent colors (replacing gold)
-    gold = { 0.38, 0.53, 0.87, 1 },               -- #6187DE primary
-    goldBright = { 0.53, 0.67, 0.95, 1 },         -- #87ABF2 hover/bright
-    goldDim = { 0.27, 0.38, 0.65, 1 },            -- #4560A6 muted
-    accent = { 0.38, 0.53, 0.87, 1 },             -- Primary accent (same as gold)
+    gold = { 0.38, 0.53, 0.87, 1 },
+    goldBright = { 0.53, 0.67, 0.95, 1 },
+    goldDim = { 0.27, 0.38, 0.65, 1 },
+    accent = { 0.38, 0.53, 0.87, 1 },
 
-    -- Text colors (high contrast)
-    text = { 0.95, 0.95, 0.97, 1 },               -- #F2F2F7
-    textDim = { 0.60, 0.60, 0.65, 1 },            -- #9999A6
-    textDisabled = { 0.40, 0.40, 0.45, 1 },
+    -- Text colors
+    text = { 1, 1, 1, 0.88 },
+    textDim = { 1, 1, 1, 0.45 },
+    textDisabled = { 1, 1, 1, 0.25 },
     textGreen = { 0.45, 0.85, 0.55, 1 },
 
     -- Interactive elements
-    button = { 0.14, 0.14, 0.18, 1 },
-    buttonHover = { 0.20, 0.20, 0.26, 1 },
-    buttonDisabled = { 0.10, 0.10, 0.13, 1 },
-    input = { 0.12, 0.12, 0.16, 1 },
+    button = { 1, 1, 1, 0.035 },
+    buttonHover = { 1, 1, 1, 0.055 },
+    buttonDisabled = { 1, 1, 1, 0.02 },
+    input = { 1, 1, 1, 0.025 },
 
     -- Tabs
-    tabActive = { 0.16, 0.16, 0.21, 1 },
-    tabInactive = { 0.12, 0.12, 0.16, 1 },
-    tabHover = { 0.20, 0.20, 0.26, 1 },
-    tabBadge = { 0.75, 0.30, 0.35, 1 },           -- Slightly muted red
+    tabActive = { 1, 1, 1, 0.025 },
+    tabInactive = { 0, 0, 0, 0 },
+    tabHover = { 1, 1, 1, 0.025 },
+    tabBadge = { 0.38, 0.53, 0.87, 0.45 },
 
     -- Table rows
-    rowEven = { 0.11, 0.11, 0.15, 1 },
-    rowOdd = { 0.09, 0.09, 0.12, 1 },
-    rowHeader = { 0.14, 0.14, 0.18, 1 },
-    rowSubheader = { 0.12, 0.12, 0.16, 1 },
+    rowEven = { 1, 1, 1, 0.015 },
+    rowOdd = { 0, 0, 0, 0 },
+    rowHeader = { 1, 1, 1, 0.025 },
+    rowSubheader = { 1, 1, 1, 0.02 },
 
     -- Highlights (blue-tinted)
-    highlight = { 0.38, 0.53, 0.87, 0.15 },
+    highlight = { 0.38, 0.53, 0.87, 0.08 },
 
     -- Code/monospace styling
-    codeBackground = { 0.06, 0.06, 0.09, 1 },
-    codeBorder = { 0.28, 0.28, 0.35, 1 },
-    codeLineNumber = { 0.45, 0.45, 0.52, 1 },
-    codeHighlight = { 0.25, 0.30, 0.45, 1 },
+    codeBackground = { 0, 0, 0, 0.3 },
+    codeBorder = { 1, 1, 1, 0.06 },
+    codeLineNumber = { 1, 1, 1, 0.25 },
+    codeHighlight = { 0.38, 0.53, 0.87, 0.1 },
     codeKeyword = { 0.53, 0.67, 0.95, 1 },
     codeLiteral = { 0.72, 0.78, 0.97, 1 },
     codeComment = { 0.45, 0.72, 0.55, 1 },
@@ -86,26 +86,64 @@ MedaUI:RegisterTheme("bricks", {
 
     -- Tree styling
     treeIndent = 16,
-    treeExpandIcon = { 0.55, 0.55, 0.62, 1 },
+    treeExpandIcon = { 1, 1, 1, 0.35 },
 
     -- Dropdown styling
-    dropdownArrow = { 0.55, 0.55, 0.62, 1 },
-    dropdownHover = { 0.20, 0.20, 0.26, 1 },
+    dropdownArrow = { 1, 1, 1, 0.4 },
+    dropdownHover = { 1, 1, 1, 0.04 },
 
     -- Context menu
-    menuBackground = { 0.10, 0.10, 0.14, 0.98 },
-    menuHover = { 0.20, 0.20, 0.26, 1 },
-    menuSeparator = { 0.28, 0.28, 0.35, 1 },
+    menuBackground = { 0.07, 0.08, 0.10, 0.99 },
+    menuHover = { 1, 1, 1, 0.04 },
+    menuSeparator = { 1, 1, 1, 0.06 },
 
-    -- Message levels (for debug output)
-    levelDebug = { 0.50, 0.50, 0.55, 1 },
-    levelInfo = { 0.95, 0.95, 0.97, 1 },
+    -- Message levels
+    levelDebug = { 1, 1, 1, 0.4 },
+    levelInfo = { 1, 1, 1, 0.88 },
     levelWarn = { 1, 0.75, 0.25, 1 },
     levelError = { 1, 0.40, 0.40, 1 },
 
     -- Misc
     closeHover = { 1, 0.45, 0.45, 1 },
-    resizeHandle = { 0.35, 0.35, 0.42, 0.5 },
+    resizeHandle = { 1, 1, 1, 0.15 },
+
+    -- Slider
+    sliderFill = { 0.38, 0.53, 0.87, 0.68 },
+    sliderTrack = { 1, 1, 1, 0.06 },
+    sliderThumb = { 0.80, 0.84, 0.92, 0.92 },
+    sliderThumbHover = { 0.93, 0.96, 1, 1 },
+
+    -- Toggle
+    toggleOn = { 0.38, 0.53, 0.87, 0.72 },
+    toggleOff = { 1, 1, 1, 0.08 },
+    toggleKnob = { 1, 1, 1, 0.82 },
+    toggleKnobOn = { 1, 1, 1, 1 },
+
+    -- Primary button
+    buttonPrimary = { 0.11, 0.14, 0.19, 1 },
+    buttonPrimaryHover = { 0.14, 0.18, 0.24, 1 },
+    buttonPrimaryText = { 1, 1, 1, 1 },
+
+    -- Panel chrome
+    panelGlow = { 0.38, 0.53, 0.87, 0.04 },
+    textSection = { 1, 1, 1, 0.35 },
+
+    -- Checkbox
+    checkboxBg = { 1, 1, 1, 0.04 },
+    checkboxBorder = { 1, 1, 1, 0.12 },
+    checkboxBgHover = { 1, 1, 1, 0.06 },
+    checkboxBorderHover = { 1, 1, 1, 0.22 },
+    checkboxBgChecked = { 0.38, 0.53, 0.87, 0.85 },
+    checkboxBorderChecked = { 0.38, 0.53, 0.87, 1 },
+    checkboxMark = { 1, 1, 1, 1 },
+
+    -- Semantic UI colors
+    divider = { 1, 1, 1, 0.05 },
+    hoverSubtle = { 1, 1, 1, 0.012 },
+    selectedSubtle = { 1, 1, 1, 0.024 },
+    success = { 0.35, 0.82, 0.45, 1 },
+    warning = { 1.0, 0.65, 0.15, 1 },
+    error = { 1, 0.40, 0.40, 1 },
 }, {
     displayName = "Bricks (Blue)",
     description = "Windows Mica-inspired dark theme with blue accents",

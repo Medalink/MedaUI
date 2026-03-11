@@ -4,6 +4,7 @@
     <Script file="Button.lua"/>
     <Script file="IconButton.lua"/>
     <Script file="Checkbox.lua"/>
+    <Script file="Toggle.lua"/>
     <Script file="Radio.lua"/>
     <Script file="EditBox.lua"/>
     <Script file="Slider.lua"/>
@@ -41,4 +42,8 @@
     <Script file="NotificationBanner.lua"/>
     <Script file="StatusRow.lua"/>
     <Script file="InfoPanel.lua"/>
+
+    <!-- Composite panels -->
+    <Script file="SettingsPanel.lua"/>
+    <Script file="ImportExportDialog.lua"/>
 </Ui>

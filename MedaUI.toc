@@ -10,4 +10,5 @@ MedaUI.lua
 Pixel.lua
 Themes\Default.lua
 Themes\Bricks.lua
+Themes\Onyx.lua
 Widgets\Widgets.xml

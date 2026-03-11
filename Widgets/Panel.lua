@@ -63,19 +63,70 @@ function MedaUI:CreatePanel(name, width, height, title)
         panel:Hide()
     end)
 
+    panel:SetScript("OnShow", function() MedaUI:PlaySound("panelOpen") end)
+    panel:SetScript("OnHide", function() MedaUI:PlaySound("panelClose") end)
+
     -- Content area
     panel.content = CreateFrame("Frame", nil, panel)
     Pixel.SetPoint(panel.content, "TOPLEFT", panel, "TOPLEFT", 8, -36)
     Pixel.SetPoint(panel.content, "BOTTOMRIGHT", panel, "BOTTOMRIGHT", -8, 8)
 
+    -- Ambient texture overlays for depth/chrome
+    local bgNoise = panel.content:CreateTexture(nil, "BACKGROUND", nil, 1)
+    bgNoise:SetTexture(MedaUI.mediaPath .. "Textures\\bg-noise.tga")
+    bgNoise:SetAllPoints()
+    bgNoise:SetAlpha(0.10)
+
+    local bgVignette = panel.content:CreateTexture(nil, "BACKGROUND", nil, 2)
+    bgVignette:SetTexture(MedaUI.mediaPath .. "Textures\\bg-vignette.tga")
+    bgVignette:SetAllPoints()
+    bgVignette:SetAlpha(0.40)
+
+    local topGlow = panel.content:CreateTexture(nil, "BACKGROUND", nil, 3)
+    topGlow:SetTexture(MedaUI.mediaPath .. "Textures\\glow-top-ambient.tga")
+    Pixel.SetHeight(topGlow, 72)
+    topGlow:SetPoint("TOPLEFT", panel.content, "TOPLEFT", 0, 0)
+    topGlow:SetPoint("TOPRIGHT", panel.content, "TOPRIGHT", 0, 0)
+    topGlow:SetAlpha(0.12)
+
+    local headerAmbient = titleBar:CreateTexture(nil, "BACKGROUND", nil, 1)
+    headerAmbient:SetTexture(MedaUI.mediaPath .. "Textures\\header-ambient.tga")
+    headerAmbient:SetAllPoints()
+    headerAmbient:SetAlpha(0.08)
+
+    local bgAtmosphere = panel.content:CreateTexture(nil, "BACKGROUND", nil, 1)
+    bgAtmosphere:SetTexture(MedaUI.mediaPath .. "Textures\\bg-atmosphere.tga")
+    bgAtmosphere:SetAllPoints()
+    bgAtmosphere:SetAlpha(0.2)
+
+    local bgMesh = panel.content:CreateTexture(nil, "BACKGROUND", nil, 1)
+    bgMesh:SetTexture(MedaUI.mediaPath .. "Textures\\bg-mesh.tga")
+    bgMesh:SetAllPoints()
+    bgMesh:SetAlpha(0.5)
+
+    local bgDiagonal = panel.content:CreateTexture(nil, "BACKGROUND", nil, 1)
+    bgDiagonal:SetTexture(MedaUI.mediaPath .. "Textures\\bg-diagonal.tga")
+    bgDiagonal:SetAllPoints()
+    bgDiagonal:SetAlpha(0.18)
+
+    local bgParticles = panel.content:CreateTexture(nil, "BACKGROUND", nil, 1)
+    bgParticles:SetTexture(MedaUI.mediaPath .. "Textures\\bg-particles.tga")
+    bgParticles:SetAllPoints()
+    bgParticles:SetAlpha(0.4)
+
+    panel.ambientTextures = {
+        bgNoise, bgVignette, topGlow, headerAmbient,
+        bgAtmosphere, bgMesh, bgDiagonal, bgParticles,
+    }
+
     -- Addon icon watermark
     panel.addonIcon = panel.content:CreateTexture(nil, "BACKGROUND")
     Pixel.SetSize(panel.addonIcon, 128, 128)
     Pixel.SetPoint(panel.addonIcon, "BOTTOMRIGHT", panel.content, "BOTTOMRIGHT", -8, 8)
-    panel.addonIcon:SetAlpha(0.15)
+    panel.addonIcon:SetAlpha(0.6)
     panel.addonIcon:Hide()
 
-    -- Gold accent line under title
+    -- Accent line under title
     local accent = titleBar:CreateTexture(nil, "OVERLAY")
     Pixel.SetHeight(accent, 1)
     Pixel.SetPoint(accent, "BOTTOMLEFT", titleBar, "BOTTOMLEFT")
@@ -95,14 +146,29 @@ function MedaUI:CreatePanel(name, width, height, title)
         local Theme = MedaUI.Theme
         panel:SetBackdropColor(unpack(Theme.background))
         panel:SetBackdropBorderColor(unpack(Theme.border))
-        titleBar:SetBackdropColor(unpack(Theme.backgroundLight))
 
-        if panel.titleText then
+        if panel._headless then
+            titleBar:SetBackdropColor(0, 0, 0, 0)
+        else
+            titleBar:SetBackdropColor(unpack(Theme.backgroundLight))
+        end
+
+        if panel.titleText and not panel._headless then
             panel.titleText:SetTextColor(unpack(Theme.gold))
         end
 
         closeBtn.icon:SetAlpha(1)
-        accent:SetColorTexture(unpack(Theme.goldDim))
+        if not panel._headless then
+            accent:SetColorTexture(unpack(Theme.goldDim))
+        end
+
+        if topGlow then
+            local glow = Theme.panelGlow
+            if glow then
+                topGlow:SetVertexColor(glow[1], glow[2], glow[3], 1)
+                topGlow:SetAlpha(glow[4] or 0.06)
+            end
+        end
     end
     panel._ApplyTheme = ApplyTheme
 
@@ -140,6 +206,65 @@ function MedaUI:CreatePanel(name, width, height, title)
             self.addonIcon:Hide()
             self.addonIcon:SetTexture(nil)
         end
+    end
+
+    function panel:SetHeadless(enabled)
+        if enabled then
+            titleBar:SetBackdropColor(0, 0, 0, 0)
+            titleBar:EnableMouse(false)
+            titleBar:SetHeight(1)
+            headerAmbient:SetAlpha(0)
+            accent:SetAlpha(0)
+            if panel.titleText then
+                panel.titleText:SetAlpha(0)
+            end
+
+            panel.content:ClearAllPoints()
+            Pixel.SetPoint(panel.content, "TOPLEFT", panel, "TOPLEFT", 1, -1)
+            Pixel.SetPoint(panel.content, "BOTTOMRIGHT", panel, "BOTTOMRIGHT", -1, 1)
+
+            panel:RegisterForDrag("LeftButton")
+            panel:SetScript("OnDragStart", function(self) self:StartMoving() end)
+            panel:SetScript("OnDragStop", function(self)
+                self:StopMovingOrSizing()
+                if self.OnMove then self:OnMove(self:GetState()) end
+            end)
+
+            closeBtn:SetParent(panel)
+            closeBtn:ClearAllPoints()
+            Pixel.SetSize(closeBtn, 30, 30)
+            Pixel.SetPoint(closeBtn, "TOPRIGHT", panel, "TOPRIGHT", -14, -18)
+            closeBtn:SetFrameStrata("TOOLTIP")
+            closeBtn:SetFrameLevel(200)
+            closeBtn:EnableMouse(true)
+            closeBtn:SetBackdropColor(1, 1, 1, 0.022)
+            closeBtn:SetBackdropBorderColor(1, 1, 1, 0.08)
+            closeBtn:SetBackdrop({
+                bgFile = "Interface\\Buttons\\WHITE8x8",
+                edgeFile = "Interface\\Buttons\\WHITE8x8",
+                edgeSize = 1,
+                insets = { left = 1, right = 1, top = 1, bottom = 1 },
+            })
+            closeBtn:SetBackdropColor(1, 1, 1, 0.022)
+            closeBtn:SetBackdropBorderColor(1, 1, 1, 0.08)
+            closeBtn:SetScript("OnClick", function() panel:Hide() end)
+
+            closeBtn.icon:ClearAllPoints()
+            closeBtn.icon:SetPoint("CENTER", closeBtn, "CENTER", 0, 0)
+            closeBtn.icon:SetSize(14, 14)
+
+            panel._headless = true
+        end
+    end
+
+    function panel:SetDragZone(frame)
+        frame:EnableMouse(true)
+        frame:RegisterForDrag("LeftButton")
+        frame:SetScript("OnDragStart", function() panel:StartMoving() end)
+        frame:SetScript("OnDragStop", function()
+            panel:StopMovingOrSizing()
+            if panel.OnMove then panel:OnMove(panel:GetState()) end
+        end)
     end
 
     local nativeSetResizable = panel.SetResizable

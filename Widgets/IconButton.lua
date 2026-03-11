@@ -73,6 +73,7 @@ function MedaUI:CreateIconButton(parent, config)
     button:SetScript("OnEnter", function(self)
         if not self._isEnabled then return end
         self._isHovered = true
+        MedaUI:PlaySound("hover")
         local Theme = MedaUI.Theme
         self:SetBackdropColor(unpack(Theme.buttonHover))
         self:SetBackdropBorderColor(unpack(Theme.gold))
@@ -96,6 +97,7 @@ function MedaUI:CreateIconButton(parent, config)
     -- Click
     button:SetScript("OnClick", function(self, btn)
         if not self._isEnabled then return end
+        MedaUI:PlaySound("click")
 
         if self._isToggle then
             self._active = not self._active

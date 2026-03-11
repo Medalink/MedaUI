@@ -106,6 +106,44 @@ MedaUI:RegisterTheme("default", {
     -- Misc
     closeHover = { 1, 0.4, 0.4, 1 },
     resizeHandle = { 0.3, 0.3, 0.3, 0.5 },
+
+    -- Slider
+    sliderFill = { 0.9, 0.7, 0.15, 0.75 },
+    sliderTrack = { 1, 1, 1, 0.16 },
+    sliderThumb = { 0.9, 0.7, 0.15, 1 },
+    sliderThumbHover = { 1, 0.78, 0.2, 1 },
+
+    -- Toggle
+    toggleOn = { 0.9, 0.7, 0.15, 0.75 },
+    toggleOff = { 0.267, 0.267, 0.267, 0.65 },
+    toggleKnob = { 1, 1, 1, 0.5 },
+    toggleKnobOn = { 1, 1, 1, 1 },
+
+    -- Primary button
+    buttonPrimary = { 0.9, 0.7, 0.15, 1 },
+    buttonPrimaryHover = { 1, 0.78, 0.2, 1 },
+    buttonPrimaryText = { 1, 1, 1, 1 },
+
+    -- Panel chrome
+    panelGlow = { 0.9, 0.7, 0.15, 0.12 },
+    textSection = { 1, 1, 1, 0.41 },
+
+    -- Checkbox
+    checkboxBg = { 1, 1, 1, 0.06 },
+    checkboxBorder = { 1, 1, 1, 0.15 },
+    checkboxBgHover = { 1, 1, 1, 0.08 },
+    checkboxBorderHover = { 1, 1, 1, 0.25 },
+    checkboxBgChecked = { 0.9, 0.7, 0.15, 1 },
+    checkboxBorderChecked = { 0.9, 0.7, 0.15, 1 },
+    checkboxMark = { 1, 1, 1, 1 },
+
+    -- Semantic UI colors
+    divider = { 1, 1, 1, 0.06 },
+    hoverSubtle = { 1, 1, 1, 0.012 },
+    selectedSubtle = { 1, 1, 1, 0.024 },
+    success = { 0.3, 0.85, 0.3, 1 },
+    warning = { 1.0, 0.6, 0.0, 1 },
+    error = { 1, 0.3, 0.3, 1 },
 }, {
     displayName = "Default (Gold)",
     description = "Dark grey with gold accents",

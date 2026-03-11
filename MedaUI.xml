@@ -8,5 +8,6 @@
     <Script file="Pixel.lua"/>
     <Script file="Themes\Default.lua"/>
     <Script file="Themes\Bricks.lua"/>
+    <Script file="Themes\Onyx.lua"/>
     <Include file="Widgets\Widgets.xml"/>
 </Ui>

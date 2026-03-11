@@ -81,6 +81,7 @@ function MedaUI:CreateSlider(parent, width, min, max, step)
     -- Thumb hover effect
     slider:SetScript("OnEnter", function(self)
         container._isHovered = true
+        MedaUI:PlaySound("hover")
         local Theme = MedaUI.Theme
         thumb:SetColorTexture(unpack(Theme.goldBright))
     end)
@@ -99,13 +100,18 @@ function MedaUI:CreateSlider(parent, width, min, max, step)
         end
     end
 
-    -- OnValueChanged handler
+    local lastTickTime = 0
     slider:SetScript("OnValueChanged", function(self, value)
         if step >= 1 then
             value = math.floor(value + 0.5)
         end
         container.value = value
         UpdateValueText(value)
+        local now = GetTime()
+        if now - lastTickTime >= 0.08 then
+            lastTickTime = now
+            MedaUI:PlaySound("sliderTick")
+        end
         if container.OnValueChanged then
             container:OnValueChanged(value)
         end

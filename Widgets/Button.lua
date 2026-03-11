@@ -70,6 +70,7 @@ function MedaUI:CreateButton(parent, text, width, height)
     button:SetScript("OnEnter", function(self)
         if self._isEnabled then
             self._isHovered = true
+            MedaUI:PlaySound("hover")
             local Theme = MedaUI.Theme
             self:SetBackdropColor(unpack(Theme.buttonHover))
             self:SetBackdropBorderColor(unpack(Theme.gold))
@@ -87,6 +88,7 @@ function MedaUI:CreateButton(parent, text, width, height)
 
     -- Click handler
     button:SetScript("OnClick", function(self, btn)
+        MedaUI:PlaySound("click")
         if self.OnClick then self:OnClick(btn) end
     end)
 

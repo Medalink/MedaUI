@@ -67,6 +67,7 @@ function MedaUI:CreateRadio(parent, label, group)
 
     -- Click behavior
     box:SetScript("OnClick", function()
+        MedaUI:PlaySound("click")
         container:SetSelected(true)
         if container.OnValueChanged then
             container:OnValueChanged(true)
@@ -75,6 +76,7 @@ function MedaUI:CreateRadio(parent, label, group)
 
     -- Hover effect
     box:SetScript("OnEnter", function(self)
+        MedaUI:PlaySound("hover")
         local Theme = MedaUI.Theme
         self:SetBackdropBorderColor(unpack(Theme.gold))
     end)

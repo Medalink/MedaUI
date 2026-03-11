@@ -41,6 +41,9 @@ MedaUI.callbacks = MedaUI.callbacks or LibStub("CallbackHandler-1.0"):New(MedaUI
 -- Current theme table (replaced on theme switch)
 MedaUI.Theme = MedaUI.Theme or {}
 
+-- Global sound toggle (host addons persist this in their own saved variables)
+if MedaUI.soundsEnabled == nil then MedaUI.soundsEnabled = true end
+
 -- ============================================================================
 -- Theme Registration and Switching API
 -- ============================================================================
@@ -189,13 +192,37 @@ end
 -- MedaUI:CreateMinimapButton(name, icon, onClick, onRightClick)
 
 -- ============================================================================
+-- Sound Toggle API
+-- ============================================================================
+
+--- Enable or disable all MedaUI sound playback globally.
+--- @param enabled boolean
+function MedaUI:SetSoundsEnabled(enabled)
+    self.soundsEnabled = enabled
+end
+
+--- @return boolean
+function MedaUI:AreSoundsEnabled()
+    return self.soundsEnabled
+end
+
+-- ============================================================================
 -- UI Sound Playback
 -- ============================================================================
 
+local SOUND_COOLDOWN = 0.05
+local lastSoundTime = {}
+
 --- Play a named UI sound from the MedaUI Media/Sounds folder.
+--- Identical sounds within 50 ms are suppressed to prevent stacking.
 --- @param name string Sound name (e.g. "toggleOn", "click", "hover")
 function MedaUI:PlaySound(name)
-    if not name then return end
+    if not name or not self.soundsEnabled then return end
+    local now = GetTime()
+    if lastSoundTime[name] and (now - lastSoundTime[name]) < SOUND_COOLDOWN then
+        return
+    end
+    lastSoundTime[name] = now
     local path = self.mediaPath .. "Sounds\\" .. name .. ".ogg"
     pcall(PlaySoundFile, path, "Master")
 end
@@ -203,7 +230,7 @@ end
 --- Play a sound file by full path (wraps pcall + Master channel).
 --- @param path string Full sound path (e.g. from GetSoundPath)
 function MedaUI:PlaySoundPath(path)
-    if not path then return end
+    if not path or not self.soundsEnabled then return end
     pcall(PlaySoundFile, path, "Master")
 end
 

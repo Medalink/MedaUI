@@ -112,6 +112,7 @@ function MedaUI:CreateInfoPanel(name, config)
 
     local content = scrollParent.scrollContent
     Pixel.SetHeight(content, 1)
+    Pixel.SetWidth(content, width - (2 * INSET))
 
     frame.scrollParent = scrollParent
     frame.content = content
@@ -126,7 +127,7 @@ function MedaUI:CreateInfoPanel(name, config)
 
     local footerBg = footer:CreateTexture(nil, "BACKGROUND")
     footerBg:SetAllPoints()
-    footerBg:SetColorTexture(0.1, 0.1, 0.12, 0.8)
+    footerBg:SetColorTexture(0.14, 0.14, 0.155, 1)
     frame.footerBg = footerBg
 
     frame.footerText = footer:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
@@ -196,11 +197,13 @@ function MedaUI:CreateInfoPanel(name, config)
         if alpha then
             frame:SetBackdropColor(Theme.background[1], Theme.background[2], Theme.background[3], alpha)
             frame:SetBackdropBorderColor(Theme.border[1], Theme.border[2], Theme.border[3], alpha > 0 and (Theme.border[4] or 0.6) or 0)
+            local chromeAlpha = alpha * (Theme.backgroundLight[4] or 1)
             headerBg:SetColorTexture(
                 Theme.backgroundLight[1], Theme.backgroundLight[2], Theme.backgroundLight[3],
-                alpha > 0 and (Theme.backgroundLight[4] or 1) or 0
+                chromeAlpha
             )
-            footerBg:SetColorTexture(0.1, 0.1, 0.12, alpha * 0.8)
+            local bgL = Theme.backgroundLight
+            footerBg:SetColorTexture(bgL[1], bgL[2], bgL[3], chromeAlpha)
             statusBarBg:SetColorTexture(0.08, 0.08, 0.1, alpha * 0.9)
         else
             frame:SetBackdropColor(unpack(Theme.background))
@@ -211,7 +214,8 @@ function MedaUI:CreateInfoPanel(name, config)
                 Theme.backgroundLight[3],
                 Theme.backgroundLight[4] or 1
             )
-            footerBg:SetColorTexture(0.1, 0.1, 0.12, 0.8)
+            local bgL = Theme.backgroundLight
+            footerBg:SetColorTexture(bgL[1], bgL[2], bgL[3], bgL[4] or 1)
             statusBarBg:SetColorTexture(0.08, 0.08, 0.1, 0.9)
         end
         frame.titleText:SetTextColor(unpack(Theme.gold))
@@ -296,6 +300,9 @@ function MedaUI:CreateInfoPanel(name, config)
             self.footerText:SetText(text)
             if r then
                 self.footerText:SetTextColor(r, g, b)
+            else
+                local td = MedaUI.Theme.textDim or { 0.6, 0.6, 0.6 }
+                self.footerText:SetTextColor(unpack(td))
             end
             self.footer:Show()
         else
@@ -332,7 +339,7 @@ function MedaUI:CreateInfoPanel(name, config)
     end
 
     function frame:SetContentHeight(h)
-        Pixel.SetHeight(self.content, h)
+        self.scrollParent:SetContentHeight(h, false, true)
     end
 
     -- ================================================================

@@ -31,9 +31,9 @@ MedaUI:RegisterTheme("onyx", {
     sectionGradientEnd = { 0.72, 0.74, 0.79, 0.03 },
 
     -- Backgrounds
-    background = { 0.065, 0.065, 0.072, 0.99 },
-    backgroundLight = { 0.085, 0.085, 0.095, 1 },
-    backgroundDark = { 0.042, 0.042, 0.048, 1 },
+    background = { 0.11, 0.11, 0.12, 0.99 },
+    backgroundLight = { 0.14, 0.14, 0.155, 1 },
+    backgroundDark = { 0.085, 0.085, 0.095, 1 },
 
     -- Borders
     border = { 1, 1, 1, 0.06 },
@@ -47,7 +47,7 @@ MedaUI:RegisterTheme("onyx", {
 
     -- Text colors
     text = { 1, 1, 1, 0.97 },
-    textDim = { 1, 1, 1, 0.66 },
+    textDim = { 1, 1, 1, 0.82 },
     textDisabled = { 1, 1, 1, 0.36 },
     textGreen = { 0.45, 0.85, 0.55, 1 },
 
@@ -73,7 +73,7 @@ MedaUI:RegisterTheme("onyx", {
     highlight = { 0.78, 0.80, 0.84, 0.07 },
 
     -- Code/monospace styling
-    codeBackground = { 0, 0, 0, 0.36 },
+    codeBackground = { 0, 0, 0, 0.22 },
     codeBorder = { 1, 1, 1, 0.05 },
     codeLineNumber = { 1, 1, 1, 0.22 },
     codeHighlight = { 0.78, 0.80, 0.84, 0.08 },
@@ -93,7 +93,7 @@ MedaUI:RegisterTheme("onyx", {
     dropdownHover = { 1, 1, 1, 0.03 },
 
     -- Context menu
-    menuBackground = { 0.045, 0.045, 0.05, 0.995 },
+    menuBackground = { 0.09, 0.09, 0.10, 0.995 },
     menuHover = { 1, 1, 1, 0.032 },
     menuSeparator = { 1, 1, 1, 0.05 },
 
@@ -120,8 +120,8 @@ MedaUI:RegisterTheme("onyx", {
     toggleKnobOn = { 1, 1, 1, 0.98 },
 
     -- Primary button
-    buttonPrimary = { 0.09, 0.09, 0.10, 1 },
-    buttonPrimaryHover = { 0.12, 0.12, 0.14, 1 },
+    buttonPrimary = { 0.16, 0.16, 0.18, 1 },
+    buttonPrimaryHover = { 0.20, 0.20, 0.22, 1 },
     buttonPrimaryText = { 1, 1, 1, 0.96 },
 
     -- Panel chrome

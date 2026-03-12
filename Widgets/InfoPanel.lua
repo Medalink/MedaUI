@@ -9,6 +9,7 @@ local Pixel = LibStub("MedaUI-1.0").Pixel
 
 local HEADER_HEIGHT = 30
 local FOOTER_HEIGHT = 28
+local STATUS_BAR_HEIGHT = 20
 local INSET = 8
 
 --- Create a themed, dismissable info panel with header, scrollable content, and footer.
@@ -137,6 +138,45 @@ function MedaUI:CreateInfoPanel(name, config)
     footer:Hide()
     frame.footer = footer
 
+    -- ================================================================
+    -- Status bar (persistent bar at the very bottom of the panel)
+    -- ================================================================
+    local statusBar = CreateFrame("Frame", nil, frame)
+    Pixel.SetHeight(statusBar, STATUS_BAR_HEIGHT)
+    Pixel.SetPoint(statusBar, "BOTTOMLEFT", 1, 1)
+    Pixel.SetPoint(statusBar, "BOTTOMRIGHT", -1, 1)
+
+    local statusBarBg = statusBar:CreateTexture(nil, "BACKGROUND")
+    statusBarBg:SetAllPoints()
+    statusBarBg:SetColorTexture(0.08, 0.08, 0.1, 0.9)
+    frame.statusBarBg = statusBarBg
+
+    frame.statusBarText = statusBar:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    Pixel.SetPoint(frame.statusBarText, "LEFT", 8, 0)
+    Pixel.SetPoint(frame.statusBarText, "RIGHT", statusBar, "RIGHT", -8, 0)
+    frame.statusBarText:SetJustifyH("LEFT")
+
+    statusBar:Hide()
+    frame.statusBar = statusBar
+
+    local function UpdateBottomLayout()
+        local sbVisible = statusBar:IsShown()
+        local ftVisible = footer:IsShown()
+
+        local footerBottom = 1 + (sbVisible and STATUS_BAR_HEIGHT or 0)
+        Pixel.ClearPoints(footer)
+        Pixel.SetHeight(footer, FOOTER_HEIGHT)
+        Pixel.SetPoint(footer, "BOTTOMLEFT", 1, footerBottom)
+        Pixel.SetPoint(footer, "BOTTOMRIGHT", -1, footerBottom)
+
+        local barsHeight = (sbVisible and STATUS_BAR_HEIGHT or 0)
+            + (ftVisible and FOOTER_HEIGHT or 0)
+        local scrollBottom = barsHeight > 0 and (barsHeight + 4) or INSET
+        Pixel.ClearPoints(scrollParent)
+        Pixel.SetPoint(scrollParent, "TOPLEFT", INSET, -(HEADER_HEIGHT + 4))
+        Pixel.SetPoint(scrollParent, "BOTTOMRIGHT", -INSET, scrollBottom)
+    end
+
     -- Store refs
     frame.header = header
     frame.headerBg = headerBg
@@ -161,6 +201,7 @@ function MedaUI:CreateInfoPanel(name, config)
                 alpha > 0 and (Theme.backgroundLight[4] or 1) or 0
             )
             footerBg:SetColorTexture(0.1, 0.1, 0.12, alpha * 0.8)
+            statusBarBg:SetColorTexture(0.08, 0.08, 0.1, alpha * 0.9)
         else
             frame:SetBackdropColor(unpack(Theme.background))
             frame:SetBackdropBorderColor(unpack(Theme.border))
@@ -171,11 +212,15 @@ function MedaUI:CreateInfoPanel(name, config)
                 Theme.backgroundLight[4] or 1
             )
             footerBg:SetColorTexture(0.1, 0.1, 0.12, 0.8)
+            statusBarBg:SetColorTexture(0.08, 0.08, 0.1, 0.9)
         end
         frame.titleText:SetTextColor(unpack(Theme.gold))
         accent:SetColorTexture(unpack(Theme.goldDim))
         if frame.footerText:GetText() then
             frame.footerText:SetTextColor(unpack(Theme.textDim or {0.6, 0.6, 0.6}))
+        end
+        if frame.statusBarText:GetText() then
+            frame.statusBarText:SetTextColor(unpack(Theme.textDim or {0.6, 0.6, 0.6}))
         end
     end
     frame._ApplyTheme = ApplyTheme
@@ -253,12 +298,25 @@ function MedaUI:CreateInfoPanel(name, config)
                 self.footerText:SetTextColor(r, g, b)
             end
             self.footer:Show()
-            Pixel.SetPoint(scrollParent, "BOTTOMRIGHT", -INSET, FOOTER_HEIGHT + 4)
         else
             self.footerText:SetText("")
             self.footer:Hide()
-            Pixel.SetPoint(scrollParent, "BOTTOMRIGHT", -INSET, INSET)
         end
+        UpdateBottomLayout()
+    end
+
+    function frame:SetStatusBar(text, r, g, b)
+        if text and text ~= "" then
+            self.statusBarText:SetText(text)
+            if r then
+                self.statusBarText:SetTextColor(r, g, b)
+            end
+            self.statusBar:Show()
+        else
+            self.statusBarText:SetText("")
+            self.statusBar:Hide()
+        end
+        UpdateBottomLayout()
     end
 
     function frame:ClearContent()

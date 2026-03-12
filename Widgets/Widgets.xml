@@ -22,6 +22,7 @@
     <Script file="Dropdown.lua"/>
     <Script file="SearchBox.lua"/>
     <Script file="ScrollList.lua"/>
+    <Script file="ReorderableList.lua"/>
     <Script file="InlineRadioGroup.lua"/>
     <Script file="TreeView.lua"/>
     <Script file="CodeBlock.lua"/>
@@ -32,10 +33,14 @@
     <Script file="TwoColumnLayout.lua"/>
     <Script file="ContentFrame.lua"/>
     <Script file="LabeledControl.lua"/>
+    <Script file="SchemaForm.lua"/>
 
     <!-- Data display -->
     <Script file="DataTable.lua"/>
     <Script file="CollapsibleSectionHeader.lua"/>
+    <Script file="ExpandToggle.lua"/>
+    <Script file="EventTimeline.lua"/>
+    <Script file="NodeConnector.lua"/>
 
     <!-- Effects and animations -->
     <Script file="Effects.lua"/>
@@ -50,8 +55,10 @@
     <Script file="TextViewer.lua"/>
     <Script file="NotificationBanner.lua"/>
     <Script file="StatusRow.lua"/>
+    <Script file="ItemSlotCard.lua"/>
     <Script file="HUDRow.lua"/>
     <Script file="InfoPanel.lua"/>
+    <Script file="WorkspaceShell.lua"/>
 
     <!-- Composite panels -->
     <Script file="SettingsPanel.lua"/>

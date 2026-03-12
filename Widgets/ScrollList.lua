@@ -12,14 +12,14 @@ local Pixel = LibStub("MedaUI-1.0").Pixel
 --- @param height number List height
 --- @param config table Configuration {rowHeight, renderRow}
 --- @return Frame The scroll list frame
-function MedaUI:CreateScrollList(parent, width, height, config)
+function MedaUI.CreateScrollList(ui, parent, width, height, config)
     config = config or {}
     local rowHeight = config.rowHeight or 24
     local renderRow = config.renderRow
 
     local scrollList = CreateFrame("Frame", nil, parent, "BackdropTemplate")
     Pixel.SetSize(scrollList, width, height)
-    scrollList:SetBackdrop(self:CreateBackdrop(true))
+    scrollList:SetBackdrop(ui:CreateBackdrop(true))
 
     scrollList.data = {}
     scrollList.filteredData = nil
@@ -31,7 +31,7 @@ function MedaUI:CreateScrollList(parent, width, height, config)
     scrollList.scrollOffset = 0
 
     -- Scroll frame (AF custom scrollbar)
-    local scrollParent = self:CreateScrollFrame(scrollList)
+    local scrollParent = ui:CreateScrollFrame(scrollList)
     Pixel.SetPoint(scrollParent, "TOPLEFT", 6, -6)
     Pixel.SetPoint(scrollParent, "BOTTOMRIGHT", -6, 6)
     scrollParent:SetScrollStep(rowHeight * 3)
@@ -42,8 +42,15 @@ function MedaUI:CreateScrollList(parent, width, height, config)
     scrollList.scrollFrame = scrollFrame
     scrollList.scrollParent = scrollParent
 
-    -- Calculate visible rows
-    local visibleRowCount = math.ceil(height / rowHeight) + 1
+    local function GetLayoutMetrics()
+        local currentHeight = scrollList:GetHeight()
+        if not currentHeight or currentHeight <= 0 then
+            currentHeight = height
+        end
+
+        local visibleRowCount = math.ceil(currentHeight / rowHeight) + 1
+        return currentHeight, visibleRowCount
+    end
 
     -- Apply theme colors
     local function ApplyTheme()
@@ -80,8 +87,9 @@ function MedaUI:CreateScrollList(parent, width, height, config)
     local function UpdateRows()
         local Theme = MedaUI.Theme
         local dataSource = scrollList.filteredData or scrollList.data
+        local currentHeight, visibleRowCount = GetLayoutMetrics()
         local totalHeight = #dataSource * rowHeight
-        Pixel.SetHeight(content, math.max(totalHeight, height - 8))
+        Pixel.SetHeight(content, math.max(totalHeight, currentHeight - 8))
 
         -- Hide all rows first
         for _, row in ipairs(scrollList.visibleRows) do
@@ -127,13 +135,17 @@ function MedaUI:CreateScrollList(parent, width, height, config)
         UpdateRows()
     end)
 
+    scrollList:SetScript("OnSizeChanged", function()
+        UpdateRows()
+    end)
+
     --- Set the data source
     --- @param data table Array of items
     function scrollList:SetData(data)
-        self.data = data or {}
-        self.filteredData = nil
-        if self.filterFunc then
-            self:ApplyFilter()
+        scrollList.data = data or {}
+        scrollList.filteredData = nil
+        if scrollList.filterFunc then
+            scrollList:ApplyFilter()
         else
             UpdateRows()
         end
@@ -142,42 +154,42 @@ function MedaUI:CreateScrollList(parent, width, height, config)
     --- Get the current data
     --- @return table The data array
     function scrollList:GetData()
-        return self.filteredData or self.data
+        return scrollList.filteredData or scrollList.data
     end
 
     --- Set a filter function
     --- @param filterFunc function|nil Filter function(item) returns bool
     function scrollList:SetFilter(filterFunc)
-        self.filterFunc = filterFunc
-        self:ApplyFilter()
+        scrollList.filterFunc = filterFunc
+        scrollList:ApplyFilter()
     end
 
     --- Apply the current filter
     function scrollList:ApplyFilter()
-        if self.filterFunc then
-            self.filteredData = {}
-            for _, item in ipairs(self.data) do
-                if self.filterFunc(item) then
-                    self.filteredData[#self.filteredData + 1] = item
+        if scrollList.filterFunc then
+            scrollList.filteredData = {}
+            for _, item in ipairs(scrollList.data) do
+                if scrollList.filterFunc(item) then
+                    scrollList.filteredData[#scrollList.filteredData + 1] = item
                 end
             end
         else
-            self.filteredData = nil
+            scrollList.filteredData = nil
         end
         UpdateRows()
     end
 
     --- Clear the filter
     function scrollList:ClearFilter()
-        self.filterFunc = nil
-        self.filteredData = nil
+        scrollList.filterFunc = nil
+        scrollList.filteredData = nil
         UpdateRows()
     end
 
     --- Refresh the display
     function scrollList:Refresh()
-        if self.filterFunc then
-            self:ApplyFilter()
+        if scrollList.filterFunc then
+            scrollList:ApplyFilter()
         else
             UpdateRows()
         end
@@ -203,8 +215,9 @@ function MedaUI:CreateScrollList(parent, width, height, config)
     --- Get the visible range
     --- @return number, number First and last visible indices
     function scrollList:GetVisibleRange()
-        local dataSource = self.filteredData or self.data
+        local dataSource = scrollList.filteredData or scrollList.data
         local scrollPos = scrollFrame:GetVerticalScroll()
+        local _, visibleRowCount = GetLayoutMetrics()
         local firstVisible = math.floor(scrollPos / rowHeight) + 1
         local lastVisible = math.min(firstVisible + visibleRowCount - 1, #dataSource)
         return firstVisible, lastVisible
@@ -214,9 +227,9 @@ function MedaUI:CreateScrollList(parent, width, height, config)
     --- @param item any The item to add
     --- @param scrollToNew boolean Whether to scroll to the new item
     function scrollList:AddItem(item, scrollToNew)
-        self.data[#self.data + 1] = item
-        if self.filterFunc then
-            self:ApplyFilter()
+        scrollList.data[#scrollList.data + 1] = item
+        if scrollList.filterFunc then
+            scrollList:ApplyFilter()
         else
             UpdateRows()
         end
@@ -227,15 +240,15 @@ function MedaUI:CreateScrollList(parent, width, height, config)
 
     --- Clear all data
     function scrollList:Clear()
-        wipe(self.data)
-        self.filteredData = nil
+        wipe(scrollList.data)
+        scrollList.filteredData = nil
         UpdateRows()
     end
 
     --- Get item count
     --- @return number The number of items (filtered if filter active)
     function scrollList:GetItemCount()
-        local dataSource = self.filteredData or self.data
+        local dataSource = scrollList.filteredData or scrollList.data
         return #dataSource
     end
 

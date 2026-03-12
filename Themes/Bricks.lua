@@ -30,10 +30,10 @@ MedaUI:RegisterTheme("bricks", {
     sectionGradientStart = { 0.38, 0.53, 0.87, 0.45 },
     sectionGradientEnd = { 0.38, 0.53, 0.87, 0.04 },
 
-    -- Backgrounds (deep blue-black)
-    background = { 0.06, 0.07, 0.09, 0.985 },
-    backgroundLight = { 0.085, 0.095, 0.12, 1 },
-    backgroundDark = { 0.035, 0.04, 0.055, 1 },
+    -- Backgrounds (soft slate-blue)
+    background = { 0.13, 0.14, 0.17, 0.985 },
+    backgroundLight = { 0.165, 0.175, 0.205, 1 },
+    backgroundDark = { 0.11, 0.12, 0.145, 1 },
 
     -- Borders (white at low alpha)
     border = { 1, 1, 1, 0.05 },
@@ -52,22 +52,22 @@ MedaUI:RegisterTheme("bricks", {
     textGreen = { 0.45, 0.85, 0.55, 1 },
 
     -- Interactive elements
-    button = { 1, 1, 1, 0.035 },
-    buttonHover = { 1, 1, 1, 0.055 },
-    buttonDisabled = { 1, 1, 1, 0.02 },
-    input = { 1, 1, 1, 0.025 },
+    button = { 1, 1, 1, 0.05 },
+    buttonHover = { 1, 1, 1, 0.08 },
+    buttonDisabled = { 1, 1, 1, 0.03 },
+    input = { 1, 1, 1, 0.045 },
 
     -- Tabs
-    tabActive = { 1, 1, 1, 0.025 },
-    tabInactive = { 0, 0, 0, 0 },
-    tabHover = { 1, 1, 1, 0.025 },
+    tabActive = { 1, 1, 1, 0.05 },
+    tabInactive = { 1, 1, 1, 0.018 },
+    tabHover = { 1, 1, 1, 0.05 },
     tabBadge = { 0.38, 0.53, 0.87, 0.45 },
 
     -- Table rows
-    rowEven = { 1, 1, 1, 0.015 },
-    rowOdd = { 0, 0, 0, 0 },
-    rowHeader = { 1, 1, 1, 0.025 },
-    rowSubheader = { 1, 1, 1, 0.02 },
+    rowEven = { 1, 1, 1, 0.03 },
+    rowOdd = { 1, 1, 1, 0.015 },
+    rowHeader = { 1, 1, 1, 0.05 },
+    rowSubheader = { 1, 1, 1, 0.035 },
 
     -- Highlights (blue-tinted)
     highlight = { 0.38, 0.53, 0.87, 0.08 },
@@ -93,9 +93,9 @@ MedaUI:RegisterTheme("bricks", {
     dropdownHover = { 1, 1, 1, 0.04 },
 
     -- Context menu
-    menuBackground = { 0.07, 0.08, 0.10, 0.99 },
-    menuHover = { 1, 1, 1, 0.04 },
-    menuSeparator = { 1, 1, 1, 0.06 },
+    menuBackground = { 0.14, 0.15, 0.18, 0.99 },
+    menuHover = { 1, 1, 1, 0.06 },
+    menuSeparator = { 1, 1, 1, 0.07 },
 
     -- Message levels
     levelDebug = { 1, 1, 1, 0.4 },
@@ -120,8 +120,8 @@ MedaUI:RegisterTheme("bricks", {
     toggleKnobOn = { 1, 1, 1, 1 },
 
     -- Primary button
-    buttonPrimary = { 0.11, 0.14, 0.19, 1 },
-    buttonPrimaryHover = { 0.14, 0.18, 0.24, 1 },
+    buttonPrimary = { 0.18, 0.21, 0.27, 1 },
+    buttonPrimaryHover = { 0.22, 0.25, 0.31, 1 },
     buttonPrimaryText = { 1, 1, 1, 1 },
 
     -- Panel chrome
@@ -129,18 +129,18 @@ MedaUI:RegisterTheme("bricks", {
     textSection = { 1, 1, 1, 0.35 },
 
     -- Checkbox
-    checkboxBg = { 1, 1, 1, 0.04 },
-    checkboxBorder = { 1, 1, 1, 0.12 },
-    checkboxBgHover = { 1, 1, 1, 0.06 },
-    checkboxBorderHover = { 1, 1, 1, 0.22 },
+    checkboxBg = { 1, 1, 1, 0.055 },
+    checkboxBorder = { 1, 1, 1, 0.15 },
+    checkboxBgHover = { 1, 1, 1, 0.08 },
+    checkboxBorderHover = { 1, 1, 1, 0.25 },
     checkboxBgChecked = { 0.38, 0.53, 0.87, 0.85 },
     checkboxBorderChecked = { 0.38, 0.53, 0.87, 1 },
     checkboxMark = { 1, 1, 1, 1 },
 
     -- Semantic UI colors
-    divider = { 1, 1, 1, 0.05 },
-    hoverSubtle = { 1, 1, 1, 0.012 },
-    selectedSubtle = { 1, 1, 1, 0.024 },
+    divider = { 1, 1, 1, 0.07 },
+    hoverSubtle = { 1, 1, 1, 0.024 },
+    selectedSubtle = { 1, 1, 1, 0.042 },
     success = { 0.35, 0.82, 0.45, 1 },
     warning = { 1.0, 0.65, 0.15, 1 },
     error = { 1, 0.40, 0.40, 1 },

@@ -12,16 +12,17 @@ local DEFAULT_WIDTH = 260
 local DEFAULT_ICON_SIZE = 16
 local DEFAULT_ROW_HEIGHT = 20
 local STATE_WIDTH = 14
+local STATE_ICON_SIZE = 12
 local TIMER_WIDTH = 52
 local DELTA_WIDTH = 52
 local PAD = 4
 
-local STATE_MARKERS = {
-    active    = "\226\151\139",  -- ○
-    fulfilled = "\226\156\147",  -- ✓
-    dormant   = "\194\183",      -- ·
-    dismissed = "\226\128\148",  -- —
-    paused    = "\226\128\150",  -- ‖
+local STATE_TEXTURES = {
+    active = MedaUI.mediaPath .. "Textures\\hud-state-active.tga",
+    fulfilled = MedaUI.mediaPath .. "Textures\\hud-state-fulfilled.tga",
+    dormant = MedaUI.mediaPath .. "Textures\\hud-state-dormant.tga",
+    dismissed = MedaUI.mediaPath .. "Textures\\hud-state-dismissed.tga",
+    paused = MedaUI.mediaPath .. "Textures\\hud-state-paused.tga",
 }
 
 local floor = math.floor
@@ -60,12 +61,11 @@ function MedaUI:CreateHUDRow(parent, config)
     local row = CreateFrame("Frame", nil, parent)
     Pixel.SetSize(row, width, DEFAULT_ROW_HEIGHT)
 
-    -- State marker (○ ✓ · — ‖)
-    row.stateMarker = row:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    -- State marker texture
+    row.stateMarker = row:CreateTexture(nil, "OVERLAY")
     Pixel.SetPoint(row.stateMarker, "LEFT", 0, 0)
-    Pixel.SetWidth(row.stateMarker, showState and STATE_WIDTH or 0)
-    row.stateMarker:SetJustifyH("CENTER")
-    row.stateMarker:SetText(STATE_MARKERS.active)
+    Pixel.SetSize(row.stateMarker, showState and STATE_ICON_SIZE or 0, showState and STATE_ICON_SIZE or 0)
+    row.stateMarker:SetTexture(STATE_TEXTURES.active)
     if not showState then
         row.stateMarker:Hide()
     end
@@ -117,9 +117,6 @@ function MedaUI:CreateHUDRow(parent, config)
     row.timer:SetShadowColor(0, 0, 0, 0.8)
     row.delta:SetShadowOffset(1, -1)
     row.delta:SetShadowColor(0, 0, 0, 0.8)
-    row.stateMarker:SetShadowOffset(1, -1)
-    row.stateMarker:SetShadowColor(0, 0, 0, 0.8)
-
     -- Internal state
     row._state = "active"
     row._deltaSeconds = nil
@@ -169,16 +166,16 @@ function MedaUI:CreateHUDRow(parent, config)
         local Theme = MedaUI.Theme
         local state = self._state
         if state == "fulfilled" then
-            self.stateMarker:SetTextColor(unpack(Theme.success or {0.35, 0.8, 0.45}))
+            self.stateMarker:SetVertexColor(unpack(Theme.success or {0.35, 0.8, 0.45}))
             self.text:SetTextColor(unpack(Theme.textDim or {0.7, 0.7, 0.7}))
         elseif state == "dormant" or state == "dismissed" then
-            self.stateMarker:SetTextColor(unpack(Theme.textDisabled or {0.4, 0.4, 0.4}))
+            self.stateMarker:SetVertexColor(unpack(Theme.textDisabled or {0.4, 0.4, 0.4}))
             self.text:SetTextColor(unpack(Theme.textDisabled or {0.4, 0.4, 0.4}))
         elseif state == "paused" then
-            self.stateMarker:SetTextColor(unpack(Theme.warning or {1, 0.62, 0.12}))
+            self.stateMarker:SetVertexColor(unpack(Theme.warning or {1, 0.62, 0.12}))
             self.text:SetTextColor(unpack(Theme.text or {1, 1, 1}))
         else
-            self.stateMarker:SetTextColor(unpack(Theme.text or {1, 1, 1}))
+            self.stateMarker:SetVertexColor(unpack(Theme.text or {1, 1, 1}))
             self.text:SetTextColor(unpack(Theme.text or {1, 1, 1}))
         end
     end
@@ -192,7 +189,7 @@ function MedaUI:CreateHUDRow(parent, config)
     function row:SetState(state)
         self._state = state
         if self._showState then
-            self.stateMarker:SetText(STATE_MARKERS[state] or STATE_MARKERS.active)
+            self.stateMarker:SetTexture(STATE_TEXTURES[state] or STATE_TEXTURES.active)
         end
         self:_ApplyStateColor()
     end

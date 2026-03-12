@@ -13,6 +13,9 @@ local DEFAULT_ACCENT_WIDTH = 3
 local ICON_PADDING = 1
 local TEXT_LEFT_PAD = 6
 local NOTE_TOP_PAD = 2
+local CARD_PAD_X = 10
+local CARD_PAD_Y = 10
+local CARD_STATUS_WIDTH = 130
 
 --- Create a themed status row with accent bar, icon, label, and status text.
 --- @param parent Frame The parent frame
@@ -31,9 +34,14 @@ function MedaUI:CreateStatusRow(parent, config)
     local iconSize = config.iconSize or DEFAULT_ICON_SIZE
     local accentWidth = config.accentWidth or DEFAULT_ACCENT_WIDTH
     local showNote = config.showNote ~= false
+    local cardStyle = config.cardStyle == true
 
-    local row = CreateFrame("Frame", nil, parent)
+    local row = CreateFrame("Frame", nil, parent, cardStyle and "BackdropTemplate" or nil)
     Pixel.SetWidth(row, width)
+    row._cardStyle = cardStyle
+    if cardStyle then
+        row:SetBackdrop(self:CreateBackdrop(true))
+    end
 
     -- Accent bar (left edge, severity-colored)
     row.accent = row:CreateTexture(nil, "ARTWORK")
@@ -42,30 +50,55 @@ function MedaUI:CreateStatusRow(parent, config)
     Pixel.SetWidth(row.accent, accentWidth)
     row.accent:SetColorTexture(0.4, 0.4, 0.4, 1)
 
+    if cardStyle then
+        row.iconFrame = CreateFrame("Frame", nil, row, "BackdropTemplate")
+        row.iconFrame:SetBackdrop(self:CreateBackdrop(true))
+        Pixel.SetSize(row.iconFrame, iconSize, iconSize)
+        Pixel.SetPoint(row.iconFrame, "TOPLEFT", row, "TOPLEFT", accentWidth + CARD_PAD_X, -CARD_PAD_Y)
+    end
+
     -- Icon (square, zoom-cropped)
-    row.icon = row:CreateTexture(nil, "ARTWORK")
+    row.icon = (row.iconFrame or row):CreateTexture(nil, "ARTWORK")
     Pixel.SetSize(row.icon, iconSize, iconSize)
-    Pixel.SetPoint(row.icon, "TOPLEFT", accentWidth + 6, -2)
+    if cardStyle then
+        row.icon:SetAllPoints()
+    else
+        Pixel.SetPoint(row.icon, "TOPLEFT", accentWidth + 6, -2)
+    end
     row.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
 
     -- Label text (bold, left of icon)
     row.label = row:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    Pixel.SetPoint(row.label, "TOPLEFT", row.icon, "TOPRIGHT", TEXT_LEFT_PAD, -1)
-    Pixel.SetPoint(row.label, "RIGHT", row, "RIGHT", -136, 0)
+    if cardStyle then
+        Pixel.SetPoint(row.label, "TOPLEFT", row.iconFrame, "TOPRIGHT", 10, -1)
+        Pixel.SetPoint(row.label, "RIGHT", row, "RIGHT", -(CARD_PAD_X + CARD_STATUS_WIDTH + 8), 0)
+    else
+        Pixel.SetPoint(row.label, "TOPLEFT", row.icon, "TOPRIGHT", TEXT_LEFT_PAD, -1)
+        Pixel.SetPoint(row.label, "RIGHT", row, "RIGHT", -136, 0)
+    end
     row.label:SetJustifyH("LEFT")
     row.label:SetWordWrap(false)
 
     -- Status text (right-aligned)
     row.status = row:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    Pixel.SetPoint(row.status, "TOPRIGHT", row, "TOPRIGHT", -4, -3)
+    if cardStyle then
+        Pixel.SetPoint(row.status, "TOPRIGHT", row, "TOPRIGHT", -CARD_PAD_X, -CARD_PAD_Y + 1)
+    else
+        Pixel.SetPoint(row.status, "TOPRIGHT", row, "TOPRIGHT", -4, -3)
+    end
     row.status:SetJustifyH("RIGHT")
     row.status:SetWordWrap(false)
-    Pixel.SetWidth(row.status, 130)
+    Pixel.SetWidth(row.status, CARD_STATUS_WIDTH)
 
     -- Note sub-line (dim, full width, below icon row)
     row.note = row:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    Pixel.SetPoint(row.note, "TOPLEFT", row.icon, "BOTTOMLEFT", 0, -NOTE_TOP_PAD)
-    Pixel.SetPoint(row.note, "RIGHT", row, "RIGHT", -4, 0)
+    if cardStyle then
+        Pixel.SetPoint(row.note, "TOPLEFT", row.label, "BOTTOMLEFT", 0, -NOTE_TOP_PAD - 1)
+        Pixel.SetPoint(row.note, "RIGHT", row, "RIGHT", -CARD_PAD_X, 0)
+    else
+        Pixel.SetPoint(row.note, "TOPLEFT", row.icon, "BOTTOMLEFT", 0, -NOTE_TOP_PAD)
+        Pixel.SetPoint(row.note, "RIGHT", row, "RIGHT", -4, 0)
+    end
     row.note:SetJustifyH("LEFT")
     row.note:SetWordWrap(true)
     if not showNote then row.note:Hide() end
@@ -80,6 +113,32 @@ function MedaUI:CreateStatusRow(parent, config)
     row._showNote = showNote
     row._iconSize = iconSize
     row._tooltipFunc = nil
+    row._hasIcon = true
+
+    local function UpdateLayoutAnchors()
+        row.label:ClearAllPoints()
+        row.note:ClearAllPoints()
+
+        if row._cardStyle then
+            local labelLeftAnchor = (row._hasIcon and row.iconFrame) or row
+            local labelLeftPoint = row._hasIcon and "TOPRIGHT" or "TOPLEFT"
+            local labelLeftX = row._hasIcon and 10 or (accentWidth + CARD_PAD_X)
+
+            Pixel.SetPoint(row.label, "TOPLEFT", labelLeftAnchor, labelLeftPoint, labelLeftX, -CARD_PAD_Y + 1)
+            Pixel.SetPoint(row.label, "RIGHT", row, "RIGHT", -(CARD_PAD_X + CARD_STATUS_WIDTH + 8), 0)
+            Pixel.SetPoint(row.note, "TOPLEFT", row.label, "BOTTOMLEFT", 0, -NOTE_TOP_PAD - 1)
+            Pixel.SetPoint(row.note, "RIGHT", row, "RIGHT", -CARD_PAD_X, 0)
+        else
+            local iconAnchor = row._hasIcon and row.icon or row
+            local iconPoint = row._hasIcon and "TOPRIGHT" or "TOPLEFT"
+            local iconX = row._hasIcon and TEXT_LEFT_PAD or (accentWidth + 6)
+
+            Pixel.SetPoint(row.label, "TOPLEFT", iconAnchor, iconPoint, iconX, -1)
+            Pixel.SetPoint(row.label, "RIGHT", row, "RIGHT", -136, 0)
+            Pixel.SetPoint(row.note, "TOPLEFT", row._hasIcon and row.icon or row.label, row._hasIcon and "BOTTOMLEFT" or "BOTTOMLEFT", 0, -NOTE_TOP_PAD)
+            Pixel.SetPoint(row.note, "RIGHT", row, "RIGHT", -4, 0)
+        end
+    end
 
     -- Tooltip
     row:EnableMouse(true)
@@ -95,9 +154,18 @@ function MedaUI:CreateStatusRow(parent, config)
     end)
 
     local function UpdateHeight()
-        local h = math.max(iconSize + 4, row.label:GetStringHeight() + 6)
-        if row._showNote and row.note:IsShown() and row.note:GetText() and row.note:GetText() ~= "" then
-            h = h + row.note:GetStringHeight() + NOTE_TOP_PAD
+        local h
+        if row._cardStyle then
+            local contentHeight = row.label:GetStringHeight() + 6
+            if row._showNote and row.note:IsShown() and row.note:GetText() and row.note:GetText() ~= "" then
+                contentHeight = contentHeight + row.note:GetStringHeight() + NOTE_TOP_PAD + 1
+            end
+            h = math.max(iconSize + (CARD_PAD_Y * 2), contentHeight + (CARD_PAD_Y * 2))
+        else
+            h = math.max(iconSize + 4, row.label:GetStringHeight() + 6)
+            if row._showNote and row.note:IsShown() and row.note:GetText() and row.note:GetText() ~= "" then
+                h = h + row.note:GetStringHeight() + NOTE_TOP_PAD
+            end
         end
         Pixel.SetHeight(row, math.max(h, iconSize + 6))
     end
@@ -105,7 +173,21 @@ function MedaUI:CreateStatusRow(parent, config)
     -- Theme support
     local function ApplyTheme()
         local Theme = MedaUI.Theme
+        if row._cardStyle then
+            local border = Theme.border or {0.2, 0.2, 0.22, 0.6}
+            local background = Theme.backgroundDark or Theme.background or {0.08, 0.08, 0.09, 0.9}
+            row:SetBackdropColor(background[1], background[2], background[3], 0.72)
+            row:SetBackdropBorderColor(border[1], border[2], border[3], (border[4] or 0.6) * 1.1)
+            if row.iconFrame then
+                row.iconFrame:SetBackdropColor(0, 0, 0, 0.45)
+                row.iconFrame:SetBackdropBorderColor(border[1], border[2], border[3], 0.65)
+            end
+            row.highlight:SetColorTexture(1, 1, 1, 0.04)
+        end
         row.label:SetTextColor(unpack(Theme.textBright or Theme.text or {1, 1, 1}))
+        if not row._statusColorOverride then
+            row.status:SetTextColor(unpack(Theme.textDim or Theme.text or {0.8, 0.8, 0.8}))
+        end
         if not row._noteColorOverride then
             row.note:SetTextColor(unpack(Theme.textDim or {0.6, 0.6, 0.6}))
         end
@@ -113,9 +195,10 @@ function MedaUI:CreateStatusRow(parent, config)
     row._ApplyTheme = ApplyTheme
     row._themeHandle = MedaUI:RegisterThemedWidget(row, ApplyTheme)
     ApplyTheme()
+    UpdateLayoutAnchors()
 
     -- Initial height
-    Pixel.SetHeight(row, iconSize + 6)
+    Pixel.SetHeight(row, cardStyle and (iconSize + (CARD_PAD_Y * 2)) or (iconSize + 6))
 
     -- ----------------------------------------------------------------
     -- Public API
@@ -125,9 +208,19 @@ function MedaUI:CreateStatusRow(parent, config)
         if textureID then
             self.icon:SetTexture(textureID)
             self.icon:Show()
+            if self.iconFrame then
+                self.iconFrame:Show()
+            end
+            self._hasIcon = true
         else
             self.icon:Hide()
+            if self.iconFrame then
+                self.iconFrame:Hide()
+            end
+            self._hasIcon = false
         end
+        UpdateLayoutAnchors()
+        UpdateHeight()
     end
 
     function row:SetLabel(text)
@@ -139,6 +232,11 @@ function MedaUI:CreateStatusRow(parent, config)
         self.status:SetText(text or "")
         if r then
             self.status:SetTextColor(r, g, b)
+            self._statusColorOverride = true
+        else
+            self._statusColorOverride = false
+            local Theme = MedaUI.Theme
+            self.status:SetTextColor(unpack(Theme.textDim or Theme.text or {0.8, 0.8, 0.8}))
         end
     end
 
@@ -189,6 +287,7 @@ function MedaUI:CreateStatusRow(parent, config)
         self:SetHighlight(false)
         self._tooltipFunc = nil
         self._noteColorOverride = false
+        self._statusColorOverride = false
     end
 
     return row

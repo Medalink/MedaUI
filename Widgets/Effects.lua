@@ -238,6 +238,21 @@ function MedaUI:CreateFadeEffect(frame, config)
         fadeOutAnim:SetDuration(fadeOut)
     end
 
+    --- Set the alpha range used by the fade animations.
+    --- @param fromAlpha number
+    --- @param toAlpha number
+    function fade:SetAlphaRange(fromAlpha, toAlpha)
+        self.fromAlpha = fromAlpha
+        self.toAlpha = toAlpha
+        fadeInAnim:SetFromAlpha(fromAlpha)
+        fadeInAnim:SetToAlpha(toAlpha)
+        fadeOutAnim:SetFromAlpha(toAlpha)
+        fadeOutAnim:SetToAlpha(fromAlpha)
+        if frame:IsShown() then
+            frame:SetAlpha(toAlpha)
+        end
+    end
+
     return fade
 end
 

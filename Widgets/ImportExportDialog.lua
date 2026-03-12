@@ -30,9 +30,11 @@ function MedaUI:CreateImportExportDialog(config)
     tinsert(UISpecialFrames, dialogName)
 
     -- Title
-    local titleLabel = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    local titleLabel = MedaUI:CreateLabel(frame, config.title or "Import / Export", {
+        fontObject = "GameFontNormal",
+        tone = "gold",
+    })
     titleLabel:SetPoint("TOP", 0, -10)
-    titleLabel:SetText(config.title or "Import / Export")
 
     -- Scroll background
     local scrollBg = CreateFrame("Frame", nil, frame, "BackdropTemplate")
@@ -62,7 +64,7 @@ function MedaUI:CreateImportExportDialog(config)
     editBox:SetPoint("TOPRIGHT")
     editBox:SetHeight(200)
     editBox:SetTextInsets(8, 8, 8, 8)
-    editBox:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
+    editBox:SetScript("OnEscapePressed", function() frame:Hide() end)
 
     editBox:SetScript("OnEditFocusGained", function() ApplyInputTheme(true) end)
     editBox:SetScript("OnEditFocusLost", function() ApplyInputTheme(false) end)
@@ -87,12 +89,19 @@ function MedaUI:CreateImportExportDialog(config)
     importBtn:SetPoint("RIGHT", closeBtn, "LEFT", -8, 0)
     importBtn:Hide()
 
+    local hintLabel = MedaUI:CreateLabel(frame, "", {
+        fontObject = "GameFontNormalSmall",
+        tone = "dim",
+    })
+    hintLabel:SetPoint("BOTTOMLEFT", 12, 18)
+    hintLabel:SetJustifyH("LEFT")
+    hintLabel:Hide()
+
     -- Theme
     local function ApplyTheme()
         local Theme = MedaUI.Theme
         frame:SetBackdropColor(unpack(Theme.backgroundDark))
         frame:SetBackdropBorderColor(unpack(Theme.border))
-        titleLabel:SetTextColor(unpack(Theme.gold))
         ApplyInputTheme(editBox:HasFocus())
     end
     MedaUI:RegisterThemedWidget(frame, ApplyTheme)
@@ -101,12 +110,22 @@ function MedaUI:CreateImportExportDialog(config)
     -- API wrapper
     local dialog = {}
     dialog.frame = frame
+    dialog.mode = config.mode or "export"
+    dialog.title = config.title or "Import / Export"
+    dialog.exportText = config.exportText or ""
+    dialog.importText = config.importText or config.text or ""
+    dialog.hintText = config.hintText or ""
+    dialog.onImport = config.onImport
 
     --- Show the dialog in export mode (text is pre-filled, highlighted for copy).
     function dialog:ShowExport(title, text)
-        titleLabel:SetText(title or "Export")
+        self.mode = "export"
+        self.title = title or "Export"
+        self.exportText = text or ""
+        titleLabel:SetText(self.title)
         editBox:SetText(text or "")
         importBtn:Hide()
+        self:SetHint(self.hintText ~= "" and self.hintText or "Press Ctrl+A to select all, then Ctrl+C to copy.")
         frame:Show()
         editBox:HighlightText()
         editBox:SetFocus()
@@ -117,9 +136,14 @@ function MedaUI:CreateImportExportDialog(config)
     --- @param text string|nil Pre-fill text
     --- @param onImport function Callback(text) when Import is clicked
     function dialog:ShowImport(title, text, onImport)
-        titleLabel:SetText(title or "Import")
+        self.mode = "import"
+        self.title = title or "Import"
+        self.importText = text or ""
+        self.onImport = onImport
+        titleLabel:SetText(self.title)
         editBox:SetText(text or "")
         importBtn:Show()
+        self:SetHint(self.hintText ~= "" and self.hintText or "Paste the text to import, then click Import.")
         importBtn:SetScript("OnClick", function()
             if onImport then
                 onImport(editBox:GetText())
@@ -127,6 +151,14 @@ function MedaUI:CreateImportExportDialog(config)
         end)
         frame:Show()
         editBox:SetFocus()
+    end
+
+    function dialog:Show()
+        if self.mode == "import" then
+            self:ShowImport(self.title, self.importText, self.onImport)
+        else
+            self:ShowExport(self.title, self.exportText)
+        end
     end
 
     function dialog:Hide()
@@ -142,12 +174,34 @@ function MedaUI:CreateImportExportDialog(config)
     end
 
     function dialog:SetTitle(title)
+        self.title = title or ""
         titleLabel:SetText(title or "")
     end
 
     function dialog:IsShown()
         return frame:IsShown()
     end
+
+    function dialog:SetHint(text)
+        self.hintText = text or ""
+        if self.hintText ~= "" then
+            hintLabel:SetText(self.hintText)
+            hintLabel:Show()
+        else
+            hintLabel:SetText("")
+            hintLabel:Hide()
+        end
+    end
+
+    function dialog:SetMode(mode)
+        self.mode = mode or "export"
+    end
+
+    function dialog:SetImportCallback(callback)
+        self.onImport = callback
+    end
+
+    dialog:SetHint(dialog.hintText)
 
     return dialog
 end

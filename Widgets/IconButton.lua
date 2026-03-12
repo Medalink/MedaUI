@@ -12,7 +12,7 @@ local ICON_PADDING = 2
 
 --- Create a themed icon button
 --- @param parent Frame The parent frame
---- @param config table { size, icon, iconActive, tooltip, tooltipActive, toggle }
+--- @param config table { size, icon, iconActive, tooltip, tooltipActive, toggle, atlas, flat }
 --- @return Button The created icon button
 function MedaUI:CreateIconButton(parent, config)
     config = config or {}
@@ -27,7 +27,9 @@ function MedaUI:CreateIconButton(parent, config)
     button.icon = button:CreateTexture(nil, "ARTWORK")
     Pixel.SetPoint(button.icon, "TOPLEFT", ICON_PADDING, -ICON_PADDING)
     Pixel.SetPoint(button.icon, "BOTTOMRIGHT", -ICON_PADDING, ICON_PADDING)
-    if config.icon then
+    if config.atlas then
+        button.icon:SetAtlas(config.atlas)
+    elseif config.icon then
         button.icon:SetTexture(config.icon)
     end
 
@@ -40,19 +42,28 @@ function MedaUI:CreateIconButton(parent, config)
     button._iconActivePath = config.iconActive
     button._tooltipText = config.tooltip
     button._tooltipActiveText = config.tooltipActive
+    button._flat = config.flat or false
 
     local function ApplyTheme()
         local Theme = MedaUI.Theme
         if not button._isEnabled then
-            button:SetBackdropColor(unpack(Theme.buttonDisabled))
-            button:SetBackdropBorderColor(unpack(Theme.border))
+            if button._flat then
+                button:SetBackdropColor(0, 0, 0, 0)
+                button:SetBackdropBorderColor(0, 0, 0, 0)
+            else
+                button:SetBackdropColor(unpack(Theme.buttonDisabled))
+                button:SetBackdropBorderColor(unpack(Theme.border))
+            end
             button.icon:SetAlpha(0.35)
             return
         end
 
         button.icon:SetAlpha(1)
 
-        if button._isHovered then
+        if button._flat then
+            button:SetBackdropColor(0, 0, 0, 0)
+            button:SetBackdropBorderColor(0, 0, 0, 0)
+        elseif button._isHovered then
             button:SetBackdropColor(unpack(Theme.buttonHover))
             button:SetBackdropBorderColor(unpack(Theme.gold))
         elseif button._active then
@@ -74,9 +85,11 @@ function MedaUI:CreateIconButton(parent, config)
         if not self._isEnabled then return end
         self._isHovered = true
         MedaUI:PlaySound("hover")
-        local Theme = MedaUI.Theme
-        self:SetBackdropColor(unpack(Theme.buttonHover))
-        self:SetBackdropBorderColor(unpack(Theme.gold))
+        if not self._flat then
+            local Theme = MedaUI.Theme
+            self:SetBackdropColor(unpack(Theme.buttonHover))
+            self:SetBackdropBorderColor(unpack(Theme.gold))
+        end
         self.icon:SetAlpha(1)
 
         local tip = self._active and self._tooltipActiveText or self._tooltipText
@@ -152,6 +165,13 @@ function MedaUI:CreateIconButton(parent, config)
         end
     end
 
+    --- Update the icon to use an atlas.
+    --- @param atlas string
+    function button:SetAtlas(atlas)
+        self._iconPath = nil
+        self.icon:SetAtlas(atlas)
+    end
+
     --- Update the active-state icon texture
     function button:SetActiveIcon(path)
         self._iconActivePath = path
@@ -164,6 +184,10 @@ function MedaUI:CreateIconButton(parent, config)
     function button:SetTooltipText(normal, active)
         self._tooltipText = normal
         self._tooltipActiveText = active
+    end
+
+    function button:SetIconDesaturated(desaturated)
+        self.icon:SetDesaturated(desaturated and true or false)
     end
 
     -- Disabled state

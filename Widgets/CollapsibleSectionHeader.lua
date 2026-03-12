@@ -18,47 +18,56 @@ local CHEVRON_SIZE = 10
 function MedaUI:CreateCollapsibleSectionHeader(parent, config)
     config = config or {}
     local width    = config.width or 280
+    local height   = config.height or 32
     local text     = config.text or ""
     local count    = config.count or 0
     local expanded = config.expanded or false
     local onToggle = config.onToggle
+    local showLine = config.showLine ~= false
+    local tone     = config.tone or "gold"
+    local dimTone  = config.dimTone or "textDim"
 
     local container = CreateFrame("Button", nil, parent)
-    Pixel.SetSize(container, width, 32)
+    Pixel.SetSize(container, width, height)
     container:EnableMouse(true)
     container._expanded = expanded
 
     -- Chevron icon
     local chevron = container:CreateTexture(nil, "ARTWORK")
     Pixel.SetSize(chevron, CHEVRON_SIZE, CHEVRON_SIZE)
-    Pixel.SetPoint(chevron, "TOPLEFT", 2, -2)
+    Pixel.SetPoint(chevron, "LEFT", 2, 0)
     chevron:SetTexture(expanded and CHEVRON_DOWN_TEX or CHEVRON_RIGHT_TEX)
 
     -- Header text (next to chevron)
     local header = Pixel.CreateFontString(container, text)
+    header:SetFontObject(config.fontObject or "GameFontHighlightSmall")
     Pixel.SetPoint(header, "LEFT", chevron, "RIGHT", 4, 0)
 
     -- Count badge
     local badge = Pixel.CreateFontString(container, "")
+    badge:SetFontObject(config.fontObject or "GameFontHighlightSmall")
     Pixel.SetPoint(badge, "LEFT", header, "RIGHT", 6, 0)
     badge:SetJustifyH("LEFT")
 
     -- Gradient underline (matches SectionHeader)
     local line = container:CreateTexture(nil, "ARTWORK")
-    Pixel.SetPoint(line, "TOPLEFT", container, "TOPLEFT", 0, -28)
+    Pixel.SetPoint(line, "TOPLEFT", container, "TOPLEFT", 0, -math.max(height - 4, 1))
     Pixel.SetSize(line, width, 2)
 
     -- Theme application
     local function ApplyTheme()
         local Theme = MedaUI.Theme
-        local gold = Theme.gold or {1, 0.82, 0}
-        local dim  = Theme.textDim or {0.6, 0.6, 0.6}
+        local headerColor = Theme[tone] or Theme.gold or {1, 0.82, 0}
+        local dim  = Theme[dimTone] or Theme.textDim or {0.6, 0.6, 0.6}
 
-        header:SetTextColor(unpack(gold))
+        header:SetTextColor(unpack(headerColor))
         chevron:SetVertexColor(unpack(dim))
         badge:SetTextColor(unpack(dim))
 
-        if Theme.sectionGradientStart and Theme.sectionGradientEnd and line.SetGradient then
+        if not showLine then
+            line:Hide()
+        elseif Theme.sectionGradientStart and Theme.sectionGradientEnd and line.SetGradient then
+            line:Show()
             line:SetColorTexture(1, 1, 1, 1)
             local success = pcall(function()
                 line:SetGradient("HORIZONTAL", {
@@ -74,10 +83,11 @@ function MedaUI:CreateCollapsibleSectionHeader(parent, config)
                 })
             end)
             if not success then
-                line:SetColorTexture(unpack(gold))
+                line:SetColorTexture(unpack(headerColor))
             end
         else
-            line:SetColorTexture(unpack(gold))
+            line:Show()
+            line:SetColorTexture(unpack(headerColor))
         end
     end
 
@@ -93,7 +103,7 @@ function MedaUI:CreateCollapsibleSectionHeader(parent, config)
     end)
     container:SetScript("OnLeave", function(self)
         local Theme = MedaUI.Theme
-        local dim = Theme.textDim or {0.6, 0.6, 0.6}
+        local dim = Theme[dimTone] or Theme.textDim or {0.6, 0.6, 0.6}
         chevron:SetVertexColor(unpack(dim))
     end)
 

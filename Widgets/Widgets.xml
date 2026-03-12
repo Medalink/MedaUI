@@ -9,10 +9,12 @@
     <Script file="EditBox.lua"/>
     <Script file="Slider.lua"/>
     <Script file="ColorPicker.lua"/>
+    <Script file="Label.lua"/>
     <Script file="ResizeGrip.lua"/>
     <Script file="Panel.lua"/>
     <Script file="MinimapButton.lua"/>
     <Script file="SectionHeader.lua"/>
+    <Script file="HUDTextButton.lua"/>
 
     <!-- Advanced widgets -->
     <Script file="Badge.lua"/>
@@ -20,6 +22,7 @@
     <Script file="Dropdown.lua"/>
     <Script file="SearchBox.lua"/>
     <Script file="ScrollList.lua"/>
+    <Script file="InlineRadioGroup.lua"/>
     <Script file="TreeView.lua"/>
     <Script file="CodeBlock.lua"/>
     <Script file="ContextMenu.lua"/>
@@ -27,10 +30,12 @@
 
     <!-- Layout helpers -->
     <Script file="TwoColumnLayout.lua"/>
+    <Script file="ContentFrame.lua"/>
     <Script file="LabeledControl.lua"/>
 
     <!-- Data display -->
     <Script file="DataTable.lua"/>
+    <Script file="CollapsibleSectionHeader.lua"/>
 
     <!-- Effects and animations -->
     <Script file="Effects.lua"/>
@@ -38,9 +43,14 @@
     <!-- Specialized containers -->
     <Script file="FloatingToolbar.lua"/>
     <Script file="AutoHideContainer.lua"/>
+    <Script file="OverlayContainer.lua"/>
+    <Script file="HUDGroup.lua"/>
+    <Script file="HUDSection.lua"/>
+    <Script file="HUDTextBlock.lua"/>
     <Script file="TextViewer.lua"/>
     <Script file="NotificationBanner.lua"/>
     <Script file="StatusRow.lua"/>
+    <Script file="HUDRow.lua"/>
     <Script file="InfoPanel.lua"/>
 
     <!-- Composite panels -->

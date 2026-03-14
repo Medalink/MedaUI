@@ -7,6 +7,49 @@
 local MedaUI = LibStub("MedaUI-1.0")
 
 local Pixel = LibStub("MedaUI-1.0").Pixel
+local PANEL_AUTOPLACE_OFFSETS = {
+    { x = 0, y = 0 },
+    { x = 36, y = -24 },
+    { x = 72, y = -48 },
+    { x = -36, y = 24 },
+    { x = -72, y = 48 },
+    { x = 108, y = -72 },
+}
+
+local function GetNextPanelAutoPlacement()
+    MedaUI._panelAutoPlacementIndex = (MedaUI._panelAutoPlacementIndex or 0) + 1
+    local index = ((MedaUI._panelAutoPlacementIndex - 1) % #PANEL_AUTOPLACE_OFFSETS) + 1
+    return PANEL_AUTOPLACE_OFFSETS[index]
+end
+
+local function IsDefaultPanelAnchor(frame)
+    local point, relativeTo, relativePoint, x, y = frame:GetPoint()
+    return point == "CENTER"
+        and (relativeTo == nil or relativeTo == UIParent)
+        and (relativePoint == nil or relativePoint == "CENTER")
+        and (x or 0) == 0
+        and (y or 0) == 0
+end
+
+local function ApplyAutoPlacement(frame)
+    if frame._medaAutoPlacementApplied or not IsDefaultPanelAnchor(frame) then
+        return
+    end
+
+    local offset = GetNextPanelAutoPlacement()
+    Pixel.ClearPoints(frame)
+    Pixel.SetPoint(frame, "CENTER", UIParent, "CENTER", offset.x, offset.y)
+    frame._medaAutoPlacementApplied = true
+end
+
+local function BringToFront(frame)
+    if frame.SetToplevel then
+        frame:SetToplevel(true)
+    end
+    if frame.Raise then
+        frame:Raise()
+    end
+end
 
 --- Create a themed panel/window
 --- @param name string Unique frame name
@@ -21,6 +64,7 @@ function MedaUI:CreatePanel(name, width, height, title)
     panel:EnableMouse(true)
     panel:SetClampedToScreen(true)
     panel:SetFrameStrata("DIALOG")
+    panel:SetToplevel(true)
 
     -- Title bar
     local titleBar = CreateFrame("Frame", nil, panel, "BackdropTemplate")
@@ -32,6 +76,7 @@ function MedaUI:CreatePanel(name, width, height, title)
     titleBar:RegisterForDrag("LeftButton")
 
     titleBar:SetScript("OnDragStart", function()
+        BringToFront(panel)
         panel:StartMoving()
     end)
 
@@ -63,8 +108,15 @@ function MedaUI:CreatePanel(name, width, height, title)
         panel:Hide()
     end)
 
-    panel:SetScript("OnShow", function() MedaUI:PlaySound("panelOpen") end)
-    panel:SetScript("OnHide", function() MedaUI:PlaySound("panelClose") end)
+    panel:HookScript("OnShow", function(self)
+        ApplyAutoPlacement(self)
+        BringToFront(self)
+        MedaUI:PlaySound("panelOpen")
+    end)
+    panel:HookScript("OnHide", function() MedaUI:PlaySound("panelClose") end)
+    panel:HookScript("OnMouseDown", function(self)
+        BringToFront(self)
+    end)
 
     -- Content area
     panel.content = CreateFrame("Frame", nil, panel)
@@ -140,6 +192,10 @@ function MedaUI:CreatePanel(name, width, height, title)
     panel.resizeGrip = nil
     panel.OnResize = nil
     panel.OnMove = nil
+
+    function panel:BringToFront()
+        BringToFront(self)
+    end
 
     -- Apply theme colors
     local function ApplyTheme()
@@ -224,7 +280,10 @@ function MedaUI:CreatePanel(name, width, height, title)
             Pixel.SetPoint(panel.content, "BOTTOMRIGHT", panel, "BOTTOMRIGHT", -1, 1)
 
             panel:RegisterForDrag("LeftButton")
-            panel:SetScript("OnDragStart", function(self) self:StartMoving() end)
+            panel:SetScript("OnDragStart", function(self)
+                self:BringToFront()
+                self:StartMoving()
+            end)
             panel:SetScript("OnDragStop", function(self)
                 self:StopMovingOrSizing()
                 if self.OnMove then self:OnMove(self:GetState()) end
@@ -260,11 +319,19 @@ function MedaUI:CreatePanel(name, width, height, title)
     function panel:SetDragZone(frame)
         frame:EnableMouse(true)
         frame:RegisterForDrag("LeftButton")
-        frame:SetScript("OnDragStart", function() panel:StartMoving() end)
+        frame:SetScript("OnDragStart", function()
+            panel:BringToFront()
+            panel:StartMoving()
+        end)
         frame:SetScript("OnDragStop", function()
             panel:StopMovingOrSizing()
             if panel.OnMove then panel:OnMove(panel:GetState()) end
         end)
+        if frame.HookScript then
+            frame:HookScript("OnMouseDown", function()
+                panel:BringToFront()
+            end)
+        end
     end
 
     local nativeSetResizable = panel.SetResizable
@@ -336,6 +403,7 @@ function MedaUI:CreatePanel(name, width, height, title)
         end
 
         if state.position and state.position.point then
+            self._medaAutoPlacementApplied = true
             Pixel.ClearPoints(self)
             local relativeTo = state.position.relativeTo and _G[state.position.relativeTo] or UIParent
             Pixel.SetPoint(self,

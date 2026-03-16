@@ -3,13 +3,13 @@
     Creates themed buttons with hover effects
 ]]
 
-local MedaUI = LibStub("MedaUI-1.0")
-local Pixel = LibStub("MedaUI-1.0").Pixel
+local MedaUI = LibStub("MedaUI-2.0")
+---@cast MedaUI MedaUILibrary
+local Pixel = LibStub("MedaUI-2.0").Pixel
 
 -- Button constants
 local MIN_HEIGHT = 28
 local HORIZONTAL_PADDING = 16  -- Padding on each side
-local VERTICAL_PADDING = 8     -- Padding top/bottom
 
 --- Create a themed button
 --- @param parent Frame The parent frame
@@ -17,11 +17,11 @@ local VERTICAL_PADDING = 8     -- Padding top/bottom
 --- @param width number|nil Button width (nil for auto-size based on text)
 --- @param height number Button height (default: 28)
 --- @return Button The created button
-function MedaUI:CreateButton(parent, text, width, height)
+function MedaUI.CreateButton(library, parent, text, width, height)
     height = math.max(height or MIN_HEIGHT, MIN_HEIGHT)
 
     local button = CreateFrame("Button", nil, parent, "BackdropTemplate")
-    button:SetBackdrop(self:CreateBackdrop(true))
+    button:SetBackdrop(library:CreateBackdrop(true))
 
     -- Button text
     button.text = Pixel.CreateFontString(button, text)
@@ -42,20 +42,20 @@ function MedaUI:CreateButton(parent, text, width, height)
 
     -- Apply theme colors
     local function ApplyTheme()
-        local Theme = MedaUI.Theme
+        local theme = MedaUI.Theme
         if button._isEnabled then
             if button._isHovered then
-                button:SetBackdropColor(unpack(Theme.buttonHover))
-                button:SetBackdropBorderColor(unpack(Theme.gold))
+                button:SetBackdropColor(unpack(theme.buttonHover))
+                button:SetBackdropBorderColor(unpack(theme.gold))
             else
-                button:SetBackdropColor(unpack(Theme.button))
-                button:SetBackdropBorderColor(unpack(Theme.border))
+                button:SetBackdropColor(unpack(theme.button))
+                button:SetBackdropBorderColor(unpack(theme.border))
             end
-            button.text:SetTextColor(unpack(Theme.text))
+            button.text:SetTextColor(unpack(theme.text))
         else
-            button:SetBackdropColor(unpack(Theme.buttonDisabled))
-            button:SetBackdropBorderColor(unpack(Theme.border))
-            button.text:SetTextColor(unpack(Theme.textDisabled))
+            button:SetBackdropColor(unpack(theme.buttonDisabled))
+            button:SetBackdropBorderColor(unpack(theme.border))
+            button.text:SetTextColor(unpack(theme.textDisabled))
         end
     end
     button._ApplyTheme = ApplyTheme
@@ -67,62 +67,64 @@ function MedaUI:CreateButton(parent, text, width, height)
     ApplyTheme()
 
     -- Hover effect
-    button:SetScript("OnEnter", function(self)
-        if self._isEnabled then
-            self._isHovered = true
+    button:SetScript("OnEnter", function(widget)
+        if widget._isEnabled then
+            widget._isHovered = true
             MedaUI:PlaySound("hover")
-            local Theme = MedaUI.Theme
-            self:SetBackdropColor(unpack(Theme.buttonHover))
-            self:SetBackdropBorderColor(unpack(Theme.gold))
+            local theme = MedaUI.Theme
+            widget:SetBackdropColor(unpack(theme.buttonHover))
+            widget:SetBackdropBorderColor(unpack(theme.gold))
         end
     end)
 
-    button:SetScript("OnLeave", function(self)
-        if self._isEnabled then
-            self._isHovered = false
-            local Theme = MedaUI.Theme
-            self:SetBackdropColor(unpack(Theme.button))
-            self:SetBackdropBorderColor(unpack(Theme.border))
+    button:SetScript("OnLeave", function(widget)
+        if widget._isEnabled then
+            widget._isHovered = false
+            local theme = MedaUI.Theme
+            widget:SetBackdropColor(unpack(theme.button))
+            widget:SetBackdropBorderColor(unpack(theme.border))
         end
     end)
 
     -- Click handler
-    button:SetScript("OnClick", function(self, btn)
+    button:SetScript("OnClick", function(widget, btn)
         MedaUI:PlaySound("click")
-        if self.OnClick then self:OnClick(btn) end
-    end)
-
-    -- Click feedback (intentionally raw WoW SetPoint for animation)
-    button:SetScript("OnMouseDown", function(self)
-        if self:IsEnabled() then
-            self.text:SetPoint("CENTER", 1, -1)
+        if widget.OnClick then
+            widget:OnClick(btn)
         end
     end)
 
-    button:SetScript("OnMouseUp", function(self)
-        self.text:SetPoint("CENTER", 0, 0)
+    -- Click feedback (intentionally raw WoW SetPoint for animation)
+    button:SetScript("OnMouseDown", function(widget)
+        if widget:IsEnabled() then
+            widget.text:SetPoint("CENTER", 1, -1)
+        end
+    end)
+
+    button:SetScript("OnMouseUp", function(widget)
+        widget.text:SetPoint("CENTER", 0, 0)
     end)
 
     -- Disabled state handling
     local originalSetEnabled = button.SetEnabled
-    button.SetEnabled = function(self, enabled)
-        originalSetEnabled(self, enabled)
-        self._isEnabled = enabled
-        local Theme = MedaUI.Theme
+    button.SetEnabled = function(widget, enabled)
+        originalSetEnabled(widget, enabled)
+        widget._isEnabled = enabled
+        local theme = MedaUI.Theme
         if enabled then
-            self:SetBackdropColor(unpack(Theme.button))
-            self:SetBackdropBorderColor(unpack(Theme.border))
-            self.text:SetTextColor(unpack(Theme.text))
+            widget:SetBackdropColor(unpack(theme.button))
+            widget:SetBackdropBorderColor(unpack(theme.border))
+            widget.text:SetTextColor(unpack(theme.text))
         else
-            self:SetBackdropColor(unpack(Theme.buttonDisabled))
-            self:SetBackdropBorderColor(unpack(Theme.border))
-            self.text:SetTextColor(unpack(Theme.textDisabled))
+            widget:SetBackdropColor(unpack(theme.buttonDisabled))
+            widget:SetBackdropBorderColor(unpack(theme.border))
+            widget.text:SetTextColor(unpack(theme.textDisabled))
         end
     end
 
     -- SetText helper
-    button.SetText = function(self, newText)
-        self.text:SetText(newText)
+    button.SetText = function(widget, newText)
+        widget.text:SetText(newText)
     end
 
     return button

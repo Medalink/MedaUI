@@ -3,14 +3,15 @@
     Container that fades in on hover, fades out on leave
 ]]
 
-local MedaUI = LibStub("MedaUI-1.0")
-local Pixel = LibStub("MedaUI-1.0").Pixel
+local MedaUI = LibStub("MedaUI-2.0")
+---@cast MedaUI MedaUILibrary
+local Pixel = LibStub("MedaUI-2.0").Pixel
 
 --- Create an auto-hiding container
 --- @param name string Unique frame name
 --- @param config table|nil Configuration {fadeInDuration, fadeOutDuration, hideDelay, locked, width, height}
 --- @return table The auto-hide container widget
-function MedaUI:CreateAutoHideContainer(name, config)
+function MedaUI.CreateAutoHideContainer(library, name, config)
     config = config or {}
 
     -- Create hitbox (always present for hover detection)
@@ -27,8 +28,6 @@ function MedaUI:CreateAutoHideContainer(name, config)
     container:SetFrameLevel(5)
     container:SetBackdrop(MedaUI:CreateBackdrop(true))
 
-    local Theme = self.Theme
-
     -- Create content area
     local content = CreateFrame("Frame", nil, container)
     Pixel.SetPoint(content, "TOPLEFT", 4, -4)
@@ -38,7 +37,7 @@ function MedaUI:CreateAutoHideContainer(name, config)
     container.hitbox = hitbox
     container.content = content
     container.isHovered = false
-    container.isLocked = not (config.locked == false)  -- Default to locked (auto-hide mode)
+    container.isLocked = config.locked ~= false  -- Default to locked (auto-hide mode)
     container.fadeInDuration = config.fadeInDuration or 0.15
     container.fadeOutDuration = config.fadeOutDuration or 0.2
     container.hideDelay = config.hideDelay or 0.5
@@ -143,9 +142,9 @@ function MedaUI:CreateAutoHideContainer(name, config)
 
     -- Apply theme
     local function ApplyTheme()
-        local Theme = MedaUI.Theme
-        container:SetBackdropColor(unpack(Theme.background))
-        container:SetBackdropBorderColor(unpack(Theme.border))
+        local theme = MedaUI.Theme
+        container:SetBackdropColor(unpack(theme.background))
+        container:SetBackdropBorderColor(unpack(theme.border))
     end
     container._ApplyTheme = ApplyTheme
     container._themeHandle = MedaUI:RegisterThemedWidget(container, ApplyTheme)
@@ -247,13 +246,13 @@ function MedaUI:CreateAutoHideContainer(name, config)
         end)
 
         -- Also allow dragging from container
-        container:SetScript("OnMouseDown", function(frame, button)
+        container:SetScript("OnMouseDown", function(_, button)
             if button == "LeftButton" and not self.isLocked then
                 hitbox:StartMoving()
             end
         end)
 
-        container:SetScript("OnMouseUp", function(frame, button)
+        container:SetScript("OnMouseUp", function(_, button)
             if button == "LeftButton" then
                 hitbox:StopMovingOrSizing()
                 if saveCallback then

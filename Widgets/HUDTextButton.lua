@@ -3,15 +3,16 @@
     Lightweight text-only button for transparent HUD sections.
 ]]
 
-local MedaUI = LibStub("MedaUI-1.0")
-local Pixel = LibStub("MedaUI-1.0").Pixel
+local MedaUI = LibStub("MedaUI-2.0")
+---@cast MedaUI MedaUILibrary
+local Pixel = LibStub("MedaUI-2.0").Pixel
 
 --- Create a HUD text button.
 --- @param parent Frame
 --- @param text string
 --- @param config table|nil { width, height, fontObject, tone, hoverTone, tooltip }
 --- @return Button
-function MedaUI:CreateHUDTextButton(parent, text, config)
+function MedaUI.CreateHUDTextButton(_, parent, text, config)
     config = config or {}
 
     local button = CreateFrame("Button", nil, parent)
@@ -31,17 +32,17 @@ function MedaUI:CreateHUDTextButton(parent, text, config)
     button._hoverTone = config.hoverTone or "bright"
     button._tooltip = config.tooltip
 
-    button:SetScript("OnEnter", function(self)
-        self.label:SetTone(self._hoverTone)
-        if self._tooltip then
-            GameTooltip:SetOwner(self, "ANCHOR_TOP")
-            GameTooltip:SetText(self._tooltip, 1, 1, 1)
+    button:SetScript("OnEnter", function(widget)
+        widget.label:SetTone(widget._hoverTone)
+        if widget._tooltip then
+            GameTooltip:SetOwner(widget, "ANCHOR_TOP")
+            GameTooltip:SetText(widget._tooltip, 1, 1, 1)
             GameTooltip:Show()
         end
     end)
 
-    button:SetScript("OnLeave", function(self)
-        self.label:SetTone(self._normalTone)
+    button:SetScript("OnLeave", function(widget)
+        widget.label:SetTone(widget._normalTone)
         GameTooltip:Hide()
     end)
 
@@ -59,8 +60,8 @@ function MedaUI:CreateHUDTextButton(parent, text, config)
         self.label:SetTone(self._normalTone)
     end
 
-    function button:SetTooltip(text)
-        self._tooltip = text
+    function button:SetTooltip(tooltipText)
+        self._tooltip = tooltipText
     end
 
     return button

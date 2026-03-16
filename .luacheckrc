@@ -68,6 +68,7 @@ files["**/*.lua"] = {
       "GetScreenWidth",
       "GetTime",
       "InCombatLockdown",
+      "IsShiftKeyDown",
       "IsInGroup",
       "IsInInstance",
       "IsInRaid",

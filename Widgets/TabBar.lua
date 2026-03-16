@@ -3,17 +3,18 @@
     Horizontal tab strip for switching views
 ]]
 
-local MedaUI = LibStub("MedaUI-1.0")
-local Pixel = LibStub("MedaUI-1.0").Pixel
+local MedaUI = LibStub("MedaUI-2.0")
+---@cast MedaUI MedaUILibrary
+local Pixel = LibStub("MedaUI-2.0").Pixel
 
 --- Create a tab bar
 --- @param parent Frame Parent frame
 --- @param tabs table Array of {id, label, badge?} tab definitions
 --- @return Frame The tab bar frame
-function MedaUI:CreateTabBar(parent, tabs)
+function MedaUI.CreateTabBar(library, parent, tabs)
     local tabBar = CreateFrame("Frame", nil, parent, "BackdropTemplate")
     Pixel.SetHeight(tabBar, 28)
-    tabBar:SetBackdrop(self:CreateBackdrop(false))
+    tabBar:SetBackdrop(library:CreateBackdrop(false))
 
     tabBar.tabs = {}
     tabBar.tabButtons = {}
@@ -26,18 +27,18 @@ function MedaUI:CreateTabBar(parent, tabs)
 
     -- Apply theme colors to the tab bar background
     local function ApplyTheme()
-        local Theme = MedaUI.Theme
-        tabBar:SetBackdropColor(unpack(Theme.backgroundDark))
+        local theme = MedaUI.Theme
+        tabBar:SetBackdropColor(unpack(theme.backgroundDark))
 
         -- Update all tab buttons
         for id, tab in pairs(tabBar.tabButtons) do
             if id == tabBar.activeTab then
-                tab:SetBackdropColor(unpack(Theme.tabActive))
-                tab.text:SetTextColor(unpack(Theme.gold))
-                tab.activeIndicator:SetColorTexture(unpack(Theme.gold))
+                tab:SetBackdropColor(unpack(theme.tabActive))
+                tab.text:SetTextColor(unpack(theme.gold))
+                tab.activeIndicator:SetColorTexture(unpack(theme.gold))
             else
-                tab:SetBackdropColor(unpack(Theme.tabInactive))
-                tab.text:SetTextColor(unpack(Theme.textDim))
+                tab:SetBackdropColor(unpack(theme.tabInactive))
+                tab.text:SetTextColor(unpack(theme.textDim))
             end
         end
     end
@@ -51,7 +52,7 @@ function MedaUI:CreateTabBar(parent, tabs)
     for i, tabDef in ipairs(tabs) do
         local tab = CreateFrame("Button", nil, tabBar, "BackdropTemplate")
         Pixel.SetHeight(tab, 26)
-        tab:SetBackdrop(self:CreateBackdrop(false))
+        tab:SetBackdrop(library:CreateBackdrop(false))
 
         tab.id = tabDef.id
         tab.label = tabDef.label
@@ -77,33 +78,33 @@ function MedaUI:CreateTabBar(parent, tabs)
 
         -- Badge (optional)
         if tabDef.badge then
-            tab.badge = MedaUI:CreateBadge(tab)
+            tab.badge = library:CreateBadge(tab)
             Pixel.SetPoint(tab.badge, "RIGHT", tab, "RIGHT", -4, 0)
             tab.badge:SetCount(tabDef.badge)
         end
 
         -- Hover effects
-        tab:SetScript("OnEnter", function(self)
-            if tabBar.activeTab ~= self.id then
+        tab:SetScript("OnEnter", function(widget)
+            if tabBar.activeTab ~= widget.id then
                 MedaUI:PlaySound("hover")
-                local Theme = MedaUI.Theme
-                self:SetBackdropColor(unpack(Theme.buttonHover))
-                self.text:SetTextColor(unpack(Theme.text))
+                local theme = MedaUI.Theme
+                widget:SetBackdropColor(unpack(theme.buttonHover))
+                widget.text:SetTextColor(unpack(theme.text))
             end
         end)
 
-        tab:SetScript("OnLeave", function(self)
-            if tabBar.activeTab ~= self.id then
-                local Theme = MedaUI.Theme
-                self:SetBackdropColor(unpack(Theme.tabInactive))
-                self.text:SetTextColor(unpack(Theme.textDim))
+        tab:SetScript("OnLeave", function(widget)
+            if tabBar.activeTab ~= widget.id then
+                local theme = MedaUI.Theme
+                widget:SetBackdropColor(unpack(theme.tabInactive))
+                widget.text:SetTextColor(unpack(theme.textDim))
             end
         end)
 
         -- Click handler
-        tab:SetScript("OnClick", function(self)
+        tab:SetScript("OnClick", function(widget)
             MedaUI:PlaySound("tabSwitch")
-            tabBar:SetActiveTab(self.id)
+            tabBar:SetActiveTab(widget.id)
         end)
 
         tabBar.tabButtons[tabDef.id] = tab
@@ -121,18 +122,18 @@ function MedaUI:CreateTabBar(parent, tabs)
     function tabBar:SetActiveTab(tabId)
         local previousTab = self.activeTab
         self.activeTab = tabId
-        local Theme = MedaUI.Theme
+        local theme = MedaUI.Theme
 
         -- Update visual states
         for id, tab in pairs(self.tabButtons) do
             if id == tabId then
-                tab:SetBackdropColor(unpack(Theme.tabActive))
-                tab.text:SetTextColor(unpack(Theme.gold))
-                tab.activeIndicator:SetColorTexture(unpack(Theme.gold))
+                tab:SetBackdropColor(unpack(theme.tabActive))
+                tab.text:SetTextColor(unpack(theme.gold))
+                tab.activeIndicator:SetColorTexture(unpack(theme.gold))
                 tab.activeIndicator:Show()
             else
-                tab:SetBackdropColor(unpack(Theme.tabInactive))
-                tab.text:SetTextColor(unpack(Theme.textDim))
+                tab:SetBackdropColor(unpack(theme.tabInactive))
+                tab.text:SetTextColor(unpack(theme.textDim))
                 tab.activeIndicator:Hide()
             end
         end
@@ -156,7 +157,7 @@ function MedaUI:CreateTabBar(parent, tabs)
         local tab = self.tabButtons[tabId]
         if tab then
             if not tab.badge then
-                tab.badge = MedaUI:CreateBadge(tab)
+                tab.badge = library:CreateBadge(tab)
                 Pixel.SetPoint(tab.badge, "RIGHT", tab, "RIGHT", -4, 0)
             end
             tab.badge:SetCount(count)

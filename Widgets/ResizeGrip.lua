@@ -3,14 +3,15 @@
     Adds resize handles to any frame with visible grip indicator
 ]]
 
-local MedaUI = LibStub("MedaUI-1.0")
-local Pixel = LibStub("MedaUI-1.0").Pixel
+local MedaUI = LibStub("MedaUI-2.0")
+---@cast MedaUI MedaUILibrary
+local Pixel = LibStub("MedaUI-2.0").Pixel
 
 --- Add resize functionality to a frame
 --- @param frame Frame The frame to make resizable
 --- @param config table|nil Configuration {minWidth, minHeight, onResize}
 --- @return table Handle references for cleanup
-function MedaUI:AddResizeGrip(frame, config)
+function MedaUI.AddResizeGrip(_, frame, config)
     config = config or {}
 
     local minW = config.minWidth or 200
@@ -48,26 +49,26 @@ function MedaUI:AddResizeGrip(frame, config)
             handle.triangle:SetTexture(MedaUI.mediaPath .. "Textures\\Triangle_BottomRight.tga")
 
             local function ApplyTheme()
-                local Theme = MedaUI.Theme
+                local theme = MedaUI.Theme
                 if handle._isHovered then
-                    handle.triangle:SetVertexColor(unpack(Theme.gold))
+                    handle.triangle:SetVertexColor(unpack(theme.gold))
                     handle.triangle:SetAlpha(0.8)
                 else
-                    local c = Theme.resizeHandle
+                    local c = theme.resizeHandle
                     handle.triangle:SetVertexColor(c[1], c[2], c[3])
                     handle.triangle:SetAlpha(c[4] or 0.6)
                 end
             end
             handle._ApplyTheme = ApplyTheme
 
-            handle:SetScript("OnEnter", function(self)
-                self._isHovered = true
-                self._ApplyTheme()
+            handle:SetScript("OnEnter", function(widget)
+                widget._isHovered = true
+                widget._ApplyTheme()
             end)
 
-            handle:SetScript("OnLeave", function(self)
-                self._isHovered = false
-                self._ApplyTheme()
+            handle:SetScript("OnLeave", function(widget)
+                widget._isHovered = false
+                widget._ApplyTheme()
             end)
 
             handle._themeHandle = MedaUI:RegisterThemedWidget(handle, ApplyTheme)
@@ -80,24 +81,24 @@ function MedaUI:AddResizeGrip(frame, config)
 
             -- Apply theme
             local function ApplyTheme()
-                local Theme = MedaUI.Theme
-                handle.texture:SetColorTexture(unpack(Theme.resizeHandle))
+                local theme = MedaUI.Theme
+                handle.texture:SetColorTexture(unpack(theme.resizeHandle))
             end
 
             handle._themeHandle = MedaUI:RegisterThemedWidget(handle, ApplyTheme)
             ApplyTheme()
 
-            handle:SetScript("OnEnter", function(self)
-                if self.texture then self.texture:Show() end
+            handle:SetScript("OnEnter", function(widget)
+                if widget.texture then widget.texture:Show() end
             end)
 
-            handle:SetScript("OnLeave", function(self)
-                if self.texture then self.texture:Hide() end
+            handle:SetScript("OnLeave", function(widget)
+                if widget.texture then widget.texture:Hide() end
             end)
         end
 
-        handle:SetScript("OnDragStart", function(self)
-            frame:StartSizing(self.direction)
+        handle:SetScript("OnDragStart", function(widget)
+            frame:StartSizing(widget.direction)
         end)
 
         handle:SetScript("OnDragStop", function()

@@ -4,8 +4,9 @@
     parent-child / chain relationships using WoW Line textures.
 ]]
 
-local MedaUI = LibStub("MedaUI-1.0")
-local Pixel = LibStub("MedaUI-1.0").Pixel
+local MedaUI = LibStub("MedaUI-2.0")
+---@cast MedaUI MedaUILibrary
+local Pixel = LibStub("MedaUI-2.0").Pixel
 
 local DEFAULT_LINE_WIDTH = 2
 local DEFAULT_ARROW_SIZE = 8
@@ -25,7 +26,7 @@ local abs = math.abs
 ---   arrowSize    (number, default 8)  -- arrowhead size
 ---   color        (table|nil)          -- default line color {r,g,b,a} (theme-aware fallback)
 ---   curveOffset  (number, default 20) -- horizontal offset for curved routing
-function MedaUI:CreateNodeConnector(parent, config)
+function MedaUI.CreateNodeConnector(_, parent, config)
     config = config or {}
 
     local lineWidth = config.lineWidth or DEFAULT_LINE_WIDTH
@@ -49,8 +50,8 @@ function MedaUI:CreateNodeConnector(parent, config)
         if connector._defaultColor then
             return connector._defaultColor
         end
-        local Theme = MedaUI.Theme
-        return Theme.textDim or {0.5, 0.5, 0.5, 0.6}
+        local theme = MedaUI.Theme
+        return theme.textDim or {0.5, 0.5, 0.5, 0.6}
     end
 
     local function ApplyTheme()

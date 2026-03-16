@@ -3,8 +3,9 @@
     Creates themed sliders with value display (matches MedaBinds style)
 ]]
 
-local MedaUI = LibStub("MedaUI-1.0")
-local Pixel = LibStub("MedaUI-1.0").Pixel
+local MedaUI = LibStub("MedaUI-2.0")
+---@cast MedaUI MedaUILibrary
+local Pixel = LibStub("MedaUI-2.0").Pixel
 
 --- Create a themed slider
 --- @param parent Frame The parent frame
@@ -13,7 +14,7 @@ local Pixel = LibStub("MedaUI-1.0").Pixel
 --- @param max number Maximum value
 --- @param step number|nil Step increment (default: 1)
 --- @return Frame The slider container frame
-function MedaUI:CreateSlider(parent, width, min, max, step)
+function MedaUI.CreateSlider(_, parent, width, min, max, step)
     step = step or 1
 
     local container = CreateFrame("Frame", nil, parent)
@@ -60,14 +61,14 @@ function MedaUI:CreateSlider(parent, width, min, max, step)
 
     -- Apply theme colors
     local function ApplyTheme()
-        local Theme = MedaUI.Theme
-        slider:SetBackdropColor(unpack(Theme.backgroundDark))
-        slider:SetBackdropBorderColor(unpack(Theme.border))
-        valueText:SetTextColor(unpack(Theme.gold))
+        local theme = MedaUI.Theme
+        slider:SetBackdropColor(unpack(theme.backgroundDark))
+        slider:SetBackdropBorderColor(unpack(theme.border))
+        valueText:SetTextColor(unpack(theme.gold))
         if container._isHovered then
-            thumb:SetColorTexture(unpack(Theme.goldBright))
+            thumb:SetColorTexture(unpack(theme.goldBright))
         else
-            thumb:SetColorTexture(unpack(Theme.gold))
+            thumb:SetColorTexture(unpack(theme.gold))
         end
     end
     container._ApplyTheme = ApplyTheme
@@ -79,16 +80,16 @@ function MedaUI:CreateSlider(parent, width, min, max, step)
     ApplyTheme()
 
     -- Thumb hover effect
-    slider:SetScript("OnEnter", function(self)
+    slider:SetScript("OnEnter", function()
         container._isHovered = true
         MedaUI:PlaySound("hover")
-        local Theme = MedaUI.Theme
-        thumb:SetColorTexture(unpack(Theme.goldBright))
+        local theme = MedaUI.Theme
+        thumb:SetColorTexture(unpack(theme.goldBright))
     end)
-    slider:SetScript("OnLeave", function(self)
+    slider:SetScript("OnLeave", function()
         container._isHovered = false
-        local Theme = MedaUI.Theme
-        thumb:SetColorTexture(unpack(Theme.gold))
+        local theme = MedaUI.Theme
+        thumb:SetColorTexture(unpack(theme.gold))
     end)
 
     -- Helper to update value display
@@ -101,7 +102,7 @@ function MedaUI:CreateSlider(parent, width, min, max, step)
     end
 
     local lastTickTime = 0
-    slider:SetScript("OnValueChanged", function(self, value)
+    slider:SetScript("OnValueChanged", function(_, value)
         if step >= 1 then
             value = math.floor(value + 0.5)
         end

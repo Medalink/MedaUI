@@ -4,8 +4,9 @@
     scrollable content area, and built-in dismiss/re-show lifecycle.
 ]]
 
-local MedaUI = LibStub("MedaUI-1.0")
-local Pixel = LibStub("MedaUI-1.0").Pixel
+local MedaUI = LibStub("MedaUI-2.0")
+---@cast MedaUI MedaUILibrary
+local Pixel = LibStub("MedaUI-2.0").Pixel
 
 local HEADER_HEIGHT = 30
 local FOOTER_HEIGHT = 28
@@ -15,7 +16,7 @@ local INSET = 8
 --- Create a themed, dismissable info panel with header, scrollable content, and footer.
 --- @param name string Unique global frame name
 --- @param config table|nil Configuration overrides
---- @return Frame The info panel widget
+--- @return MedaUIInfoPanel The info panel widget
 ---
 --- Config keys:
 ---   width (number, default 300) — panel width
@@ -25,7 +26,7 @@ local INSET = 8
 ---   strata (string, default "MEDIUM") — frame strata
 ---   dismissable (boolean, default true) — show X button in header
 ---   locked (boolean, default false) — disable dragging
-function MedaUI:CreateInfoPanel(name, config)
+function MedaUI.CreateInfoPanel(library, name, config)
     config = config or {}
 
     local width = config.width or 300
@@ -33,12 +34,13 @@ function MedaUI:CreateInfoPanel(name, config)
 
     -- Main frame
     local frame = CreateFrame("Frame", name, UIParent, "BackdropTemplate")
+    ---@cast frame MedaUIInfoPanel
     frame:SetFrameStrata(config.strata or "MEDIUM")
     frame:SetClampedToScreen(true)
     frame:SetMovable(true)
     frame:EnableMouse(true)
     Pixel.SetSize(frame, width, height)
-    frame:SetBackdrop(MedaUI:CreateBackdrop(true))
+    frame:SetBackdrop(library:CreateBackdrop(true))
 
     -- State
     frame._dismissed = false
@@ -55,6 +57,7 @@ function MedaUI:CreateInfoPanel(name, config)
     header:RegisterForDrag("LeftButton")
 
     local headerBg = header:CreateTexture(nil, "BACKGROUND")
+    ---@cast headerBg Texture
     headerBg:SetAllPoints()
     headerBg:SetColorTexture(0.12, 0.12, 0.14, 1)
 
@@ -67,7 +70,9 @@ function MedaUI:CreateInfoPanel(name, config)
     end)
 
     -- Header icon
-    frame.headerIcon = header:CreateTexture(nil, "ARTWORK")
+    local headerIcon = header:CreateTexture(nil, "ARTWORK")
+    ---@cast headerIcon Texture
+    frame.headerIcon = headerIcon
     Pixel.SetSize(frame.headerIcon, 18, 18)
     Pixel.SetPoint(frame.headerIcon, "LEFT", 8, 0)
     frame.headerIcon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
@@ -78,7 +83,9 @@ function MedaUI:CreateInfoPanel(name, config)
     end
 
     -- Header title
-    frame.titleText = header:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    local titleText = header:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    ---@cast titleText FontString
+    frame.titleText = titleText
     Pixel.SetPoint(frame.titleText, "LEFT", frame.headerIcon, "RIGHT", 6, 0)
     Pixel.SetPoint(frame.titleText, "RIGHT", header, "RIGHT", -28, 0)
     frame.titleText:SetJustifyH("LEFT")
@@ -86,6 +93,7 @@ function MedaUI:CreateInfoPanel(name, config)
 
     -- Gold accent line under header
     local accent = header:CreateTexture(nil, "OVERLAY")
+    ---@cast accent Texture
     Pixel.SetHeight(accent, 1)
     Pixel.SetPoint(accent, "BOTTOMLEFT", 0, 0)
     Pixel.SetPoint(accent, "BOTTOMRIGHT", 0, 0)
@@ -105,7 +113,7 @@ function MedaUI:CreateInfoPanel(name, config)
     -- ================================================================
     -- Scroll frame and content (AF custom scrollbar)
     -- ================================================================
-    local scrollParent = self:CreateScrollFrame(frame)
+    local scrollParent = library:CreateScrollFrame(frame)
     Pixel.SetPoint(scrollParent, "TOPLEFT", INSET, -(HEADER_HEIGHT + 4))
     Pixel.SetPoint(scrollParent, "BOTTOMRIGHT", -INSET, FOOTER_HEIGHT + 4)
     scrollParent:SetScrollStep(30)
@@ -126,11 +134,14 @@ function MedaUI:CreateInfoPanel(name, config)
     Pixel.SetPoint(footer, "BOTTOMRIGHT", -1, 1)
 
     local footerBg = footer:CreateTexture(nil, "BACKGROUND")
+    ---@cast footerBg Texture
     footerBg:SetAllPoints()
     footerBg:SetColorTexture(0.14, 0.14, 0.155, 1)
     frame.footerBg = footerBg
 
-    frame.footerText = footer:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    local footerText = footer:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    ---@cast footerText FontString
+    frame.footerText = footerText
     Pixel.SetPoint(frame.footerText, "TOPLEFT", 8, -6)
     Pixel.SetPoint(frame.footerText, "RIGHT", footer, "RIGHT", -8, 0)
     frame.footerText:SetJustifyH("LEFT")
@@ -148,11 +159,14 @@ function MedaUI:CreateInfoPanel(name, config)
     Pixel.SetPoint(statusBar, "BOTTOMRIGHT", -1, 1)
 
     local statusBarBg = statusBar:CreateTexture(nil, "BACKGROUND")
+    ---@cast statusBarBg Texture
     statusBarBg:SetAllPoints()
     statusBarBg:SetColorTexture(0.08, 0.08, 0.1, 0.9)
     frame.statusBarBg = statusBarBg
 
-    frame.statusBarText = statusBar:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    local statusBarText = statusBar:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    ---@cast statusBarText FontString
+    frame.statusBarText = statusBarText
     Pixel.SetPoint(frame.statusBarText, "LEFT", 8, 0)
     Pixel.SetPoint(frame.statusBarText, "RIGHT", statusBar, "RIGHT", -8, 0)
     frame.statusBarText:SetJustifyH("LEFT")
@@ -192,39 +206,39 @@ function MedaUI:CreateInfoPanel(name, config)
     -- Theme
     -- ================================================================
     local function ApplyTheme()
-        local Theme = MedaUI.Theme
+        local theme = MedaUI.Theme
         local alpha = frame._bgAlpha
         if alpha then
-            frame:SetBackdropColor(Theme.background[1], Theme.background[2], Theme.background[3], alpha)
-            frame:SetBackdropBorderColor(Theme.border[1], Theme.border[2], Theme.border[3], alpha > 0 and (Theme.border[4] or 0.6) or 0)
-            local chromeAlpha = alpha * (Theme.backgroundLight[4] or 1)
+            frame:SetBackdropColor(theme.background[1], theme.background[2], theme.background[3], alpha)
+            frame:SetBackdropBorderColor(theme.border[1], theme.border[2], theme.border[3], alpha > 0 and (theme.border[4] or 0.6) or 0)
+            local chromeAlpha = alpha * (theme.backgroundLight[4] or 1)
             headerBg:SetColorTexture(
-                Theme.backgroundLight[1], Theme.backgroundLight[2], Theme.backgroundLight[3],
+                theme.backgroundLight[1], theme.backgroundLight[2], theme.backgroundLight[3],
                 chromeAlpha
             )
-            local bgL = Theme.backgroundLight
+            local bgL = theme.backgroundLight
             footerBg:SetColorTexture(bgL[1], bgL[2], bgL[3], chromeAlpha)
             statusBarBg:SetColorTexture(0.08, 0.08, 0.1, alpha * 0.9)
         else
-            frame:SetBackdropColor(unpack(Theme.background))
-            frame:SetBackdropBorderColor(unpack(Theme.border))
+            frame:SetBackdropColor(unpack(theme.background))
+            frame:SetBackdropBorderColor(unpack(theme.border))
             headerBg:SetColorTexture(
-                Theme.backgroundLight[1],
-                Theme.backgroundLight[2],
-                Theme.backgroundLight[3],
-                Theme.backgroundLight[4] or 1
+                theme.backgroundLight[1],
+                theme.backgroundLight[2],
+                theme.backgroundLight[3],
+                theme.backgroundLight[4] or 1
             )
-            local bgL = Theme.backgroundLight
+            local bgL = theme.backgroundLight
             footerBg:SetColorTexture(bgL[1], bgL[2], bgL[3], bgL[4] or 1)
             statusBarBg:SetColorTexture(0.08, 0.08, 0.1, 0.9)
         end
-        frame.titleText:SetTextColor(unpack(Theme.gold))
-        accent:SetColorTexture(unpack(Theme.goldDim))
+        frame.titleText:SetTextColor(unpack(theme.gold))
+        accent:SetColorTexture(unpack(theme.goldDim))
         if frame.footerText:GetText() then
-            frame.footerText:SetTextColor(unpack(Theme.textDim or {0.6, 0.6, 0.6}))
+            frame.footerText:SetTextColor(unpack(theme.textDim or {0.6, 0.6, 0.6}))
         end
         if frame.statusBarText:GetText() then
-            frame.statusBarText:SetTextColor(unpack(Theme.textDim or {0.6, 0.6, 0.6}))
+            frame.statusBarText:SetTextColor(unpack(theme.textDim or {0.6, 0.6, 0.6}))
         end
     end
     frame._ApplyTheme = ApplyTheme
@@ -365,7 +379,7 @@ function MedaUI:CreateInfoPanel(name, config)
 
         if enabled then
             if not self.resizeGrip then
-                self.resizeGrip = MedaUI:AddResizeGrip(self, {
+                self.resizeGrip = library:AddResizeGrip(self, {
                     minWidth = resizeConfig.minWidth or 200,
                     minHeight = resizeConfig.minHeight or 150,
                     onResize = function(w, h)

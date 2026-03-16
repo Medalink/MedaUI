@@ -3,16 +3,17 @@
     Small count indicator that attaches to other elements
 ]]
 
-local MedaUI = LibStub("MedaUI-1.0")
-local Pixel = LibStub("MedaUI-1.0").Pixel
+local MedaUI = LibStub("MedaUI-2.0")
+---@cast MedaUI MedaUILibrary
+local Pixel = LibStub("MedaUI-2.0").Pixel
 
 --- Create a badge (count indicator)
 --- @param parent Frame Parent frame to attach to
 --- @return Frame The badge frame
-function MedaUI:CreateBadge(parent)
+function MedaUI.CreateBadge(library, parent)
     local badge = CreateFrame("Frame", nil, parent, "BackdropTemplate")
     Pixel.SetSize(badge, 18, 16)
-    badge:SetBackdrop(self:CreateBackdrop(false))
+    badge:SetBackdrop(library:CreateBackdrop(false))
     badge:SetBackdropColor(0.8, 0.2, 0.2, 1) -- Red by default
 
     -- Round the corners slightly with a texture overlay
@@ -34,9 +35,9 @@ function MedaUI:CreateBadge(parent)
         -- Only refresh if not using custom color
         if not badge._hasCustomColor then
             -- Use tabBadge color from theme if available
-            local Theme = MedaUI.Theme
-            if Theme.tabBadge then
-                badge:SetBackdropColor(unpack(Theme.tabBadge))
+            local theme = MedaUI.Theme
+            if theme.tabBadge then
+                badge:SetBackdropColor(unpack(theme.tabBadge))
             end
         end
     end

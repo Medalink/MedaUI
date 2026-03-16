@@ -4,10 +4,15 @@
     <Script file="Libs\CallbackHandler-1.0\CallbackHandler-1.0.lua"/>
     <Script file="Libs\LibDataBroker-1.1\LibDataBroker-1.1.lua"/>
     <Script file="Libs\LibDBIcon-1.0\LibDBIcon-1.0.lua"/>
+    <Script file="Core\Bootstrap.lua"/>
     <Script file="MedaUI.lua"/>
+    <Script file="Core\ThemeRegistry.lua"/>
     <Script file="Pixel.lua"/>
+    <Script file="Core\RuntimeHelpers.lua"/>
+    <Script file="Core\MediaRegistry.lua"/>
     <Script file="Themes\Default.lua"/>
     <Script file="Themes\Bricks.lua"/>
     <Script file="Themes\Onyx.lua"/>
     <Include file="Widgets\Widgets.xml"/>
+    <Include file="Hosts\Hosts.xml"/>
 </Ui>

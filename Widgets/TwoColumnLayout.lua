@@ -3,14 +3,15 @@
     Helper for creating two-column form layouts
 ]]
 
-local MedaUI = LibStub("MedaUI-1.0")
-local Pixel = LibStub("MedaUI-1.0").Pixel
+local MedaUI = LibStub("MedaUI-2.0")
+---@cast MedaUI MedaUILibrary
+local Pixel = LibStub("MedaUI-2.0").Pixel
 
 --- Create a two-column layout helper
 --- @param parent Frame The parent frame
 --- @param config table|nil Configuration {leftWidth, rightWidth, columnGap, startY, leftX, rightX}
 --- @return table The layout manager
-function MedaUI:CreateTwoColumnLayout(parent, config)
+function MedaUI.CreateTwoColumnLayout(_, parent, config)
     config = config or {}
 
     local layout = {

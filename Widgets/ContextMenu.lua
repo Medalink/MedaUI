@@ -3,8 +3,9 @@
     Right-click popup menu with items and submenus
 ]]
 
-local MedaUI = LibStub("MedaUI-1.0")
-local Pixel = LibStub("MedaUI-1.0").Pixel
+local MedaUI = LibStub("MedaUI-2.0")
+---@cast MedaUI MedaUILibrary
+local Pixel = LibStub("MedaUI-2.0").Pixel
 
 -- Shared menu pool
 local menuPool = {}
@@ -14,7 +15,7 @@ local closeHandlerPool = {}
 --- Create a context menu
 --- @param items table Array of menu items
 --- @return table The context menu object
-function MedaUI:CreateContextMenu(items)
+function MedaUI.CreateContextMenu(library, items)
     local menu = {}
     menu.items = items or {}
     menu.frame = nil
@@ -39,50 +40,50 @@ function MedaUI:CreateContextMenu(items)
 
     -- Create menu frame
     local function CreateMenuFrame(parentFrame)
-        local Theme = MedaUI.Theme
+        local theme = MedaUI.Theme
         local frame = tremove(menuPool) -- Reuse from pool
         if not frame then
             frame = CreateFrame("Frame", nil, UIParent, "BackdropTemplate")
-            frame:SetBackdrop(MedaUI:CreateBackdrop(true))
+            frame:SetBackdrop(library:CreateBackdrop(true))
             frame:SetFrameStrata("FULLSCREEN_DIALOG")
             frame.itemFrames = {}
         end
 
-        frame:SetBackdropColor(unpack(Theme.menuBackground))
-        frame:SetBackdropBorderColor(unpack(Theme.border))
+        frame:SetBackdropColor(unpack(theme.menuBackground))
+        frame:SetBackdropBorderColor(unpack(theme.border))
         frame:Show()
 
         return frame
     end
 
     -- Shared item handlers (read data from frame fields)
-    local function MenuItem_OnEnter(self)
-        if not self._disabled then
-            local Theme = MedaUI.Theme
-            self:SetBackdropColor(unpack(Theme.buttonHover))
+    local function MenuItem_OnEnter(itemFrame)
+        if not itemFrame._disabled then
+            local theme = MedaUI.Theme
+            itemFrame:SetBackdropColor(unpack(theme.buttonHover))
         end
-        if self._submenu then
-            self._menuObj:ShowSubmenu(self._submenu, self)
+        if itemFrame._submenu then
+            itemFrame._menuObj:ShowSubmenu(itemFrame._submenu, itemFrame)
         else
-            self._menuObj:HideSubmenus()
+            itemFrame._menuObj:HideSubmenus()
         end
     end
 
-    local function MenuItem_OnLeave(self)
-        self:SetBackdropColor(0, 0, 0, 0)
+    local function MenuItem_OnLeave(itemFrame)
+        itemFrame:SetBackdropColor(0, 0, 0, 0)
     end
 
-    local function MenuItem_OnClick(self)
-        local itemData = self._itemData
+    local function MenuItem_OnClick(itemFrame)
+        local itemData = itemFrame._itemData
         if itemData and itemData.onClick then
             itemData.onClick(itemData)
         end
-        self._menuObj:Hide()
+        itemFrame._menuObj:Hide()
     end
 
     -- Build menu items (reuses existing itemFrames)
     local function BuildMenu(frame, menuItems, parentMenu)
-        local Theme = MedaUI.Theme
+        local theme = MedaUI.Theme
 
         for _, itemFrame in ipairs(frame.itemFrames) do
             itemFrame:Hide()
@@ -105,7 +106,7 @@ function MedaUI:CreateContextMenu(items)
                     Pixel.SetPoint(itemFrame.line, "RIGHT", -8, 0)
                     frame.itemFrames[i] = itemFrame
                 end
-                itemFrame.line:SetColorTexture(unpack(Theme.border))
+                itemFrame.line:SetColorTexture(unpack(theme.border))
                 Pixel.SetSize(itemFrame, menuWidth - 8, separatorHeight)
                 Pixel.SetPoint(itemFrame, "TOPLEFT", 4, yOffset)
                 itemFrame:Show()
@@ -114,7 +115,7 @@ function MedaUI:CreateContextMenu(items)
                 if not itemFrame or itemFrame.isSeparator then
                     itemFrame = CreateFrame("Button", nil, frame, "BackdropTemplate")
                     itemFrame.isSeparator = false
-                    itemFrame:SetBackdrop(MedaUI:CreateBackdrop(false))
+                    itemFrame:SetBackdrop(library:CreateBackdrop(false))
 
                     itemFrame.text = itemFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
                     Pixel.SetPoint(itemFrame.text, "LEFT", 12, 0)
@@ -143,15 +144,15 @@ function MedaUI:CreateContextMenu(items)
                 itemFrame.text:SetText(item.label or "")
 
                 if item.disabled then
-                    itemFrame.text:SetTextColor(unpack(Theme.textDisabled))
+                    itemFrame.text:SetTextColor(unpack(theme.textDisabled))
                     itemFrame:SetScript("OnClick", nil)
                 else
-                    itemFrame.text:SetTextColor(unpack(Theme.text))
+                    itemFrame.text:SetTextColor(unpack(theme.text))
                 end
 
                 if item.submenu then
                     itemFrame.arrow:Show()
-                    itemFrame.arrow:SetTextColor(unpack(Theme.textDim))
+                    itemFrame.arrow:SetTextColor(unpack(theme.textDim))
                     itemFrame:SetScript("OnClick", nil)
                 else
                     itemFrame.arrow:Hide()
@@ -186,21 +187,20 @@ function MedaUI:CreateContextMenu(items)
 
         -- Keep on screen
         local screenWidth, screenHeight = GetScreenWidth(), GetScreenHeight()
-        local menuWidth, menuHeight = self.frame:GetSize()
+        local frameWidth, frameHeight = self.frame:GetSize()
         local left = self.frame:GetLeft() or 0
         local top = self.frame:GetTop() or screenHeight
 
-        if left + menuWidth > screenWidth then
-            local newX = x - menuWidth
+        if left + frameWidth > screenWidth then
             Pixel.ClearPoints(self.frame)
             if parent then
                 Pixel.SetPoint(self.frame, "TOPRIGHT", parent, "TOPLEFT", x, y)
             else
-                Pixel.SetPoint(self.frame, "TOPLEFT", UIParent, "BOTTOMLEFT", screenWidth - menuWidth, y)
+                Pixel.SetPoint(self.frame, "TOPLEFT", UIParent, "BOTTOMLEFT", screenWidth - frameWidth, y)
             end
         end
 
-        if top - menuHeight < 0 then
+        if top - frameHeight < 0 then
             Pixel.ClearPoints(self.frame)
             Pixel.SetPoint(self.frame, "BOTTOMLEFT", UIParent, "BOTTOMLEFT", x, 0)
         end
@@ -294,7 +294,7 @@ function MedaUI:CreateContextMenu(items)
 end
 
 -- Global function to hide all context menus
-function MedaUI:HideAllContextMenus()
+function MedaUI.HideAllContextMenus()
     for menu in pairs(activeMenus) do
         menu:Hide()
     end

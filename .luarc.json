@@ -1,0 +1,45 @@
+{
+  "$schema": "https://raw.githubusercontent.com/LuaLS/vscode-lua/master/setting/schema.json",
+  "Lua.runtime.version": "Lua 5.1",
+  "Lua.runtime.special": {
+    "reload": "ReloadUI"
+  },
+  "Lua.workspace.library": [
+    ".luals-meta",
+    "../.luals-meta",
+    "../../.luals-meta",
+    "../wow-tools/lua-stubs/meda",
+    "../wow-tools/lua-stubs/wow-retail-full",
+    "../wow-tools/lua-stubs/wow-retail-ui",
+    "../wow-tools/lua-stubs/wow-api",
+    "../../wow-tools/lua-stubs/meda",
+    "../../wow-tools/lua-stubs/wow-retail-full",
+    "../../wow-tools/lua-stubs/wow-retail-ui",
+    "../../wow-tools/lua-stubs/wow-api"
+  ],
+  "Lua.workspace.checkThirdParty": false,
+  "Lua.workspace.ignoreDir": [
+    "Libs"
+  ],
+  "Lua.workspace.useGitIgnore": true,
+  "Lua.workspace.maxPreload": 5000,
+  "Lua.workspace.preloadFileSize": 500,
+  "Lua.diagnostics.libraryFiles": "Disable",
+  "Lua.diagnostics.disable": [
+    "deprecated"
+  ],
+  "Lua.diagnostics.globals": [
+    "MedaUI",
+    "LibStub",
+    "CreateFrame",
+    "C_Timer",
+    "wipe",
+    "time",
+    "strupper"
+  ],
+  "Lua.hint.enable": true,
+  "Lua.hint.arrayIndex": "Disable",
+  "Lua.completion.callSnippet": "Replace",
+  "Lua.completion.displayContext": 2,
+  "Lua.format.enable": false
+}

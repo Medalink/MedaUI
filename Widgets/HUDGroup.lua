@@ -3,14 +3,15 @@
     Lightweight root container for grouped HUD sections with shared fade behavior.
 ]]
 
-local MedaUI = LibStub("MedaUI-1.0")
-local Pixel = LibStub("MedaUI-1.0").Pixel
+local MedaUI = LibStub("MedaUI-2.0")
+---@cast MedaUI MedaUILibrary
+local Pixel = LibStub("MedaUI-2.0").Pixel
 
 --- Create a HUD root container.
 --- @param name string
 --- @param config table|nil { point, strata, frameLevel, fadeInDuration, fadeOutDuration, opacity, scale }
 --- @return Frame
-function MedaUI:CreateHUDGroup(name, config)
+function MedaUI.CreateHUDGroup(_, name, config)
     config = config or {}
 
     local frame = CreateFrame("Frame", name, UIParent)

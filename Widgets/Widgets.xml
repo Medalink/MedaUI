@@ -58,9 +58,7 @@
     <Script file="ItemSlotCard.lua"/>
     <Script file="HUDRow.lua"/>
     <Script file="InfoPanel.lua"/>
-    <Script file="WorkspaceShell.lua"/>
 
     <!-- Composite panels -->
-    <Script file="SettingsPanel.lua"/>
     <Script file="ImportExportDialog.lua"/>
 </Ui>

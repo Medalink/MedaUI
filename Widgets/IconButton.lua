@@ -4,8 +4,9 @@
     with optional toggle state, hover effects, and tooltip support
 ]]
 
-local MedaUI = LibStub("MedaUI-1.0")
-local Pixel = LibStub("MedaUI-1.0").Pixel
+local MedaUI = LibStub("MedaUI-2.0")
+---@cast MedaUI MedaUILibrary
+local Pixel = LibStub("MedaUI-2.0").Pixel
 
 local DEFAULT_SIZE = 18
 local ICON_PADDING = 2
@@ -14,13 +15,13 @@ local ICON_PADDING = 2
 --- @param parent Frame The parent frame
 --- @param config table { size, icon, iconActive, tooltip, tooltipActive, toggle, atlas, flat }
 --- @return Button The created icon button
-function MedaUI:CreateIconButton(parent, config)
+function MedaUI.CreateIconButton(library, parent, config)
     config = config or {}
     local size = config.size or DEFAULT_SIZE
 
     local button = CreateFrame("Button", nil, parent, "BackdropTemplate")
     Pixel.SetSize(button, size, size)
-    button:SetBackdrop(self:CreateBackdrop(true))
+    button:SetBackdrop(library:CreateBackdrop(true))
     button:RegisterForClicks("LeftButtonUp", "RightButtonUp")
 
     -- Icon texture
@@ -45,14 +46,14 @@ function MedaUI:CreateIconButton(parent, config)
     button._flat = config.flat or false
 
     local function ApplyTheme()
-        local Theme = MedaUI.Theme
+        local theme = MedaUI.Theme
         if not button._isEnabled then
             if button._flat then
                 button:SetBackdropColor(0, 0, 0, 0)
                 button:SetBackdropBorderColor(0, 0, 0, 0)
             else
-                button:SetBackdropColor(unpack(Theme.buttonDisabled))
-                button:SetBackdropBorderColor(unpack(Theme.border))
+                button:SetBackdropColor(unpack(theme.buttonDisabled))
+                button:SetBackdropBorderColor(unpack(theme.border))
             end
             button.icon:SetAlpha(0.35)
             return
@@ -64,14 +65,14 @@ function MedaUI:CreateIconButton(parent, config)
             button:SetBackdropColor(0, 0, 0, 0)
             button:SetBackdropBorderColor(0, 0, 0, 0)
         elseif button._isHovered then
-            button:SetBackdropColor(unpack(Theme.buttonHover))
-            button:SetBackdropBorderColor(unpack(Theme.gold))
+            button:SetBackdropColor(unpack(theme.buttonHover))
+            button:SetBackdropBorderColor(unpack(theme.gold))
         elseif button._active then
-            button:SetBackdropColor(unpack(Theme.buttonHover))
-            button:SetBackdropBorderColor(unpack(Theme.border))
+            button:SetBackdropColor(unpack(theme.buttonHover))
+            button:SetBackdropBorderColor(unpack(theme.border))
         else
-            button:SetBackdropColor(unpack(Theme.button))
-            button:SetBackdropBorderColor(unpack(Theme.border))
+            button:SetBackdropColor(unpack(theme.button))
+            button:SetBackdropBorderColor(unpack(theme.border))
         end
     end
     button._ApplyTheme = ApplyTheme
@@ -81,64 +82,64 @@ function MedaUI:CreateIconButton(parent, config)
     ApplyTheme()
 
     -- Hover
-    button:SetScript("OnEnter", function(self)
-        if not self._isEnabled then return end
-        self._isHovered = true
+    button:SetScript("OnEnter", function(widget)
+        if not widget._isEnabled then return end
+        widget._isHovered = true
         MedaUI:PlaySound("hover")
-        if not self._flat then
-            local Theme = MedaUI.Theme
-            self:SetBackdropColor(unpack(Theme.buttonHover))
-            self:SetBackdropBorderColor(unpack(Theme.gold))
+        if not widget._flat then
+            local theme = MedaUI.Theme
+            widget:SetBackdropColor(unpack(theme.buttonHover))
+            widget:SetBackdropBorderColor(unpack(theme.gold))
         end
-        self.icon:SetAlpha(1)
+        widget.icon:SetAlpha(1)
 
-        local tip = self._active and self._tooltipActiveText or self._tooltipText
+        local tip = widget._active and widget._tooltipActiveText or widget._tooltipText
         if tip then
-            GameTooltip:SetOwner(self, "ANCHOR_TOP")
+            GameTooltip:SetOwner(widget, "ANCHOR_TOP")
             GameTooltip:SetText(tip, 1, 1, 1)
             GameTooltip:Show()
         end
     end)
 
-    button:SetScript("OnLeave", function(self)
-        if not self._isEnabled then return end
-        self._isHovered = false
+    button:SetScript("OnLeave", function(widget)
+        if not widget._isEnabled then return end
+        widget._isHovered = false
         ApplyTheme()
         GameTooltip:Hide()
     end)
 
     -- Click
-    button:SetScript("OnClick", function(self, btn)
-        if not self._isEnabled then return end
+    button:SetScript("OnClick", function(widget, btn)
+        if not widget._isEnabled then return end
         MedaUI:PlaySound("click")
 
-        if self._isToggle then
-            self._active = not self._active
+        if widget._isToggle then
+            widget._active = not widget._active
             -- Swap icon texture when toggling
-            if self._active and self._iconActivePath then
-                self.icon:SetTexture(self._iconActivePath)
-            elseif not self._active and self._iconPath then
-                self.icon:SetTexture(self._iconPath)
+            if widget._active and widget._iconActivePath then
+                widget.icon:SetTexture(widget._iconActivePath)
+            elseif not widget._active and widget._iconPath then
+                widget.icon:SetTexture(widget._iconPath)
             end
             ApplyTheme()
         end
 
-        if self.OnClick then
-            self:OnClick(btn, self._active)
+        if widget.OnClick then
+            widget:OnClick(btn, widget._active)
         end
     end)
 
     -- Click feedback (raw SetPoint for animation)
-    button:SetScript("OnMouseDown", function(self)
-        if self._isEnabled then
-            self.icon:SetPoint("TOPLEFT", ICON_PADDING + 1, -ICON_PADDING - 1)
-            self.icon:SetPoint("BOTTOMRIGHT", -ICON_PADDING + 1, ICON_PADDING - 1)
+    button:SetScript("OnMouseDown", function(widget)
+        if widget._isEnabled then
+            widget.icon:SetPoint("TOPLEFT", ICON_PADDING + 1, -ICON_PADDING - 1)
+            widget.icon:SetPoint("BOTTOMRIGHT", -ICON_PADDING + 1, ICON_PADDING - 1)
         end
     end)
 
-    button:SetScript("OnMouseUp", function(self)
-        self.icon:SetPoint("TOPLEFT", ICON_PADDING, -ICON_PADDING)
-        self.icon:SetPoint("BOTTOMRIGHT", -ICON_PADDING, ICON_PADDING)
+    button:SetScript("OnMouseUp", function(widget)
+        widget.icon:SetPoint("TOPLEFT", ICON_PADDING, -ICON_PADDING)
+        widget.icon:SetPoint("BOTTOMRIGHT", -ICON_PADDING, ICON_PADDING)
     end)
 
     --- Set active/toggled state programmatically
@@ -192,9 +193,9 @@ function MedaUI:CreateIconButton(parent, config)
 
     -- Disabled state
     local originalSetEnabled = button.SetEnabled
-    button.SetEnabled = function(self, enabled)
-        originalSetEnabled(self, enabled)
-        self._isEnabled = enabled
+    button.SetEnabled = function(widget, enabled)
+        originalSetEnabled(widget, enabled)
+        widget._isEnabled = enabled
         ApplyTheme()
     end
 

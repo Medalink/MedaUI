@@ -4,8 +4,9 @@
     collapsed sections to let users reveal hidden items.
 ]]
 
-local MedaUI = LibStub("MedaUI-1.0")
-local Pixel = LibStub("MedaUI-1.0").Pixel
+local MedaUI = LibStub("MedaUI-2.0")
+---@cast MedaUI MedaUILibrary
+local Pixel = LibStub("MedaUI-2.0").Pixel
 
 local GLYPH_MORE = " |TInterface\\AddOns\\MedaUI\\Media\\Textures\\chevron-right.tga:10:10|t"
 local GLYPH_LESS = " |TInterface\\AddOns\\MedaUI\\Media\\Textures\\chevron-up.tga:10:10|t"
@@ -15,7 +16,7 @@ local TOGGLE_HEIGHT = 20
 --- @param parent Frame
 --- @param config table { hiddenCount, expanded, onToggle }
 --- @return Button toggle
-function MedaUI:CreateExpandToggle(parent, config)
+function MedaUI.CreateExpandToggle(_, parent, config)
     config = config or {}
     local hiddenCount = config.hiddenCount or 0
     local expanded    = config.expanded or false
@@ -46,8 +47,8 @@ function MedaUI:CreateExpandToggle(parent, config)
 
     -- Theme colors
     local function ApplyTheme()
-        local Theme = MedaUI.Theme
-        local dim = Theme.textDim or {0.6, 0.6, 0.6}
+        local theme = MedaUI.Theme
+        local dim = theme.textDim or {0.6, 0.6, 0.6}
         label:SetTextColor(dim[1], dim[2], dim[3])
     end
     btn._ApplyTheme = ApplyTheme
@@ -56,18 +57,20 @@ function MedaUI:CreateExpandToggle(parent, config)
 
     -- Hover: brighten text
     btn:SetScript("OnEnter", function()
-        local Theme = MedaUI.Theme
-        local bright = Theme.textBright or Theme.text or {1, 1, 1}
+        local theme = MedaUI.Theme
+        local bright = theme.textBright or theme.text or {1, 1, 1}
         label:SetTextColor(bright[1], bright[2], bright[3])
     end)
     btn:SetScript("OnLeave", function()
         ApplyTheme()
     end)
 
-    btn:SetScript("OnClick", function(self)
-        self._expanded = not self._expanded
+    btn:SetScript("OnClick", function(toggle)
+        toggle._expanded = not toggle._expanded
         UpdateLabel()
-        if onToggle then onToggle(self._expanded) end
+        if onToggle then
+            onToggle(toggle._expanded)
+        end
     end)
 
     btn.label = label

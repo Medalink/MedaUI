@@ -3,16 +3,15 @@
     Reusable animation effects: pulse, glow, fade, etc.
 ]]
 
-local MedaUI = LibStub("MedaUI-1.0")
-local Pixel = LibStub("MedaUI-1.0").Pixel
-
-local sin, pi = math.sin, math.pi
+local MedaUI = LibStub("MedaUI-2.0")
+---@cast MedaUI MedaUILibrary
+local Pixel = LibStub("MedaUI-2.0").Pixel
 
 --- Create a pulsing highlight effect
 --- @param frame Frame The frame to apply the effect to
 --- @param config table|nil Configuration {color, minAlpha, maxAlpha, speed, texture}
 --- @return table The pulse effect controller
-function MedaUI:CreatePulseEffect(frame, config)
+function MedaUI.CreatePulseEffect(_, frame, config)
     config = config or {}
 
     local pulse = {
@@ -37,21 +36,26 @@ function MedaUI:CreatePulseEffect(frame, config)
         pulse.overlay:Hide()
     end
 
-    -- Update function for animation
-    local function OnUpdate(self, elapsed)
-        pulse.elapsed = pulse.elapsed + elapsed
-
-        -- Sine wave for smooth pulsing
-        local t = pulse.elapsed * pulse.speed * pi * 2
-        local alpha = pulse.minAlpha + (pulse.maxAlpha - pulse.minAlpha) * (0.5 + 0.5 * sin(t))
-
-        pulse.overlay:SetAlpha(alpha)
+    local function ConfigurePulse()
+        local halfCycle = 0.5 / math.max(pulse.speed, 0.01)
+        pulse.fadeIn:SetDuration(halfCycle)
+        pulse.fadeIn:SetFromAlpha(pulse.minAlpha)
+        pulse.fadeIn:SetToAlpha(pulse.maxAlpha)
+        pulse.fadeOut:SetDuration(halfCycle)
+        pulse.fadeOut:SetFromAlpha(pulse.maxAlpha)
+        pulse.fadeOut:SetToAlpha(pulse.minAlpha)
     end
 
-    -- Animation frame
-    pulse.animFrame = CreateFrame("Frame")
-    pulse.animFrame:SetScript("OnUpdate", OnUpdate)
-    pulse.animFrame:Hide()
+    pulse.animationGroup = pulse.overlay:CreateAnimationGroup()
+    pulse.animationGroup:SetLooping("REPEAT")
+    pulse.fadeIn = pulse.animationGroup:CreateAnimation("Alpha")
+    pulse.fadeIn:SetOrder(1)
+    pulse.fadeOut = pulse.animationGroup:CreateAnimation("Alpha")
+    pulse.fadeOut:SetOrder(2)
+    pulse.animationGroup:SetScript("OnStop", function()
+        pulse.overlay:SetAlpha(pulse.minAlpha)
+    end)
+    ConfigurePulse()
 
     --- Start the pulse effect
     function pulse:Start()
@@ -65,7 +69,8 @@ function MedaUI:CreatePulseEffect(frame, config)
         self.overlay:SetAlpha(self.minAlpha)
         self.overlay:Show()
 
-        self.animFrame:Show()
+        ConfigurePulse()
+        self.animationGroup:Play()
     end
 
     --- Stop the pulse effect
@@ -73,7 +78,7 @@ function MedaUI:CreatePulseEffect(frame, config)
         if not self.isPlaying then return end
         self.isPlaying = false
 
-        self.animFrame:Hide()
+        self.animationGroup:Stop()
         self.overlay:Hide()
     end
 
@@ -94,12 +99,14 @@ function MedaUI:CreatePulseEffect(frame, config)
     function pulse:SetAlphaRange(minAlpha, maxAlpha)
         self.minAlpha = minAlpha
         self.maxAlpha = maxAlpha
+        ConfigurePulse()
     end
 
     --- Set the pulse speed
     --- @param speed number Cycles per second
     function pulse:SetSpeed(speed)
         self.speed = speed
+        ConfigurePulse()
     end
 
     --- Check if effect is playing
@@ -115,7 +122,7 @@ end
 --- @param frame Frame The frame to apply the glow to
 --- @param config table|nil Configuration {color, alpha, size, texture}
 --- @return table The glow effect controller
-function MedaUI:CreateGlowEffect(frame, config)
+function MedaUI.CreateGlowEffect(_, frame, config)
     config = config or {}
 
     local glow = {
@@ -177,7 +184,7 @@ end
 --- @param frame Frame The frame to fade
 --- @param config table|nil Configuration {fadeInDuration, fadeOutDuration, fromAlpha, toAlpha}
 --- @return table The fade controller
-function MedaUI:CreateFadeEffect(frame, config)
+function MedaUI.CreateFadeEffect(_, frame, config)
     config = config or {}
 
     local fade = {
@@ -260,7 +267,7 @@ end
 --- @param frame Frame The frame to apply the highlight to
 --- @param config table|nil Configuration {color, alpha}
 --- @return table The highlight effect controller
-function MedaUI:CreateHoverHighlight(frame, config)
+function MedaUI.CreateHoverHighlight(_, frame, config)
     config = config or {}
 
     local highlight = {

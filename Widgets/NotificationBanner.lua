@@ -4,8 +4,10 @@
     Shows a text message and auto-hides after a configurable duration.
 ]]
 
-local MedaUI = LibStub("MedaUI-1.0")
-local Pixel = LibStub("MedaUI-1.0").Pixel
+local MedaUI = LibStub("MedaUI-2.0")
+---@cast MedaUI MedaUILibrary
+local Pixel = LibStub("MedaUI-2.0").Pixel
+local COUNTDOWN_UPDATE_INTERVAL = 0.05
 
 --- Create a notification banner that auto-hides with an optional countdown bar.
 --- @param name string Unique global frame name
@@ -37,7 +39,7 @@ local Pixel = LibStub("MedaUI-1.0").Pixel
 ---   banner:ResetPosition()
 ---   banner.OnShow(self, text) — callback
 ---   banner.OnHide(self) — callback
-function MedaUI:CreateNotificationBanner(name, config)
+function MedaUI.CreateNotificationBanner(library, name, config)
     config = config or {}
 
     local frame = CreateFrame("Frame", name, UIParent, "BackdropTemplate")
@@ -47,13 +49,18 @@ function MedaUI:CreateNotificationBanner(name, config)
     frame:EnableMouse(true)
     Pixel.SetSize(frame, config.width or 220, config.height or 36)
     frame:RegisterForDrag("LeftButton")
+    local NativeShow = frame.Show
+    local NativeHide = frame.Hide
 
-    MedaUI:ApplyBackdrop(frame, "backgroundDark", "border")
+    library:ApplyBackdrop(frame, "backgroundDark", "border")
 
     -- State
     frame._duration = config.duration or 3
     frame._hideTime = nil
     frame._locked = config.locked or false
+    frame._countdownTicker = nil
+    frame._dismissTimer = nil
+    frame._countdownToken = 0
 
     -- Drag
     frame:SetScript("OnDragStart", function(self)
@@ -92,26 +99,68 @@ function MedaUI:CreateNotificationBanner(name, config)
         frame.barBg:Hide()
     end
 
-    -- OnUpdate drives the countdown
-    frame.bar:SetScript("OnUpdate", function(self)
-        if not frame._hideTime then return end
-        local remaining = frame._hideTime - GetTime()
-        if remaining <= 0 then
-            frame:Hide()
-            frame._hideTime = nil
-            self:SetValue(0)
-            if frame.OnHide then frame:OnHide() end
+    frame:Hide()
+
+    local function StopCountdown()
+        if frame._countdownTicker then
+            frame._countdownTicker:Cancel()
+            frame._countdownTicker = nil
+        end
+        if frame._dismissTimer then
+            frame._dismissTimer:Cancel()
+            frame._dismissTimer = nil
+        end
+        frame._hideTime = nil
+    end
+
+    local function FinishCountdown()
+        StopCountdown()
+        frame.bar:SetValue(0)
+        NativeHide(frame)
+        if frame.OnHide then frame:OnHide() end
+    end
+
+    local function RefreshCountdownBar()
+        if not frame._hideTime or not frame.bar:IsShown() then
             return
         end
-        self:SetValue(remaining / frame._duration)
-    end)
 
-    frame:Hide()
+        local remaining = frame._hideTime - GetTime()
+        if remaining <= 0 then
+            FinishCountdown()
+            return
+        end
+
+        frame.bar:SetValue(remaining / frame._duration)
+    end
+
+    local function StartCountdown(duration)
+        StopCountdown()
+
+        frame._duration = duration
+        frame._hideTime = GetTime() + duration
+        frame._countdownToken = frame._countdownToken + 1
+
+        if frame.bar:IsShown() then
+            frame.bar:SetValue(1)
+            frame._countdownTicker = C_Timer.NewTicker(COUNTDOWN_UPDATE_INTERVAL, RefreshCountdownBar)
+        end
+
+        local token = frame._countdownToken
+        frame._dismissTimer = C_Timer.NewTimer(duration, function()
+            if frame._countdownToken ~= token then
+                return
+            end
+            FinishCountdown()
+        end)
+    end
+
+    frame:HookScript("OnHide", StopCountdown)
 
     -- Theme support
     local function ApplyTheme()
-        local Theme = MedaUI.Theme
-        frame:SetBackdropBorderColor(unpack(Theme.border))
+        local theme = MedaUI.Theme
+        frame:SetBackdropBorderColor(unpack(theme.border))
     end
     frame._ApplyTheme = ApplyTheme
     frame._themeHandle = MedaUI:RegisterThemedWidget(frame, ApplyTheme)
@@ -128,21 +177,15 @@ function MedaUI:CreateNotificationBanner(name, config)
         Pixel.SetWidth(self, math.max(textW + 30, 160))
 
         local dur = duration or self._duration
-        self._duration = dur
-        self._hideTime = GetTime() + dur
-
-        if self.bar:IsShown() then
-            self.bar:SetValue(1)
-        end
-
-        getmetatable(self).__index.Show(self)
+        StartCountdown(dur)
+        NativeShow(self)
 
         if self.OnShow then self:OnShow(text) end
     end
 
     function frame:Dismiss()
-        self._hideTime = nil
-        self:Hide()
+        StopCountdown()
+        NativeHide(self)
         if self.OnHide then self:OnHide() end
     end
 
@@ -159,9 +202,17 @@ function MedaUI:CreateNotificationBanner(name, config)
         if show then
             self.bar:Show()
             self.barBg:Show()
+            if self._hideTime and not self._countdownTicker then
+                self._countdownTicker = C_Timer.NewTicker(COUNTDOWN_UPDATE_INTERVAL, RefreshCountdownBar)
+                RefreshCountdownBar()
+            end
         else
             self.bar:Hide()
             self.barBg:Hide()
+            if self._countdownTicker then
+                self._countdownTicker:Cancel()
+                self._countdownTicker = nil
+            end
         end
     end
 
@@ -182,8 +233,8 @@ function MedaUI:CreateNotificationBanner(name, config)
     end
 
     function frame:SetBackgroundOpacity(alpha)
-        local Theme = MedaUI.Theme
-        local r, g, b = Theme.backgroundDark[1], Theme.backgroundDark[2], Theme.backgroundDark[3]
+        local theme = MedaUI.Theme
+        local r, g, b = theme.backgroundDark[1], theme.backgroundDark[2], theme.backgroundDark[3]
         self:SetBackdropColor(r, g, b, alpha)
     end
 
@@ -209,7 +260,7 @@ function MedaUI:CreateNotificationBanner(name, config)
     --- Useful for settings panels where the user needs to position the banner.
     --- @param text string The preview text to display
     function frame:ShowPreview(text)
-        self._hideTime = nil
+        StopCountdown()
         self.text:SetText(text or "Preview")
 
         local textW = self.text:GetStringWidth()
@@ -219,13 +270,13 @@ function MedaUI:CreateNotificationBanner(name, config)
             self.bar:SetValue(0.65)
         end
 
-        getmetatable(self).__index.Show(self)
+        NativeShow(self)
     end
 
     --- Hide the banner from preview mode.
     function frame:DismissPreview()
-        self._hideTime = nil
-        getmetatable(self).__index.Hide(self)
+        StopCountdown()
+        NativeHide(self)
     end
 
     return frame

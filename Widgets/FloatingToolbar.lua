@@ -3,8 +3,9 @@
     Floating status/toolbar window for modal editing and status display
 ]]
 
-local MedaUI = LibStub("MedaUI-1.0")
-local Pixel = LibStub("MedaUI-1.0").Pixel
+local MedaUI = LibStub("MedaUI-2.0")
+---@cast MedaUI MedaUILibrary
+local Pixel = LibStub("MedaUI-2.0").Pixel
 
 --- Create a floating toolbar
 --- @param name string Unique frame name
@@ -12,16 +13,14 @@ local Pixel = LibStub("MedaUI-1.0").Pixel
 --- @param title string|nil Toolbar title
 --- @param config table|nil Configuration {draggable, closeable, showTitle}
 --- @return table The floating toolbar widget
-function MedaUI:CreateFloatingToolbar(name, width, title, config)
+function MedaUI.CreateFloatingToolbar(library, name, width, title, config)
     config = config or {}
 
     local toolbar = CreateFrame("Frame", name, UIParent, "BackdropTemplate")
     Pixel.SetSize(toolbar, width, 80)
     toolbar:SetFrameStrata("HIGH")
-    toolbar:SetBackdrop(self:CreateBackdrop(true))
+    toolbar:SetBackdrop(library:CreateBackdrop(true))
     toolbar:Hide()
-
-    local Theme = self.Theme
 
     -- State
     toolbar.title = title
@@ -36,14 +35,14 @@ function MedaUI:CreateFloatingToolbar(name, width, title, config)
         toolbar:SetMovable(true)
         toolbar:EnableMouse(true)
         toolbar:RegisterForDrag("LeftButton")
-        toolbar:SetScript("OnDragStart", function(self)
-            self:StartMoving()
+        toolbar:SetScript("OnDragStart", function(frame)
+            frame:StartMoving()
         end)
-        toolbar:SetScript("OnDragStop", function(self)
-            self:StopMovingOrSizing()
+        toolbar:SetScript("OnDragStop", function(frame)
+            frame:StopMovingOrSizing()
             -- Fire callback
             if toolbar.OnMove then
-                local point, _, relPoint, x, y = self:GetPoint()
+                local point, _, relPoint, x, y = frame:GetPoint()
                 toolbar:OnMove({ point = point, relPoint = relPoint, x = x, y = y })
             end
         end)
@@ -76,14 +75,14 @@ function MedaUI:CreateFloatingToolbar(name, width, title, config)
             end
         end)
 
-        closeBtn:SetScript("OnEnter", function(self)
-            local Theme = MedaUI.Theme
-            self.text:SetTextColor(unpack(Theme.text))
+        closeBtn:SetScript("OnEnter", function(button)
+            local theme = MedaUI.Theme
+            button.text:SetTextColor(unpack(theme.text))
         end)
 
-        closeBtn:SetScript("OnLeave", function(self)
-            local Theme = MedaUI.Theme
-            self.text:SetTextColor(unpack(Theme.textDim))
+        closeBtn:SetScript("OnLeave", function(button)
+            local theme = MedaUI.Theme
+            button.text:SetTextColor(unpack(theme.textDim))
         end)
 
         toolbar.closeBtn = closeBtn
@@ -112,19 +111,19 @@ function MedaUI:CreateFloatingToolbar(name, width, title, config)
 
     -- Apply theme
     local function ApplyTheme()
-        local Theme = MedaUI.Theme
-        toolbar:SetBackdropColor(unpack(Theme.background))
-        toolbar:SetBackdropBorderColor(unpack(Theme.gold))
+        local theme = MedaUI.Theme
+        toolbar:SetBackdropColor(unpack(theme.background))
+        toolbar:SetBackdropBorderColor(unpack(theme.gold))
 
         if toolbar.titleLabel then
-            toolbar.titleLabel:SetTextColor(unpack(Theme.gold))
+            toolbar.titleLabel:SetTextColor(unpack(theme.gold))
         end
 
-        toolbar.instructionsLabel:SetTextColor(unpack(Theme.text))
-        toolbar.statusLabel:SetTextColor(unpack(Theme.textDim))
+        toolbar.instructionsLabel:SetTextColor(unpack(theme.text))
+        toolbar.statusLabel:SetTextColor(unpack(theme.textDim))
 
         if toolbar.closeBtn then
-            toolbar.closeBtn.text:SetTextColor(unpack(Theme.textDim))
+            toolbar.closeBtn.text:SetTextColor(unpack(theme.textDim))
         end
     end
     toolbar._ApplyTheme = ApplyTheme
@@ -171,7 +170,7 @@ function MedaUI:CreateFloatingToolbar(name, width, title, config)
             btn.text:SetText(label)
             btn:Show()
         else
-            btn = MedaUI:CreateButton(self.buttonContainer, label, nil, 24)
+            btn = library:CreateButton(self.buttonContainer, label, nil, 24)
         end
 
         btn:ClearAllPoints()
@@ -207,15 +206,15 @@ function MedaUI:CreateFloatingToolbar(name, width, title, config)
 
     --- Refresh toggle button states
     function toolbar:RefreshToggleButtons()
-        local Theme = MedaUI.Theme
+        local theme = MedaUI.Theme
         for _, btn in ipairs(self.buttons) do
             if btn.isToggle and btn.getActive then
                 if btn.getActive() then
-                    btn:SetBackdropColor(unpack(Theme.gold))
+                    btn:SetBackdropColor(unpack(theme.gold))
                     btn.text:SetTextColor(0.1, 0.1, 0.1)
                 else
-                    btn:SetBackdropColor(unpack(Theme.button))
-                    btn.text:SetTextColor(unpack(Theme.text))
+                    btn:SetBackdropColor(unpack(theme.button))
+                    btn.text:SetTextColor(unpack(theme.text))
                 end
             end
         end

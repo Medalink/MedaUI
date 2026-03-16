@@ -5,8 +5,9 @@
     and an insertion line indicator at the drop target position.
 ]]
 
-local MedaUI = LibStub("MedaUI-1.0")
-local Pixel = LibStub("MedaUI-1.0").Pixel
+local MedaUI = LibStub("MedaUI-2.0")
+---@cast MedaUI MedaUILibrary
+local Pixel = LibStub("MedaUI-2.0").Pixel
 
 local DEFAULT_DRAG_HANDLE_WIDTH = 20
 local DRAG_THRESHOLD = 4
@@ -17,7 +18,7 @@ local INSERTION_LINE_HEIGHT = 2
 --- @param width number List width
 --- @param height number List height
 --- @param config table Configuration
---- @return Frame The reorderable list widget
+--- @return MedaUIReorderableList The reorderable list widget
 ---
 --- Config keys:
 ---   rowHeight       (number, default 32)    -- row height
@@ -25,14 +26,15 @@ local INSERTION_LINE_HEIGHT = 2
 ---   onReorder       (function|nil)          -- function(data, fromIndex, toIndex) after reorder
 ---   dragEnabled     (boolean, default true) -- can be toggled for read-only views
 ---   dragHandleWidth (number, default 20)    -- width of the drag handle zone on the left
-function MedaUI:CreateReorderableList(parent, width, height, config)
+function MedaUI.CreateReorderableList(library, parent, width, height, config)
     config = config or {}
     local rowHeight = config.rowHeight or 32
     local dragHandleWidth = config.dragHandleWidth or DEFAULT_DRAG_HANDLE_WIDTH
 
     local list = CreateFrame("Frame", nil, parent, "BackdropTemplate")
+    ---@cast list MedaUIReorderableList
     Pixel.SetSize(list, width, height)
-    list:SetBackdrop(self:CreateBackdrop(true))
+    list:SetBackdrop(library:CreateBackdrop(true))
 
     list.data = {}
     list.filteredData = nil
@@ -52,7 +54,7 @@ function MedaUI:CreateReorderableList(parent, width, height, config)
     list._dragStartY = nil
 
     -- Scroll frame
-    local scrollParent = self:CreateScrollFrame(list)
+    local scrollParent = library:CreateScrollFrame(list)
     Pixel.SetPoint(scrollParent, "TOPLEFT", 6, -6)
     Pixel.SetPoint(scrollParent, "BOTTOMRIGHT", -6, 6)
     scrollParent:SetScrollStep(rowHeight * 3)
@@ -72,6 +74,7 @@ function MedaUI:CreateReorderableList(parent, width, height, config)
     Pixel.SetPoint(insertLine, "RIGHT", 0, 0)
     insertLine:SetFrameLevel(content:GetFrameLevel() + 10)
     local insertTex = insertLine:CreateTexture(nil, "OVERLAY")
+    ---@cast insertTex Texture
     insertTex:SetAllPoints()
     insertLine._tex = insertTex
     insertLine:Hide()
@@ -88,12 +91,12 @@ function MedaUI:CreateReorderableList(parent, width, height, config)
 
     -- Theme
     local function ApplyTheme()
-        local Theme = MedaUI.Theme
-        list:SetBackdropColor(unpack(Theme.backgroundDark))
-        list:SetBackdropBorderColor(unpack(Theme.border))
-        insertTex:SetColorTexture(unpack(Theme.accent or Theme.gold or {0.8, 0.8, 0.8, 1}))
-        dragClone:SetBackdropColor(unpack(Theme.backgroundLight))
-        dragClone:SetBackdropBorderColor(unpack(Theme.accent or Theme.gold or {0.8, 0.8, 0.8, 1}))
+        local theme = MedaUI.Theme
+        list:SetBackdropColor(unpack(theme.backgroundDark))
+        list:SetBackdropBorderColor(unpack(theme.border))
+        insertTex:SetColorTexture(unpack(theme.accent or theme.gold or {0.8, 0.8, 0.8, 1}))
+        dragClone:SetBackdropColor(unpack(theme.backgroundLight))
+        dragClone:SetBackdropBorderColor(unpack(theme.accent or theme.gold or {0.8, 0.8, 0.8, 1}))
     end
     list._ApplyTheme = ApplyTheme
     list._themeHandle = MedaUI:RegisterThemedWidget(list, function()
@@ -101,6 +104,77 @@ function MedaUI:CreateReorderableList(parent, width, height, config)
         list:Refresh()
     end)
     ApplyTheme()
+
+    local function StopDragTracking()
+        if list:GetScript("OnUpdate") then
+            list:SetScript("OnUpdate", nil)
+        end
+    end
+
+    local function CancelDrag()
+        list._dragging = false
+        list._dragPending = false
+        list._dragFromIndex = nil
+        list._dragTargetIndex = nil
+        list._dragClone:Hide()
+        list._insertLine:Hide()
+        ResetCursor()
+        StopDragTracking()
+    end
+
+    local function Drag_OnUpdate()
+        if (not list._dragPending and not list._dragging) or not list:IsVisible() then
+            CancelDrag()
+            return
+        end
+
+        local cx, cy = GetCursorPosition()
+        local scale = UIParent:GetEffectiveScale()
+        cx, cy = cx / scale, cy / scale
+
+        if list._dragPending and not list._dragging then
+            local dx = math.abs(cx * scale - list._dragStartX)
+            local dy = math.abs(cy * scale - list._dragStartY)
+            if dx > DRAG_THRESHOLD or dy > DRAG_THRESHOLD then
+                list._dragging = true
+                list._dragPending = false
+                list._dragClone:Show()
+
+                local dataSource = list.filteredData or list.data
+                local idx = list._dragFromIndex
+                if idx and idx >= 1 and idx <= #dataSource and list.renderRow then
+                    list.renderRow(list._dragClone, dataSource[idx], idx)
+                end
+            end
+        end
+
+        if not list._dragging then
+            return
+        end
+
+        list._dragClone:ClearAllPoints()
+        list._dragClone:SetPoint("CENTER", UIParent, "BOTTOMLEFT", cx, cy)
+
+        local _, listY = content:GetCenter()
+        local scrollPos = scrollFrame:GetVerticalScroll()
+        local relY = (listY + (content:GetHeight() / 2)) - cy
+        local targetIndex = math.floor((relY + scrollPos) / rowHeight) + 1
+        local dataSource = list.filteredData or list.data
+        targetIndex = math.max(1, math.min(targetIndex, #dataSource + 1))
+        list._dragTargetIndex = targetIndex
+
+        insertLine:ClearAllPoints()
+        Pixel.SetPoint(insertLine, "TOPLEFT", content, "TOPLEFT", 0, -((targetIndex - 1) * rowHeight) + 1)
+        Pixel.SetPoint(insertLine, "RIGHT", content, "RIGHT", 0, 0)
+        insertLine:Show()
+    end
+
+    local function StartDragTracking()
+        if list:GetScript("OnUpdate") then
+            return
+        end
+        list:SetScript("OnUpdate", Drag_OnUpdate)
+    end
 
     -- ----------------------------------------------------------------
     -- Row pool and rendering
@@ -110,6 +184,7 @@ function MedaUI:CreateReorderableList(parent, width, height, config)
         local row = list.rowPool[slot]
         if not row then
             row = CreateFrame("Frame", nil, content, "BackdropTemplate")
+            ---@cast row MedaUIReorderableRow
             Pixel.SetHeight(row, rowHeight)
             Pixel.SetPoint(row, "RIGHT")
             row:SetBackdrop(MedaUI:CreateBackdrop(false))
@@ -122,6 +197,7 @@ function MedaUI:CreateReorderableList(parent, width, height, config)
             handle:EnableMouse(true)
 
             local grip = handle:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+            ---@cast grip FontString
             grip:SetPoint("CENTER")
             grip:SetText("\226\139\174")  -- ⋮
             grip:SetTextColor(1, 1, 1, 0.25)
@@ -145,15 +221,16 @@ function MedaUI:CreateReorderableList(parent, width, height, config)
                     list._dragStartY = y
                     list._dragFromIndex = row._dataIndex
                     list._dragPending = true
+                    StartDragTracking()
                 end
             end)
 
             handle:SetScript("OnMouseUp", function()
                 if list._dragging then
                     list:_FinishDrag()
+                    return
                 end
-                list._dragPending = false
-                ResetCursor()
+                CancelDrag()
             end)
 
             row._handle = handle
@@ -163,7 +240,7 @@ function MedaUI:CreateReorderableList(parent, width, height, config)
     end
 
     local function UpdateRows()
-        local Theme = MedaUI.Theme
+        local theme = MedaUI.Theme
         local dataSource = list.filteredData or list.data
         local totalHeight = #dataSource * rowHeight
         Pixel.SetHeight(content, math.max(totalHeight, height - 8))
@@ -186,9 +263,9 @@ function MedaUI:CreateReorderableList(parent, width, height, config)
             Pixel.SetPoint(row, "RIGHT")
 
             if i % 2 == 0 then
-                row:SetBackdropColor(unpack(Theme.rowEven))
+                row:SetBackdropColor(unpack(theme.rowEven))
             else
-                row:SetBackdropColor(unpack(Theme.rowOdd))
+                row:SetBackdropColor(unpack(theme.rowOdd))
             end
 
             row._dataIndex = i
@@ -216,67 +293,13 @@ function MedaUI:CreateReorderableList(parent, width, height, config)
     end)
 
     -- ----------------------------------------------------------------
-    -- Drag tracking via OnUpdate
-    -- ----------------------------------------------------------------
-
-    list:SetScript("OnUpdate", function()
-        if (not list._dragPending and not list._dragging) or not list:IsVisible() then return end
-
-        local cx, cy = GetCursorPosition()
-        local scale = UIParent:GetEffectiveScale()
-        cx, cy = cx / scale, cy / scale
-
-        if list._dragPending and not list._dragging then
-            local dx = math.abs(cx * scale - list._dragStartX)
-            local dy = math.abs(cy * scale - list._dragStartY)
-            if dx > DRAG_THRESHOLD or dy > DRAG_THRESHOLD then
-                list._dragging = true
-                list._dragPending = false
-                list._dragClone:Show()
-
-                -- Render the drag clone
-                local dataSource = list.filteredData or list.data
-                local idx = list._dragFromIndex
-                if idx and idx >= 1 and idx <= #dataSource and list.renderRow then
-                    list.renderRow(list._dragClone, dataSource[idx], idx)
-                end
-            end
-        end
-
-        if list._dragging then
-            list._dragClone:ClearAllPoints()
-            list._dragClone:SetPoint("CENTER", UIParent, "BOTTOMLEFT", cx, cy)
-
-            -- Calculate insertion target
-            local _, listY = content:GetCenter()
-            local scrollPos = scrollFrame:GetVerticalScroll()
-            local relY = (listY + (content:GetHeight() / 2)) - cy
-            local targetIndex = math.floor((relY + scrollPos) / rowHeight) + 1
-            local dataSource = list.filteredData or list.data
-            targetIndex = math.max(1, math.min(targetIndex, #dataSource + 1))
-            list._dragTargetIndex = targetIndex
-
-            -- Position insertion line
-            insertLine:ClearAllPoints()
-            Pixel.SetPoint(insertLine, "TOPLEFT", content, "TOPLEFT", 0, -((targetIndex - 1) * rowHeight) + 1)
-            Pixel.SetPoint(insertLine, "RIGHT", content, "RIGHT", 0, 0)
-            insertLine:Show()
-        end
-    end)
-
-    -- ----------------------------------------------------------------
     -- Drag completion
     -- ----------------------------------------------------------------
 
     function list:_FinishDrag()
-        self._dragging = false
-        self._dragPending = false
-        self._dragClone:Hide()
-        self._insertLine:Hide()
-        ResetCursor()
-
         local from = self._dragFromIndex
         local to = self._dragTargetIndex
+        CancelDrag()
         if not from or not to or from == to or from == to - 1 then return end
 
         local dataSource = self.filteredData or self.data
@@ -356,6 +379,9 @@ function MedaUI:CreateReorderableList(parent, width, height, config)
     --- @param enabled boolean
     function list:SetDragEnabled(enabled)
         self._dragEnabled = enabled
+        if not enabled then
+            CancelDrag()
+        end
         self:Refresh()
     end
 
@@ -374,6 +400,8 @@ function MedaUI:CreateReorderableList(parent, width, height, config)
     function list:GetSelected()
         return self._selectedIndex
     end
+
+    list:HookScript("OnHide", CancelDrag)
 
     return list
 end

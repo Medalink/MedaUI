@@ -3,8 +3,9 @@
     Creates themed radio buttons for option groups
 ]]
 
-local MedaUI = LibStub("MedaUI-1.0")
-local Pixel = LibStub("MedaUI-1.0").Pixel
+local MedaUI = LibStub("MedaUI-2.0")
+---@cast MedaUI MedaUILibrary
+local Pixel = LibStub("MedaUI-2.0").Pixel
 
 -- Radio group management
 MedaUI.RadioGroups = MedaUI.RadioGroups or {}
@@ -14,7 +15,7 @@ MedaUI.RadioGroups = MedaUI.RadioGroups or {}
 --- @param label string Radio button label text
 --- @param group string|nil Optional group name for mutual exclusion
 --- @return Frame The radio button container frame
-function MedaUI:CreateRadio(parent, label, group)
+function MedaUI.CreateRadio(library, parent, label, group)
     local container = CreateFrame("Frame", nil, parent)
     Pixel.SetSize(container, 200, 20)
     container.group = group
@@ -23,7 +24,7 @@ function MedaUI:CreateRadio(parent, label, group)
     local box = CreateFrame("Button", nil, container, "BackdropTemplate")
     Pixel.SetSize(box, 16, 16)
     Pixel.SetPoint(box, "LEFT", 0, 0)
-    box:SetBackdrop(self:CreateBackdrop(true))
+    box:SetBackdrop(library:CreateBackdrop(true))
 
     -- Selected indicator (inner dot)
     box.dot = box:CreateTexture(nil, "OVERLAY")
@@ -41,20 +42,20 @@ function MedaUI:CreateRadio(parent, label, group)
 
     -- Register with group
     if group then
-        self.RadioGroups[group] = self.RadioGroups[group] or {}
-        table.insert(self.RadioGroups[group], container)
+        library.RadioGroups[group] = library.RadioGroups[group] or {}
+        table.insert(library.RadioGroups[group], container)
     end
 
     -- Apply theme colors
     local function ApplyTheme()
-        local Theme = MedaUI.Theme
-        box:SetBackdropColor(unpack(Theme.input))
-        box.dot:SetColorTexture(unpack(Theme.gold))
-        container.label:SetTextColor(unpack(Theme.text))
+        local theme = MedaUI.Theme
+        box:SetBackdropColor(unpack(theme.input))
+        box.dot:SetColorTexture(unpack(theme.gold))
+        container.label:SetTextColor(unpack(theme.text))
         if container.selected then
-            box:SetBackdropBorderColor(unpack(Theme.gold))
+            box:SetBackdropBorderColor(unpack(theme.gold))
         else
-            box:SetBackdropBorderColor(unpack(Theme.border))
+            box:SetBackdropBorderColor(unpack(theme.border))
         end
     end
     container._ApplyTheme = ApplyTheme
@@ -75,29 +76,29 @@ function MedaUI:CreateRadio(parent, label, group)
     end)
 
     -- Hover effect
-    box:SetScript("OnEnter", function(self)
+    box:SetScript("OnEnter", function(widget)
         MedaUI:PlaySound("hover")
-        local Theme = MedaUI.Theme
-        self:SetBackdropBorderColor(unpack(Theme.gold))
+        local theme = MedaUI.Theme
+        widget:SetBackdropBorderColor(unpack(theme.gold))
     end)
 
-    box:SetScript("OnLeave", function(self)
+    box:SetScript("OnLeave", function(widget)
         if not container.selected then
-            local Theme = MedaUI.Theme
-            self:SetBackdropBorderColor(unpack(Theme.border))
+            local theme = MedaUI.Theme
+            widget:SetBackdropBorderColor(unpack(theme.border))
         end
     end)
 
     -- API methods
     function container:SetSelected(value)
-        local Theme = MedaUI.Theme
+        local theme = MedaUI.Theme
         -- Deselect others in group
         if value and self.group and MedaUI.RadioGroups[self.group] then
             for _, radio in ipairs(MedaUI.RadioGroups[self.group]) do
                 if radio ~= self then
                     radio.selected = false
                     radio.box.dot:Hide()
-                    radio.box:SetBackdropBorderColor(unpack(Theme.border))
+                    radio.box:SetBackdropBorderColor(unpack(theme.border))
                 end
             end
         end
@@ -105,10 +106,10 @@ function MedaUI:CreateRadio(parent, label, group)
         self.selected = value
         if value then
             box.dot:Show()
-            box:SetBackdropBorderColor(unpack(Theme.gold))
+            box:SetBackdropBorderColor(unpack(theme.gold))
         else
             box.dot:Hide()
-            box:SetBackdropBorderColor(unpack(Theme.border))
+            box:SetBackdropBorderColor(unpack(theme.border))
         end
     end
 

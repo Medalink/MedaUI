@@ -6,9 +6,16 @@
 ## X-Category: Library
 Libs\LibStub\LibStub.lua
 Libs\CallbackHandler-1.0\CallbackHandler-1.0.lua
+Libs\LibDataBroker-1.1\LibDataBroker-1.1.lua
+Libs\LibDBIcon-1.0\LibDBIcon-1.0.lua
+Core\Bootstrap.lua
 MedaUI.lua
+Core\ThemeRegistry.lua
 Pixel.lua
+Core\RuntimeHelpers.lua
+Core\MediaRegistry.lua
 Themes\Default.lua
 Themes\Bricks.lua
 Themes\Onyx.lua
 Widgets\Widgets.xml
+Hosts\Hosts.xml

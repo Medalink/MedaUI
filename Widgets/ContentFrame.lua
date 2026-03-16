@@ -3,14 +3,15 @@
     Simple themed or unthemed layout container for module view stacks.
 ]]
 
-local MedaUI = LibStub("MedaUI-1.0")
-local Pixel = LibStub("MedaUI-1.0").Pixel
+local MedaUI = LibStub("MedaUI-2.0")
+---@cast MedaUI MedaUILibrary
+local Pixel = LibStub("MedaUI-2.0").Pixel
 
 --- Create a content container.
 --- @param parent Frame
 --- @param config table|nil { fillParent, insets, width, height, backdrop, mouse }
 --- @return Frame
-function MedaUI:CreateContentFrame(parent, config)
+function MedaUI.CreateContentFrame(library, parent, config)
     config = config or {}
 
     local template = config.backdrop and "BackdropTemplate" or nil
@@ -29,12 +30,12 @@ function MedaUI:CreateContentFrame(parent, config)
     end
 
     if config.backdrop then
-        frame:SetBackdrop(MedaUI:CreateBackdrop(true))
+        frame:SetBackdrop(library:CreateBackdrop(true))
 
         local function ApplyTheme()
-            local Theme = MedaUI.Theme
-            frame:SetBackdropColor(unpack(Theme.backgroundDark or Theme.background))
-            frame:SetBackdropBorderColor(unpack(Theme.border))
+            local theme = MedaUI.Theme
+            frame:SetBackdropColor(unpack(theme.backgroundDark or theme.background))
+            frame:SetBackdropBorderColor(unpack(theme.border))
         end
 
         frame._ApplyTheme = ApplyTheme

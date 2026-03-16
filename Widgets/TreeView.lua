@@ -3,14 +3,15 @@
     Expandable/collapsible tree for hierarchical data
 ]]
 
-local MedaUI = LibStub("MedaUI-1.0")
-local Pixel = LibStub("MedaUI-1.0").Pixel
+local MedaUI = LibStub("MedaUI-2.0")
+---@cast MedaUI MedaUILibrary
+local Pixel = LibStub("MedaUI-2.0").Pixel
 
 local function TreeRow_OnEnter(self)
     local tv = self._treeView
     if tv and tv.selectedNode ~= self._node then
-        local Theme = MedaUI.Theme
-        self:SetBackdropColor(unpack(Theme.buttonHover))
+        local theme = MedaUI.Theme
+        self:SetBackdropColor(unpack(theme.buttonHover))
     end
 end
 
@@ -53,10 +54,10 @@ end
 --- @param width number Tree width
 --- @param height number Tree height
 --- @return Frame The tree view frame
-function MedaUI:CreateTreeView(parent, width, height)
+function MedaUI.CreateTreeView(library, parent, width, height)
     local treeView = CreateFrame("Frame", nil, parent, "BackdropTemplate")
     Pixel.SetSize(treeView, width, height)
-    treeView:SetBackdrop(self:CreateBackdrop(true))
+    treeView:SetBackdrop(library:CreateBackdrop(true))
 
     treeView.data = {}
     treeView.flattenedData = {}
@@ -68,7 +69,7 @@ function MedaUI:CreateTreeView(parent, width, height)
     treeView.rowHeight = 22
 
     -- Scroll frame (AF custom scrollbar)
-    local scrollParent = self:CreateScrollFrame(treeView)
+    local scrollParent = library:CreateScrollFrame(treeView)
     Pixel.SetPoint(scrollParent, "TOPLEFT", 4, -4)
     Pixel.SetPoint(scrollParent, "BOTTOMRIGHT", -4, 4)
     scrollParent:SetScrollStep(66)
@@ -84,9 +85,9 @@ function MedaUI:CreateTreeView(parent, width, height)
 
     -- Apply theme colors
     local function ApplyTheme()
-        local Theme = MedaUI.Theme
-        treeView:SetBackdropColor(unpack(Theme.backgroundDark))
-        treeView:SetBackdropBorderColor(unpack(Theme.border))
+        local theme = MedaUI.Theme
+        treeView:SetBackdropColor(unpack(theme.backgroundDark))
+        treeView:SetBackdropBorderColor(unpack(theme.border))
     end
     treeView._ApplyTheme = ApplyTheme
 
@@ -128,7 +129,7 @@ function MedaUI:CreateTreeView(parent, width, height)
         if not row then
             row = CreateFrame("Button", nil, content, "BackdropTemplate")
             Pixel.SetSize(row, width - 28, treeView.rowHeight)
-            row:SetBackdrop(MedaUI:CreateBackdrop(false))
+            row:SetBackdrop(library:CreateBackdrop(false))
             row:RegisterForClicks("LeftButtonUp", "RightButtonUp")
             row._treeView = treeView
 

@@ -4,13 +4,13 @@
     Used for at-a-glance capability/coverage display.
 ]]
 
-local MedaUI = LibStub("MedaUI-1.0")
-local Pixel = LibStub("MedaUI-1.0").Pixel
+local MedaUI = LibStub("MedaUI-2.0")
+---@cast MedaUI MedaUILibrary
+local Pixel = LibStub("MedaUI-2.0").Pixel
 
 local DEFAULT_WIDTH = 280
 local DEFAULT_ICON_SIZE = 20
 local DEFAULT_ACCENT_WIDTH = 3
-local ICON_PADDING = 1
 local TEXT_LEFT_PAD = 6
 local NOTE_TOP_PAD = 2
 local CARD_PAD_X = 10
@@ -27,7 +27,7 @@ local CARD_STATUS_WIDTH = 130
 ---   iconSize (number, default 20) — spell icon size
 ---   accentWidth (number, default 3) — left severity accent bar width
 ---   showNote (boolean, default true) — show sub-text line below main content
-function MedaUI:CreateStatusRow(parent, config)
+function MedaUI.CreateStatusRow(library, parent, config)
     config = config or {}
 
     local width = config.width or DEFAULT_WIDTH
@@ -40,7 +40,7 @@ function MedaUI:CreateStatusRow(parent, config)
     Pixel.SetWidth(row, width)
     row._cardStyle = cardStyle
     if cardStyle then
-        row:SetBackdrop(self:CreateBackdrop(true))
+        row:SetBackdrop(library:CreateBackdrop(true))
     end
 
     -- Accent bar (left edge, severity-colored)
@@ -52,7 +52,7 @@ function MedaUI:CreateStatusRow(parent, config)
 
     if cardStyle then
         row.iconFrame = CreateFrame("Frame", nil, row, "BackdropTemplate")
-        row.iconFrame:SetBackdrop(self:CreateBackdrop(true))
+        row.iconFrame:SetBackdrop(library:CreateBackdrop(true))
         Pixel.SetSize(row.iconFrame, iconSize, iconSize)
         Pixel.SetPoint(row.iconFrame, "TOPLEFT", row, "TOPLEFT", accentWidth + CARD_PAD_X, -CARD_PAD_Y)
     end
@@ -63,7 +63,7 @@ function MedaUI:CreateStatusRow(parent, config)
     if cardStyle then
         row.icon:SetAllPoints()
     else
-        Pixel.SetPoint(row.icon, "TOPLEFT", accentWidth + 6, -2)
+        Pixel.SetPoint(row.icon, "TOPLEFT", accentWidth + TEXT_LEFT_PAD + 1, -2)
     end
     row.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
 
@@ -142,10 +142,10 @@ function MedaUI:CreateStatusRow(parent, config)
 
     -- Tooltip
     row:EnableMouse(true)
-    row:SetScript("OnEnter", function(self)
-        if self._tooltipFunc then
-            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-            self._tooltipFunc(self, GameTooltip)
+    row:SetScript("OnEnter", function(frame)
+        if frame._tooltipFunc then
+            GameTooltip:SetOwner(frame, "ANCHOR_RIGHT")
+            frame._tooltipFunc(frame, GameTooltip)
             GameTooltip:Show()
         end
     end)
@@ -172,10 +172,10 @@ function MedaUI:CreateStatusRow(parent, config)
 
     -- Theme support
     local function ApplyTheme()
-        local Theme = MedaUI.Theme
+        local theme = MedaUI.Theme
         if row._cardStyle then
-            local border = Theme.border or {0.2, 0.2, 0.22, 0.6}
-            local background = Theme.backgroundDark or Theme.background or {0.08, 0.08, 0.09, 0.9}
+            local border = theme.border or {0.2, 0.2, 0.22, 0.6}
+            local background = theme.backgroundDark or theme.background or {0.08, 0.08, 0.09, 0.9}
             row:SetBackdropColor(background[1], background[2], background[3], 0.72)
             row:SetBackdropBorderColor(border[1], border[2], border[3], (border[4] or 0.6) * 1.1)
             if row.iconFrame then
@@ -184,12 +184,12 @@ function MedaUI:CreateStatusRow(parent, config)
             end
             row.highlight:SetColorTexture(1, 1, 1, 0.04)
         end
-        row.label:SetTextColor(unpack(Theme.textBright or Theme.text or {1, 1, 1}))
+        row.label:SetTextColor(unpack(theme.textBright or theme.text or {1, 1, 1}))
         if not row._statusColorOverride then
-            row.status:SetTextColor(unpack(Theme.textDim or Theme.text or {0.8, 0.8, 0.8}))
+            row.status:SetTextColor(unpack(theme.textDim or theme.text or {0.8, 0.8, 0.8}))
         end
         if not row._noteColorOverride then
-            row.note:SetTextColor(unpack(Theme.textDim or {0.6, 0.6, 0.6}))
+            row.note:SetTextColor(unpack(theme.textDim or {0.6, 0.6, 0.6}))
         end
     end
     row._ApplyTheme = ApplyTheme
@@ -235,8 +235,8 @@ function MedaUI:CreateStatusRow(parent, config)
             self._statusColorOverride = true
         else
             self._statusColorOverride = false
-            local Theme = MedaUI.Theme
-            self.status:SetTextColor(unpack(Theme.textDim or Theme.text or {0.8, 0.8, 0.8}))
+            local theme = MedaUI.Theme
+            self.status:SetTextColor(unpack(theme.textDim or theme.text or {0.8, 0.8, 0.8}))
         end
     end
 
@@ -247,8 +247,8 @@ function MedaUI:CreateStatusRow(parent, config)
             self._noteColorOverride = true
         else
             self._noteColorOverride = false
-            local Theme = MedaUI.Theme
-            self.note:SetTextColor(unpack(Theme.textDim or {0.6, 0.6, 0.6}))
+            local theme = MedaUI.Theme
+            self.note:SetTextColor(unpack(theme.textDim or {0.6, 0.6, 0.6}))
         end
         if text and text ~= "" then
             self.note:Show()

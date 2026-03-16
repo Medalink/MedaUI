@@ -3,7 +3,7 @@
     Ultra-dark neutral palette with cool gray accents
 ]]
 
-local MedaUI = LibStub("MedaUI-1.0")
+local MedaUI = LibStub("MedaUI-2.0")
 
 MedaUI:RegisterTheme("onyx", {
     -- Font Size Hierarchy

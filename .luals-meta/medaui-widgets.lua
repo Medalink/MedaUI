@@ -1,0 +1,608 @@
+---@meta
+
+---@alias MedaUIDropdownTextureMode '"fill"'|'"preview"'|'"font"'
+
+---@class MedaUIDropdownOption
+---@field value any
+---@field label string
+---@field texture string|number|nil
+---@field path string|nil
+---@field disabled boolean|nil
+
+---@class MedaUIDropdownPreviewPanel: Frame
+---@field tex Texture
+
+---@class MedaUIDropdownItem: Frame
+---@field _dropdown MedaUIDropdown
+---@field text FontString
+---@field value any
+---@field label string|nil
+---@field _texture string|number|nil
+---@field _fillTex Texture|nil
+
+---@class MedaUIDropdownMenu: Frame
+---@field items MedaUIDropdownItem[]
+---@field scrollParent MedaUIScrollFrame
+---@field scrollChild Frame
+
+---@class MedaUIDropdown: Frame
+---@field options MedaUIDropdownOption[]
+---@field selectedValue any
+---@field selectedLabel string|nil
+---@field OnValueChanged fun(self: MedaUIDropdown, value: any, label: string|nil)|nil
+---@field isOpen boolean
+---@field enabled boolean
+---@field _isHovered boolean
+---@field _textureMode MedaUIDropdownTextureMode|nil
+---@field _selectedTexture string|number|nil
+---@field fillTex Texture|nil
+---@field previewPanel MedaUIDropdownPreviewPanel|nil
+---@field text FontString
+---@field arrowSeparator Texture
+---@field arrow Texture
+---@field arrowRotation number
+---@field button Button
+---@field menu MedaUIDropdownMenu
+---@field _ApplyTheme fun()
+---@field _themeHandle integer|nil
+---@field SetSelected fun(self: MedaUIDropdown, value: any)
+---@field GetSelected fun(self: MedaUIDropdown): any
+---@field GetSelectedLabel fun(self: MedaUIDropdown): string|nil
+---@field SetOptions fun(self: MedaUIDropdown, newOptions: MedaUIDropdownOption[])
+---@field SetEnabled fun(self: MedaUIDropdown, enabled: boolean)
+
+---@class MedaUIInfoPanel: Frame
+---@field _dismissed boolean
+---@field _locked boolean
+---@field _bgAlpha number|nil
+---@field header Frame
+---@field headerBg Texture
+---@field headerIcon Texture
+---@field titleText FontString
+---@field accent Texture
+---@field dismissBtn Button|nil
+---@field scrollParent MedaUIScrollFrame
+---@field content Frame
+---@field footer Frame
+---@field footerBg Texture
+---@field footerText FontString
+---@field statusBar Frame
+---@field statusBarBg Texture
+---@field statusBarText FontString
+---@field isResizable boolean
+---@field resizeGrip Frame|nil
+---@field OnMove fun(self: MedaUIInfoPanel)|nil
+---@field OnDismiss fun(self: MedaUIInfoPanel)|nil
+---@field OnResize fun(self: MedaUIInfoPanel, width: number, height: number)|nil
+---@field SetTitle fun(self: MedaUIInfoPanel, text: string|nil)
+---@field SetIcon fun(self: MedaUIInfoPanel, textureID: string|number|nil)
+---@field GetContent fun(self: MedaUIInfoPanel): Frame
+---@field Dismiss fun(self: MedaUIInfoPanel)
+---@field IsDismissed fun(self: MedaUIInfoPanel): boolean
+---@field ClearDismissed fun(self: MedaUIInfoPanel)
+---@field SetLocked fun(self: MedaUIInfoPanel, locked: boolean)
+---@field SetBackgroundOpacity fun(self: MedaUIInfoPanel, alpha: number|nil)
+---@field SavePosition fun(self: MedaUIInfoPanel): table
+---@field RestorePosition fun(self: MedaUIInfoPanel, tbl: table|nil)
+---@field SetFooter fun(self: MedaUIInfoPanel, text: string|nil, r?: number, g?: number, b?: number)
+---@field SetStatusBar fun(self: MedaUIInfoPanel, text: string|nil, r?: number, g?: number, b?: number)
+---@field ClearContent fun(self: MedaUIInfoPanel)
+---@field SetContentHeight fun(self: MedaUIInfoPanel, h: number)
+---@field SetResizable fun(self: MedaUIInfoPanel, enabled: boolean, resizeConfig?: table)
+
+---@class MedaUIReorderableRow: Frame
+---@field _dataIndex integer|nil
+---@field _handle Frame
+---@field _grip FontString
+
+---@class MedaUIReorderableList: Frame
+---@field data table[]
+---@field filteredData table[]|nil
+---@field filterFunc fun(item: table): boolean|nil
+---@field rowHeight number
+---@field renderRow fun(row: Frame, data: table, index: integer)|nil
+---@field rowPool MedaUIReorderableRow[]
+---@field visibleRows MedaUIReorderableRow[]
+---@field _dragEnabled boolean
+---@field _onReorder fun(data: table[], fromIndex: integer, toIndex: integer)|nil
+---@field _selectedIndex integer|nil
+---@field _dragging boolean
+---@field _dragPending boolean|nil
+---@field _dragFromIndex integer|nil
+---@field _dragTargetIndex integer|nil
+---@field _dragStartX number|nil
+---@field _dragStartY number|nil
+---@field content Frame
+---@field scrollFrame Frame
+---@field scrollParent MedaUIScrollFrame
+---@field _insertLine Frame
+---@field _dragClone Frame
+---@field _ApplyTheme fun()
+---@field _themeHandle integer|nil
+---@field _FinishDrag fun(self: MedaUIReorderableList)
+---@field SetData fun(self: MedaUIReorderableList, data: table[]|nil)
+---@field GetData fun(self: MedaUIReorderableList): table[]
+---@field SetFilter fun(self: MedaUIReorderableList, filterFunc: fun(item: table): boolean)
+---@field ApplyFilter fun(self: MedaUIReorderableList)
+---@field ClearFilter fun(self: MedaUIReorderableList)
+---@field Refresh fun(self: MedaUIReorderableList)
+---@field ScrollToIndex fun(self: MedaUIReorderableList, index: integer)
+---@field GetItemCount fun(self: MedaUIReorderableList): integer
+---@field SetDragEnabled fun(self: MedaUIReorderableList, enabled: boolean)
+---@field SetOnReorder fun(self: MedaUIReorderableList, fn: function|nil)
+---@field SetSelected fun(self: MedaUIReorderableList, index: integer|nil)
+---@field GetSelected fun(self: MedaUIReorderableList): integer|nil
+
+---@class MedaUILabelControl: Frame
+---@field label FontString|nil
+---@field header FontString|nil
+---@field control Frame
+---@field OnValueChanged fun(self: MedaUILabelControl, value: any)|nil
+---@field OnColorChanged fun(self: MedaUILabelControl, r: number, g: number, b: number, a: number|nil)|nil
+---@field OnEnterPressed fun(self: MedaUILabelControl, text: string)|nil
+---@field GetControl fun(self: MedaUILabelControl): Frame
+---@field SetLabel fun(self: MedaUILabelControl, text: string)
+
+---@class MedaUILabel: FontString
+---@field _tone string
+---@field _alphaMultiplier number
+---@field _colorOverride number[]|nil
+---@field _ApplyTheme fun()
+---@field _themeHandle integer|nil
+---@field SetTone fun(self: MedaUILabel, tone: string|nil)
+---@field SetAlphaMultiplier fun(self: MedaUILabel, alpha: number|nil)
+---@field SetColorOverride fun(self: MedaUILabel, r?: number, g?: number, b?: number, a?: number)
+
+---@class MedaUIContentFrame: Frame
+---@field _ApplyTheme fun()|nil
+---@field _themeHandle integer|nil
+---@field GetContent fun(self: MedaUIContentFrame): Frame
+
+---@class MedaUIBadge: Frame
+---@field text FontString
+---@field count number
+---@field _hasCustomColor boolean
+---@field _ApplyTheme fun()
+---@field _themeHandle integer|nil
+---@field SetCount fun(self: MedaUIBadge, count: number)
+---@field GetCount fun(self: MedaUIBadge): number
+---@field SetColor fun(self: MedaUIBadge, r: number, g: number, b: number, a?: number)
+---@field AttachTo fun(self: MedaUIBadge, frame: Frame, point?: string, xOffset?: number, yOffset?: number)
+
+---@class MedaUIExpandToggle: Frame
+---@field _expanded boolean
+---@field label FontString
+---@field _ApplyTheme fun()
+---@field _themeHandle integer|nil
+---@field SetHiddenCount fun(self: MedaUIExpandToggle, count: number|nil)
+---@field SetExpanded fun(self: MedaUIExpandToggle, expanded: boolean)
+---@field IsExpanded fun(self: MedaUIExpandToggle): boolean
+---@field GetHeight fun(self: MedaUIExpandToggle): number
+---@field SetOnToggle fun(self: MedaUIExpandToggle, fn: function|nil)
+
+---@class MedaUIHUDTextButton: Frame
+---@field label MedaUILabel
+---@field _normalTone string
+---@field _hoverTone string
+---@field _tooltip string|nil
+---@field SetText fun(self: MedaUIHUDTextButton, text: string|nil)
+---@field SetFontObject fun(self: MedaUIHUDTextButton, fontObject: string|table)
+---@field SetTones fun(self: MedaUIHUDTextButton, normalTone?: string, hoverTone?: string)
+---@field SetTooltip fun(self: MedaUIHUDTextButton, tooltipText: string|nil)
+
+---@class MedaUIIconButton: Frame
+---@field icon Texture
+---@field _isHovered boolean
+---@field _isEnabled boolean
+---@field _isToggle boolean
+---@field _active boolean
+---@field _iconPath string|number|nil
+---@field _iconActivePath string|number|nil
+---@field _tooltipText string|nil
+---@field _tooltipActiveText string|nil
+---@field _flat boolean
+---@field _ApplyTheme fun()
+---@field _themeHandle integer|nil
+---@field OnClick fun(self: MedaUIIconButton, button: string, active: boolean)|nil
+---@field SetActive fun(self: MedaUIIconButton, active: boolean)
+---@field IsActive fun(self: MedaUIIconButton): boolean
+---@field SetIcon fun(self: MedaUIIconButton, path: string|number)
+---@field SetAtlas fun(self: MedaUIIconButton, atlas: string)
+---@field SetActiveIcon fun(self: MedaUIIconButton, path: string|number)
+---@field SetTooltipText fun(self: MedaUIIconButton, normal: string|nil, active?: string|nil)
+---@field SetIconDesaturated fun(self: MedaUIIconButton, desaturated: boolean)
+---@field SetEnabled fun(self: MedaUIIconButton, enabled: boolean)
+
+---@class MedaUIRadioButtonBox: Frame
+---@field dot Texture
+
+---@class MedaUIRadioButton: Frame
+---@field group string|nil
+---@field label FontString
+---@field selected boolean
+---@field box MedaUIRadioButtonBox
+---@field OnValueChanged fun(self: MedaUIRadioButton, value: boolean)|nil
+---@field _ApplyTheme fun()
+---@field _themeHandle integer|nil
+---@field SetSelected fun(self: MedaUIRadioButton, value: boolean)
+---@field GetSelected fun(self: MedaUIRadioButton): boolean
+---@field SetLabel fun(self: MedaUIRadioButton, text: string)
+---@field SetChecked fun(self: MedaUIRadioButton, value: boolean)
+---@field GetChecked fun(self: MedaUIRadioButton): boolean
+
+---@class MedaUIInlineRadioGroup: Frame
+---@field label MedaUILabel|nil
+---@field group string
+---@field buttons MedaUIRadioButton[]
+---@field value any
+---@field OnValueChanged fun(self: MedaUIInlineRadioGroup, value: any)|nil
+---@field SetValue fun(self: MedaUIInlineRadioGroup, value: any, fireCallback?: boolean)
+---@field GetValue fun(self: MedaUIInlineRadioGroup): any
+
+---@class MedaUIToggle: Frame
+---@field track Frame
+---@field trackTex Texture
+---@field knob Texture
+---@field checked boolean
+---@field label FontString|nil
+---@field OnValueChanged fun(self: MedaUIToggle, value: boolean)|nil
+---@field _ApplyTheme fun()
+---@field _themeHandle integer|nil
+---@field SetChecked fun(self: MedaUIToggle, value: boolean)
+---@field GetChecked fun(self: MedaUIToggle): boolean
+---@field SetLabel fun(self: MedaUIToggle, text: string)
+
+---@class MedaUISectionHeader: Frame
+---@field header FontString
+---@field line Texture
+---@field _ApplyTheme fun()
+---@field _themeHandle integer|nil
+---@field SetText fun(self: MedaUISectionHeader, text: string)
+---@field GetText fun(self: MedaUISectionHeader): string
+---@field SetLineWidth fun(self: MedaUISectionHeader, width: number)
+
+---@class MedaUITabButton: Frame
+---@field id string
+---@field label string
+---@field text FontString
+---@field activeIndicator Texture
+---@field badge MedaUIBadge|nil
+
+---@class MedaUITabBar: Frame
+---@field tabs table[]
+---@field tabButtons table<string, MedaUITabButton>
+---@field activeTab string|nil
+---@field OnTabChanged fun(self: MedaUITabBar, tabId: string, previousTab: string|nil)|nil
+---@field _ApplyTheme fun()
+---@field _themeHandle integer|nil
+---@field SetActiveTab fun(self: MedaUITabBar, tabId: string)
+---@field GetActiveTab fun(self: MedaUITabBar): string|nil
+---@field SetBadge fun(self: MedaUITabBar, tabId: string, count: number)
+---@field GetTab fun(self: MedaUITabBar, tabId: string): MedaUITabButton|nil
+
+---@class MedaUIButton: Frame
+---@field text FontString
+---@field _isHovered boolean
+---@field _isEnabled boolean
+---@field _ApplyTheme fun()
+---@field _themeHandle integer|nil
+---@field OnClick fun(self: MedaUIButton, button: string)|nil
+---@field SetText fun(self: MedaUIButton, text: string)
+---@field SetEnabled fun(self: MedaUIButton, enabled: boolean)
+
+---@class MedaUICheckboxButton: Frame
+---@field check Texture
+
+---@class MedaUICheckbox: Frame
+---@field label FontString
+---@field checked boolean
+---@field box MedaUICheckboxButton
+---@field _isHovered boolean
+---@field _ApplyTheme fun()
+---@field _themeHandle integer|nil
+---@field OnValueChanged fun(self: MedaUICheckbox, value: boolean)|nil
+---@field SetChecked fun(self: MedaUICheckbox, value: boolean)
+---@field GetChecked fun(self: MedaUICheckbox): boolean
+---@field SetLabel fun(self: MedaUICheckbox, text: string)
+
+---@class MedaUIColorPickerSwatch: Frame
+
+---@class MedaUIColorPicker: Frame
+---@field r number
+---@field g number
+---@field b number
+---@field a number
+---@field hasOpacity boolean
+---@field _isHovered boolean
+---@field swatch MedaUIColorPickerSwatch
+---@field colorTexture Texture
+---@field OnColorChanged fun(self: MedaUIColorPicker, r: number, g: number, b: number, a: number)|nil
+---@field _ApplyTheme fun()
+---@field _themeHandle integer|nil
+---@field SetColor fun(self: MedaUIColorPicker, r?: number, g?: number, b?: number, a?: number)
+---@field GetColor fun(self: MedaUIColorPicker): number, number, number, number
+---@field SetHasOpacity fun(self: MedaUIColorPicker, enabled: boolean)
+
+---@class MedaUIDataTableRow: Frame
+---@field _dataTable MedaUIDataTable
+---@field _cells FontString[]
+---@field _isGroupHeader boolean|nil
+---@field _text FontString|nil
+---@field data table|nil
+---@field dataIndex integer|nil
+---@field bgColor number[]
+
+---@class MedaUIDataTable: Frame
+---@field columns table[]
+---@field rowHeight number
+---@field selectable boolean
+---@field alternateColors boolean
+---@field showHeaders boolean
+---@field data table[]
+---@field groups table[]
+---@field selectedRow MedaUIDataTableRow|nil
+---@field rows MedaUIDataTableRow[]
+---@field headerRow Frame|nil
+---@field _rowPool MedaUIDataTableRow[]
+---@field _groupHeaderPool MedaUIDataTableRow[]
+---@field OnRowClick fun(self: MedaUIDataTable, row: MedaUIDataTableRow, data: table, index: integer)|nil
+---@field OnRowDoubleClick fun(self: MedaUIDataTable, row: MedaUIDataTableRow, data: table, index: integer)|nil
+---@field OnSelectionChanged fun(self: MedaUIDataTable, data: table, index: integer)|nil
+---@field scrollParent MedaUIScrollFrame
+---@field scrollChild Frame
+---@field _ApplyTheme fun()
+---@field _themeHandle integer|nil
+---@field SetColumns fun(self: MedaUIDataTable, columns: table[])
+---@field SetData fun(self: MedaUIDataTable, data: table[])
+---@field AddGroup fun(self: MedaUIDataTable, headerText: string, items: table[])
+---@field Clear fun(self: MedaUIDataTable)
+---@field Refresh fun(self: MedaUIDataTable)
+---@field GetSelected fun(self: MedaUIDataTable): table|nil
+---@field SelectRow fun(self: MedaUIDataTable, index: integer)
+---@field ScrollToRow fun(self: MedaUIDataTable, index: integer)
+
+---@class MedaUIEditBox: Frame
+---@field editBox EditBox
+---@field _hasFocus boolean
+---@field _isHovered boolean
+---@field _isEnabled boolean
+---@field placeholder string|nil
+---@field _placeholderHooked boolean|nil
+---@field OnEnterPressed fun(self: MedaUIEditBox, text: string)|nil
+---@field OnTextChanged fun(self: MedaUIEditBox, text: string)|nil
+---@field _ApplyTheme fun()
+---@field _themeHandle integer|nil
+---@field SetText fun(self: MedaUIEditBox, text: string|nil)
+---@field GetText fun(self: MedaUIEditBox): string
+---@field SetPlaceholder fun(self: MedaUIEditBox, text: string)
+---@field ClearFocus fun(self: MedaUIEditBox)
+---@field SetFocus fun(self: MedaUIEditBox)
+---@field Enable fun(self: MedaUIEditBox)
+---@field Disable fun(self: MedaUIEditBox)
+
+---@class MedaUISearchBoxClearButton: Frame
+---@field text FontString
+
+---@class MedaUISearchBox: Frame
+---@field OnSearch fun(self: MedaUISearchBox, text: string)|nil
+---@field debounceTime number
+---@field debounceTimer table|nil
+---@field _hasFocus boolean
+---@field icon Texture
+---@field editBox EditBox
+---@field placeholder FontString
+---@field clearBtn MedaUISearchBoxClearButton
+---@field _ApplyTheme fun()
+---@field _themeHandle integer|nil
+---@field GetText fun(self: MedaUISearchBox): string
+---@field SetText fun(self: MedaUISearchBox, text: string|nil)
+---@field Clear fun(self: MedaUISearchBox)
+---@field SetPlaceholder fun(self: MedaUISearchBox, text: string)
+---@field SetDebounceTime fun(self: MedaUISearchBox, seconds: number)
+---@field SetFocus fun(self: MedaUISearchBox)
+---@field ClearFocus fun(self: MedaUISearchBox)
+
+---@class MedaUIHUDRow: Frame
+---@field stateMarker Texture
+---@field icon Texture
+---@field delta FontString
+---@field timer FontString
+---@field text FontString
+---@field _state string
+---@field _deltaSeconds number|nil
+---@field _onFulfill fun(row: MedaUIHUDRow)|nil
+---@field _onDismiss fun(row: MedaUIHUDRow)|nil
+---@field _showTimer boolean
+---@field _showDelta boolean
+---@field _showState boolean
+---@field _ApplyThemeFunc fun()
+---@field _themeHandle integer|nil
+---@field _ApplyStateColor fun(self: MedaUIHUDRow)
+---@field SetState fun(self: MedaUIHUDRow, state: string)
+---@field SetIcon fun(self: MedaUIHUDRow, texture: string|number|nil)
+---@field SetIconColor fun(self: MedaUIHUDRow, r: number, g: number, b: number)
+---@field SetIconDesaturated fun(self: MedaUIHUDRow, desaturated: boolean)
+---@field SetText fun(self: MedaUIHUDRow, text: string)
+---@field SetTimer fun(self: MedaUIHUDRow, text: string|nil)
+---@field SetDelta fun(self: MedaUIHUDRow, seconds: number|nil, thresholds?: table)
+---@field SetOnFulfill fun(self: MedaUIHUDRow, fn: function|nil)
+---@field SetOnDismiss fun(self: MedaUIHUDRow, fn: function|nil)
+---@field Reset fun(self: MedaUIHUDRow)
+
+---@class MedaUIStatusRow: Frame
+---@field _cardStyle boolean
+---@field accent Texture
+---@field iconFrame Frame|nil
+---@field icon Texture
+---@field label FontString
+---@field status FontString
+---@field note FontString
+---@field highlight Texture
+---@field _showNote boolean
+---@field _iconSize number
+---@field _tooltipFunc fun(self: MedaUIStatusRow, tooltip: Frame)|nil
+---@field _hasIcon boolean
+---@field _ApplyTheme fun()
+---@field _themeHandle integer|nil
+---@field _statusColorOverride boolean|nil
+---@field _noteColorOverride boolean|nil
+---@field SetIcon fun(self: MedaUIStatusRow, textureID: string|number|nil)
+---@field SetLabel fun(self: MedaUIStatusRow, text: string)
+---@field SetStatus fun(self: MedaUIStatusRow, text: string, r?: number, g?: number, b?: number)
+---@field SetNote fun(self: MedaUIStatusRow, text: string, r?: number, g?: number, b?: number)
+---@field SetAccentColor fun(self: MedaUIStatusRow, r: number, g: number, b: number)
+---@field SetHighlight fun(self: MedaUIStatusRow, enabled: boolean)
+---@field SetTooltipFunc fun(self: MedaUIStatusRow, func: function|nil)
+---@field Reset fun(self: MedaUIStatusRow)
+
+---@class MedaUICodeBlockLine: Frame
+---@field text FontString
+
+---@class MedaUICopyDialog: Frame
+---@field title FontString
+---@field editBox EditBox
+---@field closeBtn Button
+
+---@class MedaUICodeBlock: Frame
+---@field text string
+---@field lines string[]
+---@field highlightLine integer|nil
+---@field showLineNumbers boolean
+---@field content Frame
+---@field scrollParent MedaUIScrollFrame
+---@field gutter Frame|nil
+---@field copyBtn Button
+---@field linePool table<integer, MedaUICodeBlockLine>
+---@field lineNumberPool table<integer, FontString>
+---@field visibleLines table<integer, { frame: MedaUICodeBlockLine, lineNum: FontString|nil }>
+---@field _ApplyTheme fun()
+---@field _themeHandle integer|nil
+---@field SetText fun(self: MedaUICodeBlock, text: string)
+---@field GetText fun(self: MedaUICodeBlock): string
+---@field SetHighlightLine fun(self: MedaUICodeBlock, lineNumber: integer|nil)
+---@field ClearHighlight fun(self: MedaUICodeBlock)
+---@field ScrollToLine fun(self: MedaUICodeBlock, lineNumber: integer)
+---@field CopyToClipboard fun(self: MedaUICodeBlock)
+---@field Refresh fun(self: MedaUICodeBlock)
+---@field SetShowLineNumbers fun(self: MedaUICodeBlock, show: boolean)
+
+---@class MedaUINotificationBanner: Frame
+---@field _duration number
+---@field _hideTime number|nil
+---@field _locked boolean
+---@field _countdownTicker table|nil
+---@field _dismissTimer table|nil
+---@field _countdownToken integer
+---@field text FontString
+---@field barBg Frame
+---@field bar StatusBar
+---@field OnShow fun(self: MedaUINotificationBanner, text: string)|nil
+---@field OnHide fun(self: MedaUINotificationBanner)|nil
+---@field _ApplyTheme fun()
+---@field _themeHandle integer|nil
+---@field Dismiss fun(self: MedaUINotificationBanner)
+---@field SetDuration fun(self: MedaUINotificationBanner, sec: number)
+---@field SetBarHeight fun(self: MedaUINotificationBanner, h: number)
+---@field SetShowBar fun(self: MedaUINotificationBanner, show: boolean)
+---@field SetLocked fun(self: MedaUINotificationBanner, locked: boolean)
+---@field SetTextFont fun(self: MedaUINotificationBanner, fontObj: table)
+---@field SetTextColor fun(self: MedaUINotificationBanner, r: number, g: number, b: number)
+---@field SetBarColor fun(self: MedaUINotificationBanner, r: number, g: number, b: number)
+---@field SetBackgroundOpacity fun(self: MedaUINotificationBanner, alpha: number)
+---@field SavePosition fun(self: MedaUINotificationBanner): table
+---@field RestorePosition fun(self: MedaUINotificationBanner, tbl: table|nil)
+---@field ResetPosition fun(self: MedaUINotificationBanner)
+---@field ShowPreview fun(self: MedaUINotificationBanner, text: string)
+---@field DismissPreview fun(self: MedaUINotificationBanner)
+
+---@class MedaUIAutoHideContainer: Frame
+---@field hitbox Frame
+---@field content Frame
+---@field isHovered boolean
+---@field isLocked boolean
+---@field fadeInDuration number
+---@field fadeOutDuration number
+---@field hideDelay number
+---@field fadeOutTimer table|nil
+---@field fadeIn table
+---@field fadeOut table
+---@field _fadeInAlpha table
+---@field _fadeOutAlpha table
+---@field OnShow fun(self: MedaUIAutoHideContainer)|nil
+---@field OnHide fun(self: MedaUIAutoHideContainer)|nil
+---@field OnMove fun(self: MedaUIAutoHideContainer, position?: table)|nil
+---@field _ApplyTheme fun()
+---@field _themeHandle integer|nil
+---@field SetLocked fun(self: MedaUIAutoHideContainer, locked: boolean)
+---@field IsLocked fun(self: MedaUIAutoHideContainer): boolean
+---@field GetContent fun(self: MedaUIAutoHideContainer): Frame
+---@field GetHitbox fun(self: MedaUIAutoHideContainer): Frame
+---@field SetContainerSize fun(self: MedaUIAutoHideContainer, width: number, height: number)
+---@field SetFadeDurations fun(self: MedaUIAutoHideContainer, fadeIn: number, fadeOut: number)
+---@field SetHideDelay fun(self: MedaUIAutoHideContainer, delay: number)
+---@field EnableDragging fun(self: MedaUIAutoHideContainer, saveCallback?: function)
+---@field SetContainerPosition fun(self: MedaUIAutoHideContainer, point: string, relativeTo: Frame|string|nil, relativePoint: string|nil, x: number, y: number)
+---@field ForceShow fun(self: MedaUIAutoHideContainer)
+---@field ForceHide fun(self: MedaUIAutoHideContainer)
+
+---@class MedaUIFloatingToolbar: Frame
+---@field title string|nil
+---@field draggable boolean
+---@field closeable boolean
+---@field buttons Button[]
+---@field instructionsText string|nil
+---@field statusText string|nil
+---@field titleLabel FontString|nil
+---@field closeBtn Button|nil
+---@field instructionsLabel FontString
+---@field statusLabel FontString
+---@field buttonContainer Frame
+---@field _ApplyTheme fun()
+---@field _themeHandle integer|nil
+---@field OnClose fun(self: MedaUIFloatingToolbar)|nil
+---@field OnMove fun(self: MedaUIFloatingToolbar, position: table)|nil
+---@field _buttonPool Button[]
+---@field SetInstructions fun(self: MedaUIFloatingToolbar, text: string)
+---@field SetStatus fun(self: MedaUIFloatingToolbar, text: string)
+---@field SetStatusColor fun(self: MedaUIFloatingToolbar, text: string, r: number, g: number, b: number)
+---@field AddButton fun(self: MedaUIFloatingToolbar, label: string, onClick: function): Button
+---@field AddToggleButton fun(self: MedaUIFloatingToolbar, label: string, onClick: function, isActive: boolean|function): Button
+---@field RefreshToggleButtons fun(self: MedaUIFloatingToolbar)
+---@field ClearButtons fun(self: MedaUIFloatingToolbar)
+---@field UpdateHeight fun(self: MedaUIFloatingToolbar)
+---@field CenterOnScreen fun(self: MedaUIFloatingToolbar)
+---@field PositionNear fun(self: MedaUIFloatingToolbar, frame: Frame, offset?: number)
+
+---@class MedaUILibrary
+---@field CreateBadge fun(self: MedaUILibrary, parent: Frame): MedaUIBadge
+---@field CreateButton fun(self: MedaUILibrary, parent: Frame, text: string, width?: number, height?: number): MedaUIButton
+---@field CreateCheckbox fun(self: MedaUILibrary, parent: Frame, label: string): MedaUICheckbox
+---@field CreateColorPicker fun(self: MedaUILibrary, parent: Frame, width?: number, height?: number, hasOpacity?: boolean): MedaUIColorPicker
+---@field CreateContentFrame fun(self: MedaUILibrary, parent: Frame, config?: table): MedaUIContentFrame
+---@field CreateDataTable fun(self: MedaUILibrary, parent: Frame, width: number, height: number, config?: table): MedaUIDataTable
+---@field CreateDropdown fun(self: MedaUILibrary, parent: Frame, width: number, options: MedaUIDropdownOption[]|nil, textureMode?: MedaUIDropdownTextureMode): MedaUIDropdown
+---@field CreateEditBox fun(self: MedaUILibrary, parent: Frame, width: number, height?: number, isMultiLine?: boolean): MedaUIEditBox
+---@field CreateExpandToggle fun(self: MedaUILibrary, parent: Frame, config?: table): MedaUIExpandToggle
+---@field CreateHUDTextButton fun(self: MedaUILibrary, parent: Frame, text: string, config?: table): MedaUIHUDTextButton
+---@field CreateIconButton fun(self: MedaUILibrary, parent: Frame, config?: table): MedaUIIconButton
+---@field CreateInfoPanel fun(self: MedaUILibrary, name: string, config?: table): MedaUIInfoPanel
+---@field CreateInlineRadioGroup fun(self: MedaUILibrary, parent: Frame, config?: table): MedaUIInlineRadioGroup
+---@field CreateLabel fun(self: MedaUILibrary, parent: Frame, text?: string, config?: table): MedaUILabel
+---@field CreateMinimapButton fun(self: MedaUILibrary, name: string, icon: string|number, onClick?: function, onRightClick?: function, savedVarsTable?: table): table|nil
+---@field CreateRadio fun(self: MedaUILibrary, parent: Frame, label: string, group?: string): MedaUIRadioButton
+---@field CreateReorderableList fun(self: MedaUILibrary, parent: Frame, width: number, height: number, config?: table): MedaUIReorderableList
+---@field CreateSectionHeader fun(self: MedaUILibrary, parent: Frame, text: string, width?: number): MedaUISectionHeader
+---@field CreateTabBar fun(self: MedaUILibrary, parent: Frame, tabs: table[]): MedaUITabBar
+---@field CreateToggle fun(self: MedaUILibrary, parent: Frame, label?: string): MedaUIToggle
+---@field CreateSearchBox fun(self: MedaUILibrary, parent: Frame, width: number): MedaUISearchBox
+---@field CreateHUDRow fun(self: MedaUILibrary, parent: Frame, config?: table): MedaUIHUDRow
+---@field CreateStatusRow fun(self: MedaUILibrary, parent: Frame, config?: table): MedaUIStatusRow
+---@field CreateCodeBlock fun(self: MedaUILibrary, parent: Frame, width: number, height: number, config?: table): MedaUICodeBlock
+---@field CreateNotificationBanner fun(self: MedaUILibrary, name: string, config?: table): MedaUINotificationBanner
+---@field CreateAutoHideContainer fun(self: MedaUILibrary, name: string, config?: table): MedaUIAutoHideContainer
+---@field CreateFloatingToolbar fun(self: MedaUILibrary, name: string, width: number, title?: string, config?: table): MedaUIFloatingToolbar
+---@field CreateLabeledSlider fun(self: MedaUILibrary, parent: Frame, labelText: string, width: number, min: number, max: number, step?: number): MedaUILabelControl
+---@field CreateLabeledDropdown fun(self: MedaUILibrary, parent: Frame, labelText: string, width: number, options: MedaUIDropdownOption[]|nil, textureMode?: MedaUIDropdownTextureMode): MedaUILabelControl
+---@field CreateLabeledColorPicker fun(self: MedaUILibrary, parent: Frame, labelText: string, size?: number, hasAlpha?: boolean): MedaUILabelControl
+---@field CreateLabeledCheckbox fun(self: MedaUILibrary, parent: Frame, labelText: string, headerText?: string): Frame|MedaUILabelControl
+---@field CreateLabeledEditBox fun(self: MedaUILibrary, parent: Frame, labelText: string, width: number, height?: number): MedaUILabelControl

@@ -3,14 +3,15 @@
     Simple stacked text lines for lightweight HUD sections.
 ]]
 
-local MedaUI = LibStub("MedaUI-1.0")
-local Pixel = LibStub("MedaUI-1.0").Pixel
+local MedaUI = LibStub("MedaUI-2.0")
+---@cast MedaUI MedaUILibrary
+local Pixel = LibStub("MedaUI-2.0").Pixel
 
 --- Create a stacked HUD text block.
 --- @param parent Frame
 --- @param config table|nil { width, lineCount, lineHeight, fontObject, justifyH, tone, shadow }
 --- @return Frame
-function MedaUI:CreateHUDTextBlock(parent, config)
+function MedaUI.CreateHUDTextBlock(_, parent, config)
     config = config or {}
 
     local block = CreateFrame("Frame", nil, parent)

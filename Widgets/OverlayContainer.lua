@@ -3,14 +3,15 @@
     Lightweight draggable HUD container with themed title text and optional background.
 ]]
 
-local MedaUI = LibStub("MedaUI-1.0")
-local Pixel = LibStub("MedaUI-1.0").Pixel
+local MedaUI = LibStub("MedaUI-2.0")
+---@cast MedaUI MedaUILibrary
+local Pixel = LibStub("MedaUI-2.0").Pixel
 
 --- Create an overlay container.
 --- @param name string
 --- @param config table|nil { width, height, strata, title, titleFont, titleTone, titleAlpha, point, showBackground, backgroundOpacity, locked }
 --- @return Frame
-function MedaUI:CreateOverlayContainer(name, config)
+function MedaUI.CreateOverlayContainer(_, name, config)
     config = config or {}
 
     local frame = CreateFrame("Frame", name, UIParent)
@@ -49,16 +50,16 @@ function MedaUI:CreateOverlayContainer(name, config)
     })
     Pixel.SetPoint(frame.title, "TOPLEFT", 4, 0)
 
-    frame:SetScript("OnDragStart", function(self)
-        if not self._locked then
-            self:StartMoving()
+    frame:SetScript("OnDragStart", function(widget)
+        if not widget._locked then
+            widget:StartMoving()
         end
     end)
 
-    frame:SetScript("OnDragStop", function(self)
-        self:StopMovingOrSizing()
-        if self.OnMove then
-            self:OnMove(self:SavePosition())
+    frame:SetScript("OnDragStop", function(widget)
+        widget:StopMovingOrSizing()
+        if widget.OnMove then
+            widget:OnMove(widget:SavePosition())
         end
     end)
 

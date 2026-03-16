@@ -3,21 +3,22 @@
     Table with headers, columns, alternating rows, and selection support
 ]]
 
-local MedaUI = LibStub("MedaUI-1.0")
-local Pixel = LibStub("MedaUI-1.0").Pixel
+local MedaUI = LibStub("MedaUI-2.0")
+---@cast MedaUI MedaUILibrary
+local Pixel = LibStub("MedaUI-2.0").Pixel
 
 local PLAIN_BACKDROP = { bgFile = "Interface\\Buttons\\WHITE8x8" }
 
 local function Row_OnEnter(self)
-    local Theme = MedaUI.Theme
-    self:SetBackdropColor(unpack(Theme.highlight))
+    local theme = MedaUI.Theme
+    self:SetBackdropColor(unpack(theme.highlight))
 end
 
 local function Row_OnLeave(self)
     local dt = self._dataTable
     if dt and dt.selectedRow == self then
-        local Theme = MedaUI.Theme
-        self:SetBackdropColor(unpack(Theme.highlight))
+        local theme = MedaUI.Theme
+        self:SetBackdropColor(unpack(theme.highlight))
     else
         self:SetBackdropColor(unpack(self.bgColor))
     end
@@ -26,14 +27,14 @@ end
 local function Row_OnClick(self)
     local dt = self._dataTable
     if not dt then return end
-    local Theme = MedaUI.Theme
+    local theme = MedaUI.Theme
 
     if dt.selectable then
         if dt.selectedRow and dt.selectedRow ~= self then
             dt.selectedRow:SetBackdropColor(unpack(dt.selectedRow.bgColor))
         end
         dt.selectedRow = self
-        self:SetBackdropColor(unpack(Theme.highlight))
+        self:SetBackdropColor(unpack(theme.highlight))
 
         if dt.OnSelectionChanged then
             dt:OnSelectionChanged(self.data, self.dataIndex)
@@ -58,14 +59,12 @@ end
 --- @param height number Table height
 --- @param config table|nil Configuration {columns, rowHeight, selectable, alternateColors, showHeaders}
 --- @return table The data table widget
-function MedaUI:CreateDataTable(parent, width, height, config)
+function MedaUI.CreateDataTable(library, parent, width, height, config)
     config = config or {}
 
     local table = CreateFrame("Frame", nil, parent, "BackdropTemplate")
     Pixel.SetSize(table, width, height)
-    table:SetBackdrop(self:CreateBackdrop(true))
-
-    local Theme = self.Theme
+    table:SetBackdrop(library:CreateBackdrop(true))
 
     -- State
     table.columns = config.columns or {}
@@ -92,7 +91,7 @@ function MedaUI:CreateDataTable(parent, width, height, config)
     local headerHeight = table.showHeaders and 20 or 0
 
     -- Scroll frame (AF custom scrollbar)
-    local scrollParent = self:CreateScrollFrame(table)
+    local scrollParent = library:CreateScrollFrame(table)
     Pixel.SetPoint(scrollParent, "TOPLEFT", 1, -(1 + headerHeight))
     Pixel.SetPoint(scrollParent, "BOTTOMRIGHT", -1, 1)
     scrollParent:SetScrollStep(66)
@@ -113,12 +112,12 @@ function MedaUI:CreateDataTable(parent, width, height, config)
 
     -- Apply theme
     local function ApplyTheme()
-        local Theme = MedaUI.Theme
-        table:SetBackdropColor(unpack(Theme.backgroundDark))
-        table:SetBackdropBorderColor(unpack(Theme.border))
+        local theme = MedaUI.Theme
+        table:SetBackdropColor(unpack(theme.backgroundDark))
+        table:SetBackdropBorderColor(unpack(theme.border))
 
         if table.headerRow then
-            table.headerRow:SetBackdropColor(unpack(Theme.rowHeader))
+            table.headerRow:SetBackdropColor(unpack(theme.rowHeader))
         end
     end
     table._ApplyTheme = ApplyTheme
@@ -226,7 +225,7 @@ function MedaUI:CreateDataTable(parent, width, height, config)
     end
 
     local function PopulateRow(dt, row, data, index, yOffset)
-        local Theme = MedaUI.Theme
+        local theme = MedaUI.Theme
         local columns = dt.columns
 
         Pixel.SetSize(row, dt.scrollChild:GetWidth(), dt.rowHeight)
@@ -234,7 +233,7 @@ function MedaUI:CreateDataTable(parent, width, height, config)
 
         row.data = data
         row.dataIndex = index
-        row.bgColor = (dt.alternateColors and index % 2 == 0) and Theme.rowEven or Theme.rowOdd
+        row.bgColor = (dt.alternateColors and index % 2 == 0) and theme.rowEven or theme.rowOdd
         row:SetBackdropColor(unpack(row.bgColor))
 
         local numCols = #columns
@@ -265,7 +264,7 @@ function MedaUI:CreateDataTable(parent, width, height, config)
             elseif col.color then
                 cellText:SetTextColor(unpack(col.color))
             else
-                cellText:SetTextColor(unpack(Theme.text))
+                cellText:SetTextColor(unpack(theme.text))
             end
 
             cellText:Show()
@@ -279,7 +278,7 @@ function MedaUI:CreateDataTable(parent, width, height, config)
 
     --- Refresh the display
     function table:Refresh()
-        local Theme = MedaUI.Theme
+        local theme = MedaUI.Theme
 
         ReleaseRows(self)
 
@@ -291,9 +290,9 @@ function MedaUI:CreateDataTable(parent, width, height, config)
                 local groupHeader = AcquireGroupHeader(self)
                 Pixel.SetSize(groupHeader, self.scrollChild:GetWidth(), self.rowHeight + 4)
                 Pixel.SetPoint(groupHeader, "TOPLEFT", 0, yOffset)
-                groupHeader:SetBackdropColor(unpack(Theme.rowHeader))
+                groupHeader:SetBackdropColor(unpack(theme.rowHeader))
                 groupHeader._text:SetText(group.header)
-                groupHeader._text:SetTextColor(unpack(Theme.gold))
+                groupHeader._text:SetTextColor(unpack(theme.gold))
 
                 self.rows[#self.rows + 1] = groupHeader
                 yOffset = yOffset - (self.rowHeight + 4)

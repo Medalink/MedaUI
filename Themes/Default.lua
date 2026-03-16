@@ -3,7 +3,7 @@
     Dark Grey + Gold - Modern Material UI inspired theme
 ]]
 
-local MedaUI = LibStub("MedaUI-1.0")
+local MedaUI = LibStub("MedaUI-2.0")
 
 MedaUI:RegisterTheme("default", {
     -- Font Size Hierarchy

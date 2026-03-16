@@ -3,7 +3,7 @@
     Windows Mica-inspired dark theme with blue/purple accents
 ]]
 
-local MedaUI = LibStub("MedaUI-1.0")
+local MedaUI = LibStub("MedaUI-2.0")
 
 MedaUI:RegisterTheme("bricks", {
     -- Font Size Hierarchy

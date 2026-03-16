@@ -1,9 +1,9 @@
-local MedaUI = LibStub("MedaUI-1.0")
+local MedaUI = LibStub("MedaUI-2.0")
 local Pixel = {}
 MedaUI.Pixel = Pixel
 
 local floor, ceil, abs = math.floor, math.ceil, math.abs
-local max, min = math.max, math.min
+local max = math.max
 local select, type = select, type
 local Mixin, CreateFrame = Mixin, CreateFrame
 local GetPhysicalScreenSize = GetPhysicalScreenSize

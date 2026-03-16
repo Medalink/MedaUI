@@ -4,13 +4,14 @@
     Supports "export" mode (read-only, select-all + copy) and "import" mode (editable, with Import button).
 ]]
 
-local MedaUI = LibStub("MedaUI-1.0")
+local MedaUI = LibStub("MedaUI-2.0")
+---@cast MedaUI MedaUILibrary
 local Pixel = MedaUI.Pixel
 
 --- Create a reusable import/export dialog.
 --- @param config table|nil Optional defaults: { width, height, title }
 --- @return table Dialog API
-function MedaUI:CreateImportExportDialog(config)
+function MedaUI.CreateImportExportDialog(library, config)
     config = config or {}
 
     local dialogName = "MedaUIImportExport_" .. tostring(math.random(100000, 999999))
@@ -18,7 +19,7 @@ function MedaUI:CreateImportExportDialog(config)
     local frame = CreateFrame("Frame", dialogName, UIParent, "BackdropTemplate")
     Pixel.SetSize(frame, config.width or 520, config.height or 260)
     Pixel.SetPoint(frame, "CENTER")
-    frame:SetBackdrop(self:CreateBackdrop(true))
+    frame:SetBackdrop(library:CreateBackdrop(true))
     frame:SetFrameStrata("FULLSCREEN_DIALOG")
     frame:SetMovable(true)
     frame:EnableMouse(true)
@@ -40,16 +41,16 @@ function MedaUI:CreateImportExportDialog(config)
     local scrollBg = CreateFrame("Frame", nil, frame, "BackdropTemplate")
     scrollBg:SetPoint("TOPLEFT", 12, -32)
     scrollBg:SetPoint("BOTTOMRIGHT", -12, 42)
-    scrollBg:SetBackdrop(self:CreateBackdrop(true))
+    scrollBg:SetBackdrop(library:CreateBackdrop(true))
 
     local function ApplyInputTheme(focused)
-        local Theme = MedaUI.Theme
-        scrollBg:SetBackdropColor(unpack(Theme.input or { 0.08, 0.08, 0.12, 0.98 }))
-        scrollBg:SetBackdropBorderColor(unpack(focused and (Theme.gold or { 1, 0.82, 0 }) or (Theme.border or { 0.3, 0.3, 0.3, 1 })))
+        local theme = MedaUI.Theme
+        scrollBg:SetBackdropColor(unpack(theme.input or { 0.08, 0.08, 0.12, 0.98 }))
+        scrollBg:SetBackdropBorderColor(unpack(focused and (theme.gold or { 1, 0.82, 0 }) or (theme.border or { 0.3, 0.3, 0.3, 1 })))
     end
 
     -- Scroll frame
-    local scrollParent = self:CreateScrollFrame(scrollBg)
+    local scrollParent = library:CreateScrollFrame(scrollBg)
     Pixel.SetPoint(scrollParent, "TOPLEFT", 6, -6)
     Pixel.SetPoint(scrollParent, "BOTTOMRIGHT", -6, 6)
     scrollParent:SetScrollStep(40)
@@ -99,9 +100,9 @@ function MedaUI:CreateImportExportDialog(config)
 
     -- Theme
     local function ApplyTheme()
-        local Theme = MedaUI.Theme
-        frame:SetBackdropColor(unpack(Theme.backgroundDark))
-        frame:SetBackdropBorderColor(unpack(Theme.border))
+        local theme = MedaUI.Theme
+        frame:SetBackdropColor(unpack(theme.backgroundDark))
+        frame:SetBackdropBorderColor(unpack(theme.border))
         ApplyInputTheme(editBox:HasFocus())
     end
     MedaUI:RegisterThemedWidget(frame, ApplyTheme)
@@ -208,9 +209,9 @@ end
 
 --- Shared singleton import/export dialog.
 local sharedDialog
-function MedaUI:GetSharedImportExportDialog()
+function MedaUI.GetSharedImportExportDialog(library)
     if not sharedDialog then
-        sharedDialog = self:CreateImportExportDialog()
+        sharedDialog = library:CreateImportExportDialog()
     end
     return sharedDialog
 end

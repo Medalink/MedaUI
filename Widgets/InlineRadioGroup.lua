@@ -3,14 +3,15 @@
     Horizontal radio button group with an optional label.
 ]]
 
-local MedaUI = LibStub("MedaUI-1.0")
-local Pixel = LibStub("MedaUI-1.0").Pixel
+local MedaUI = LibStub("MedaUI-2.0")
+---@cast MedaUI MedaUILibrary
+local Pixel = LibStub("MedaUI-2.0").Pixel
 
 --- Create an inline radio group.
 --- @param parent Frame
 --- @param config table { label, options, width, spacing, group }
 --- @return Frame
-function MedaUI:CreateInlineRadioGroup(parent, config)
+function MedaUI.CreateInlineRadioGroup(_, parent, config)
     config = config or {}
 
     MedaUI._inlineRadioGroupCounter = (MedaUI._inlineRadioGroupCounter or 0) + 1
@@ -40,8 +41,8 @@ function MedaUI:CreateInlineRadioGroup(parent, config)
         button._value = option.value
         Pixel.SetWidth(button, math.max(54, (button.label:GetStringWidth() or 0) + 28))
         Pixel.SetPoint(button, "TOPLEFT", xOffset, -yOffset)
-        button:SetScript("OnClick", function(self)
-            container:SetValue(self._value, true)
+        button:SetScript("OnClick", function(radio)
+            container:SetValue(radio._value, true)
         end)
 
         container.buttons[index] = button

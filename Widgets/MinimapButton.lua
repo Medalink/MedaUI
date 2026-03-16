@@ -3,8 +3,8 @@
     Creates minimap buttons using LibDBIcon (standard library)
 ]]
 
-local MedaUI = LibStub("MedaUI-1.0")
-local Pixel = LibStub("MedaUI-1.0").Pixel
+local MedaUI = LibStub("MedaUI-2.0")
+---@cast MedaUI MedaUILibrary
 
 -- Try to get LibDataBroker and LibDBIcon
 local LDB = LibStub("LibDataBroker-1.1", true)
@@ -17,7 +17,7 @@ local LDBIcon = LibStub("LibDBIcon-1.0", true)
 --- @param onRightClick function|nil Right-click handler
 --- @param savedVarsTable table|nil Table to store minimap button position (requires .minimap subtable)
 --- @return table|nil The data broker object, or nil if libraries not available
-function MedaUI:CreateMinimapButton(name, icon, onClick, onRightClick, savedVarsTable)
+function MedaUI.CreateMinimapButton(_, name, icon, onClick, onRightClick, savedVarsTable)
     if not LDB or not LDBIcon then
         print("|cFFFF0000MedaUI:|r LibDataBroker-1.1 or LibDBIcon-1.0 not found. Minimap button disabled.")
         return nil
@@ -27,7 +27,7 @@ function MedaUI:CreateMinimapButton(name, icon, onClick, onRightClick, savedVars
     local dataObj = LDB:NewDataObject(name, {
         type = "launcher",
         icon = icon,
-        OnClick = function(self, button)
+        OnClick = function(_, button)
             if button == "LeftButton" and onClick then
                 onClick()
             elseif button == "RightButton" and onRightClick then
@@ -48,7 +48,7 @@ function MedaUI:CreateMinimapButton(name, icon, onClick, onRightClick, savedVars
         dataObj = LDB:GetDataObjectByName(name)
         if dataObj then
             dataObj.icon = icon
-            dataObj.OnClick = function(self, button)
+            dataObj.OnClick = function(_, button)
                 if button == "LeftButton" and onClick then
                     onClick()
                 elseif button == "RightButton" and onRightClick then
@@ -82,8 +82,8 @@ function MedaUI:CreateMinimapButton(name, icon, onClick, onRightClick, savedVars
         return not LDBIcon:IsButtonHidden(name)
     end
 
-    dataObj.SetIcon = function(self, newIcon)
-        self.icon = newIcon
+    dataObj.SetIcon = function(dataObject, newIcon)
+        dataObject.icon = newIcon
     end
 
     return dataObj

@@ -1,0 +1,686 @@
+{
+    "file:///f%3A/Dev/MedaUI/Hosts/OptionsHost.lua": [
+        {
+            "code": "param-type-mismatch",
+            "message": "Cannot assign `Frame|MedaUIPanel` to parameter `MedaUIPanel`.\n- `Frame` cannot match `MedaUIPanel`\n- Type `Frame` cannot match `MedaUIPanel`\n- Type `Region` cannot match `MedaUIPanel`\n- Type `ScriptObject` cannot match `MedaUIPanel`",
+            "range": {
+                "end": {
+                    "character": 10,
+                    "line": 13
+                },
+                "start": {
+                    "character": 9,
+                    "line": 13
+                }
+            },
+            "severity": 2,
+            "source": "Lua Diagnostics."
+        },
+        {
+            "code": "param-type-mismatch",
+            "message": "Cannot assign `Frame|MedaUIPanel` to parameter `MedaUIPanel`.\n- `Frame` cannot match `MedaUIPanel`\n- Type `Frame` cannot match `MedaUIPanel`\n- Type `Region` cannot match `MedaUIPanel`\n- Type `ScriptObject` cannot match `MedaUIPanel`",
+            "range": {
+                "end": {
+                    "character": 10,
+                    "line": 14
+                },
+                "start": {
+                    "character": 9,
+                    "line": 14
+                }
+            },
+            "severity": 2,
+            "source": "Lua Diagnostics."
+        },
+        {
+            "code": "param-type-mismatch",
+            "message": "Cannot assign `Frame|MedaUIPanel` to parameter `MedaUIPanel`.\n- `Frame` cannot match `MedaUIPanel`\n- Type `Frame` cannot match `MedaUIPanel`\n- Type `Region` cannot match `MedaUIPanel`\n- Type `ScriptObject` cannot match `MedaUIPanel`",
+            "range": {
+                "end": {
+                    "character": 14,
+                    "line": 260
+                },
+                "start": {
+                    "character": 13,
+                    "line": 260
+                }
+            },
+            "severity": 2,
+            "source": "Lua Diagnostics."
+        },
+        {
+            "code": "param-type-mismatch",
+            "message": "Cannot assign `Frame|MedaUIPanel` to parameter `MedaUIPanel`.\n- `Frame` cannot match `MedaUIPanel`\n- Type `Frame` cannot match `MedaUIPanel`\n- Type `Region` cannot match `MedaUIPanel`\n- Type `ScriptObject` cannot match `MedaUIPanel`",
+            "range": {
+                "end": {
+                    "character": 21,
+                    "line": 256
+                },
+                "start": {
+                    "character": 20,
+                    "line": 256
+                }
+            },
+            "severity": 2,
+            "source": "Lua Diagnostics."
+        }
+    ],
+    "file:///f%3A/Dev/MedaUI/Hosts/OptionsHostView.lua": [
+        {
+            "code": "undefined-field",
+            "message": "Undefined field `SetScript`.",
+            "range": {
+                "end": {
+                    "character": 28,
+                    "line": 430
+                },
+                "start": {
+                    "character": 19,
+                    "line": 430
+                }
+            },
+            "severity": 2,
+            "source": "Lua Diagnostics."
+        },
+        {
+            "code": "undefined-field",
+            "message": "Undefined field `GetChildren`.",
+            "range": {
+                "end": {
+                    "character": 51,
+                    "line": 119
+                },
+                "start": {
+                    "character": 40,
+                    "line": 119
+                }
+            },
+            "severity": 2,
+            "source": "Lua Diagnostics."
+        },
+        {
+            "code": "undefined-field",
+            "message": "Undefined field `GetRegions`.",
+            "range": {
+                "end": {
+                    "character": 49,
+                    "line": 124
+                },
+                "start": {
+                    "character": 39,
+                    "line": 124
+                }
+            },
+            "severity": 2,
+            "source": "Lua Diagnostics."
+        },
+        {
+            "code": "undefined-field",
+            "message": "Undefined field `SetPoint`.",
+            "range": {
+                "end": {
+                    "character": 31,
+                    "line": 424
+                },
+                "start": {
+                    "character": 23,
+                    "line": 424
+                }
+            },
+            "severity": 2,
+            "source": "Lua Diagnostics."
+        },
+        {
+            "code": "undefined-field",
+            "message": "Undefined field `SetPoint`.",
+            "range": {
+                "end": {
+                    "character": 31,
+                    "line": 427
+                },
+                "start": {
+                    "character": 23,
+                    "line": 427
+                }
+            },
+            "severity": 2,
+            "source": "Lua Diagnostics."
+        },
+        {
+            "code": "undefined-field",
+            "message": "Undefined field `GetStringWidth`.",
+            "range": {
+                "end": {
+                    "character": 67,
+                    "line": 358
+                },
+                "start": {
+                    "character": 53,
+                    "line": 358
+                }
+            },
+            "severity": 2,
+            "source": "Lua Diagnostics."
+        },
+        {
+            "code": "undefined-field",
+            "message": "Undefined field `GetStringHeight`.",
+            "range": {
+                "end": {
+                    "character": 50,
+                    "line": 404
+                },
+                "start": {
+                    "character": 35,
+                    "line": 404
+                }
+            },
+            "severity": 2,
+            "source": "Lua Diagnostics."
+        },
+        {
+            "code": "assign-type-mismatch",
+            "message": "Cannot assign `Frame` to `OptionsHostSidebarButton`.\n- `Frame` cannot match `OptionsHostSidebarButton`\n- Type `Frame` cannot match `OptionsHostSidebarButton`\n- Type `Region` cannot match `OptionsHostSidebarButton`\n- Type `ScriptObject` cannot match `OptionsHostSidebarButton`",
+            "range": {
+                "end": {
+                    "character": 20,
+                    "line": 196
+                },
+                "start": {
+                    "character": 14,
+                    "line": 196
+                }
+            },
+            "severity": 2,
+            "source": "Lua Diagnostics."
+        },
+        {
+            "code": "assign-type-mismatch",
+            "message": "Cannot assign `Frame|MedaUIButton` to `MedaUIButton`.\n- `Frame` cannot match `MedaUIButton`\n- Type `Frame` cannot match `MedaUIButton`\n- Type `Region` cannot match `MedaUIButton`\n- Type `ScriptObject` cannot match `MedaUIButton`",
+            "range": {
+                "end": {
+                    "character": 24,
+                    "line": 422
+                },
+                "start": {
+                    "character": 18,
+                    "line": 422
+                }
+            },
+            "severity": 2,
+            "source": "Lua Diagnostics."
+        },
+        {
+            "code": "assign-type-mismatch",
+            "message": "Cannot assign `Frame` to `OptionsHostLegendEntry`.\n- `Frame` cannot match `OptionsHostLegendEntry`\n- Type `Frame` cannot match `OptionsHostLegendEntry`\n- Type `Region` cannot match `OptionsHostLegendEntry`\n- Type `ScriptObject` cannot match `OptionsHostLegendEntry`",
+            "range": {
+                "end": {
+                    "character": 22,
+                    "line": 331
+                },
+                "start": {
+                    "character": 12,
+                    "line": 331
+                }
+            },
+            "severity": 2,
+            "source": "Lua Diagnostics."
+        }
+    ],
+    "file:///f%3A/Dev/MedaUI/Hosts/WorkspaceHostNavigation.lua": [
+        {
+            "code": "undefined-field",
+            "message": "Undefined field `textDisabled`.",
+            "range": {
+                "end": {
+                    "character": 60,
+                    "line": 37
+                },
+                "start": {
+                    "character": 48,
+                    "line": 37
+                }
+            },
+            "severity": 2,
+            "source": "Lua Diagnostics."
+        },
+        {
+            "code": "undefined-field",
+            "message": "Undefined field `textDisabled`.",
+            "range": {
+                "end": {
+                    "character": 65,
+                    "line": 38
+                },
+                "start": {
+                    "character": 53,
+                    "line": 38
+                }
+            },
+            "severity": 2,
+            "source": "Lua Diagnostics."
+        },
+        {
+            "code": "undefined-field",
+            "message": "Undefined field `SetRotation`.",
+            "range": {
+                "end": {
+                    "character": 32,
+                    "line": 51
+                },
+                "start": {
+                    "character": 21,
+                    "line": 51
+                }
+            },
+            "severity": 2,
+            "source": "Lua Diagnostics."
+        },
+        {
+            "code": "assign-type-mismatch",
+            "message": "Cannot assign `Frame` to `WorkspaceHostNavButton`.\n- `Frame` cannot match `WorkspaceHostNavButton`\n- Type `Frame` cannot match `WorkspaceHostNavButton`\n- Type `Region` cannot match `WorkspaceHostNavButton`\n- Type `ScriptObject` cannot match `WorkspaceHostNavButton`",
+            "range": {
+                "end": {
+                    "character": 16,
+                    "line": 9
+                },
+                "start": {
+                    "character": 10,
+                    "line": 9
+                }
+            },
+            "severity": 2,
+            "source": "Lua Diagnostics."
+        },
+        {
+            "code": "assign-type-mismatch",
+            "message": "Cannot assign `nil` to `FontString`.\n- `nil` cannot match `FontString`\n- Type `nil` cannot match `FontString`",
+            "range": {
+                "end": {
+                    "character": 15,
+                    "line": 18
+                },
+                "start": {
+                    "character": 4,
+                    "line": 18
+                }
+            },
+            "severity": 2,
+            "source": "Lua Diagnostics."
+        },
+        {
+            "code": "assign-type-mismatch",
+            "message": "Cannot assign `nil` to `Texture`.\n- `nil` cannot match `Texture`\n- Type `nil` cannot match `Texture`",
+            "range": {
+                "end": {
+                    "character": 18,
+                    "line": 25
+                },
+                "start": {
+                    "character": 4,
+                    "line": 25
+                }
+            },
+            "severity": 2,
+            "source": "Lua Diagnostics."
+        }
+    ],
+    "file:///f%3A/Dev/MedaUI/Hosts/WorkspaceHostState.lua": [
+        {
+            "code": "need-check-nil",
+            "message": "Need check nil.",
+            "range": {
+                "end": {
+                    "character": 26,
+                    "line": 1
+                },
+                "start": {
+                    "character": 20,
+                    "line": 1
+                }
+            },
+            "severity": 2,
+            "source": "Lua Diagnostics."
+        },
+        {
+            "code": "need-check-nil",
+            "message": "Need check nil.",
+            "range": {
+                "end": {
+                    "character": 33,
+                    "line": 3
+                },
+                "start": {
+                    "character": 27,
+                    "line": 3
+                }
+            },
+            "severity": 2,
+            "source": "Lua Diagnostics."
+        }
+    ],
+    "file:///f%3A/Dev/MedaUI/Hosts/WorkspaceHostSupport.lua": [
+        {
+            "code": "undefined-field",
+            "message": "Undefined field `warning`.",
+            "range": {
+                "end": {
+                    "character": 43,
+                    "line": 101
+                },
+                "start": {
+                    "character": 36,
+                    "line": 101
+                }
+            },
+            "severity": 2,
+            "source": "Lua Diagnostics."
+        },
+        {
+            "code": "undefined-field",
+            "message": "Undefined field `error`.",
+            "range": {
+                "end": {
+                    "character": 41,
+                    "line": 103
+                },
+                "start": {
+                    "character": 36,
+                    "line": 103
+                }
+            },
+            "severity": 2,
+            "source": "Lua Diagnostics."
+        },
+        {
+            "code": "assign-type-mismatch",
+            "message": "Cannot assign `Frame` to `WorkspaceFreshnessStrip`.\n- `Frame` cannot match `WorkspaceFreshnessStrip`\n- Type `Frame` cannot match `WorkspaceFreshnessStrip`\n- Type `Region` cannot match `WorkspaceFreshnessStrip`\n- Type `ScriptObject` cannot match `WorkspaceFreshnessStrip`",
+            "range": {
+                "end": {
+                    "character": 15,
+                    "line": 47
+                },
+                "start": {
+                    "character": 10,
+                    "line": 47
+                }
+            },
+            "severity": 2,
+            "source": "Lua Diagnostics."
+        },
+        {
+            "code": "assign-type-mismatch",
+            "message": "Cannot assign `Frame` to `WorkspaceFreshnessRow`.\n- `Frame` cannot match `WorkspaceFreshnessRow`\n- Type `Frame` cannot match `WorkspaceFreshnessRow`\n- Type `Region` cannot match `WorkspaceFreshnessRow`\n- Type `ScriptObject` cannot match `WorkspaceFreshnessRow`",
+            "range": {
+                "end": {
+                    "character": 11,
+                    "line": 88
+                },
+                "start": {
+                    "character": 8,
+                    "line": 88
+                }
+            },
+            "severity": 2,
+            "source": "Lua Diagnostics."
+        },
+        {
+            "code": "assign-type-mismatch",
+            "message": "Cannot assign `nil` to `Texture`.\n- `nil` cannot match `Texture`\n- Type `nil` cannot match `Texture`",
+            "range": {
+                "end": {
+                    "character": 17,
+                    "line": 53
+                },
+                "start": {
+                    "character": 4,
+                    "line": 53
+                }
+            },
+            "severity": 2,
+            "source": "Lua Diagnostics."
+        },
+        {
+            "code": "assign-type-mismatch",
+            "message": "Cannot assign `nil` to `FontString`.\n- `nil` cannot match `FontString`\n- Type `nil` cannot match `FontString`",
+            "range": {
+                "end": {
+                    "character": 15,
+                    "line": 59
+                },
+                "start": {
+                    "character": 4,
+                    "line": 59
+                }
+            },
+            "severity": 2,
+            "source": "Lua Diagnostics."
+        },
+        {
+            "code": "assign-type-mismatch",
+            "message": "Cannot assign `nil` to `FontString`.\n- `nil` cannot match `FontString`\n- Type `nil` cannot match `FontString`",
+            "range": {
+                "end": {
+                    "character": 16,
+                    "line": 91
+                },
+                "start": {
+                    "character": 8,
+                    "line": 91
+                }
+            },
+            "severity": 2,
+            "source": "Lua Diagnostics."
+        }
+    ],
+    "file:///f%3A/Dev/MedaUI/Hosts/WorkspaceHostView.lua": [
+        {
+            "code": "inject-field",
+            "message": "Fields cannot be injected into the reference of `WorkspaceHostShell` for `SetNavigation`. To do so, use `---@class` for `shell`.",
+            "range": {
+                "end": {
+                    "character": 32,
+                    "line": 124
+                },
+                "start": {
+                    "character": 19,
+                    "line": 124
+                }
+            },
+            "severity": 2,
+            "source": "Lua Diagnostics."
+        },
+        {
+            "code": "inject-field",
+            "message": "Fields cannot be injected into the reference of `WorkspaceHostShell` for `SetNavigationItemEnabled`. To do so, use `---@class` for `shell`.",
+            "range": {
+                "end": {
+                    "character": 43,
+                    "line": 142
+                },
+                "start": {
+                    "character": 19,
+                    "line": 142
+                }
+            },
+            "severity": 2,
+            "source": "Lua Diagnostics."
+        },
+        {
+            "code": "inject-field",
+            "message": "Fields cannot be injected into the reference of `WorkspaceHostShell` for `SetPageTitle`. To do so, use `---@class` for `shell`.",
+            "range": {
+                "end": {
+                    "character": 31,
+                    "line": 147
+                },
+                "start": {
+                    "character": 19,
+                    "line": 147
+                }
+            },
+            "severity": 2,
+            "source": "Lua Diagnostics."
+        },
+        {
+            "code": "inject-field",
+            "message": "Fields cannot be injected into the reference of `WorkspaceHostShell` for `SetPageSummary`. To do so, use `---@class` for `shell`.",
+            "range": {
+                "end": {
+                    "character": 33,
+                    "line": 152
+                },
+                "start": {
+                    "character": 19,
+                    "line": 152
+                }
+            },
+            "severity": 2,
+            "source": "Lua Diagnostics."
+        },
+        {
+            "code": "inject-field",
+            "message": "Fields cannot be injected into the reference of `WorkspaceHostShell` for `GetToolbar`. To do so, use `---@class` for `shell`.",
+            "range": {
+                "end": {
+                    "character": 29,
+                    "line": 162
+                },
+                "start": {
+                    "character": 19,
+                    "line": 162
+                }
+            },
+            "severity": 2,
+            "source": "Lua Diagnostics."
+        },
+        {
+            "code": "inject-field",
+            "message": "Fields cannot be injected into the reference of `WorkspaceHostShell` for `GetContent`. To do so, use `---@class` for `shell`.",
+            "range": {
+                "end": {
+                    "character": 29,
+                    "line": 166
+                },
+                "start": {
+                    "character": 19,
+                    "line": 166
+                }
+            },
+            "severity": 2,
+            "source": "Lua Diagnostics."
+        },
+        {
+            "code": "inject-field",
+            "message": "Fields cannot be injected into the reference of `WorkspaceHostShell` for `ClearContent`. To do so, use `---@class` for `shell`.",
+            "range": {
+                "end": {
+                    "character": 31,
+                    "line": 170
+                },
+                "start": {
+                    "character": 19,
+                    "line": 170
+                }
+            },
+            "severity": 2,
+            "source": "Lua Diagnostics."
+        },
+        {
+            "code": "inject-field",
+            "message": "Fields cannot be injected into the reference of `WorkspaceHostShell` for `SetContentHeight`. To do so, use `---@class` for `shell`.",
+            "range": {
+                "end": {
+                    "character": 35,
+                    "line": 184
+                },
+                "start": {
+                    "character": 19,
+                    "line": 184
+                }
+            },
+            "severity": 2,
+            "source": "Lua Diagnostics."
+        },
+        {
+            "code": "inject-field",
+            "message": "Fields cannot be injected into the reference of `WorkspaceHostShell` for `SetFreshnessSources`. To do so, use `---@class` for `shell`.",
+            "range": {
+                "end": {
+                    "character": 38,
+                    "line": 188
+                },
+                "start": {
+                    "character": 19,
+                    "line": 188
+                }
+            },
+            "severity": 2,
+            "source": "Lua Diagnostics."
+        },
+        {
+            "code": "undefined-field",
+            "message": "Undefined field `error`.",
+            "range": {
+                "end": {
+                    "character": 60,
+                    "line": 156
+                },
+                "start": {
+                    "character": 55,
+                    "line": 156
+                }
+            },
+            "severity": 2,
+            "source": "Lua Diagnostics."
+        },
+        {
+            "code": "undefined-field",
+            "message": "Undefined field `GetChildren`.",
+            "range": {
+                "end": {
+                    "character": 51,
+                    "line": 171
+                },
+                "start": {
+                    "character": 40,
+                    "line": 171
+                }
+            },
+            "severity": 2,
+            "source": "Lua Diagnostics."
+        },
+        {
+            "code": "undefined-field",
+            "message": "Undefined field `GetRegions`.",
+            "range": {
+                "end": {
+                    "character": 49,
+                    "line": 176
+                },
+                "start": {
+                    "character": 39,
+                    "line": 176
+                }
+            },
+            "severity": 2,
+            "source": "Lua Diagnostics."
+        },
+        {
+            "code": "assign-type-mismatch",
+            "message": "Cannot assign `Frame` to `WorkspaceHostShell`.\n- `Frame` cannot match `WorkspaceHostShell`\n- Type `Frame` cannot match `WorkspaceHostShell`\n- Type `Region` cannot match `WorkspaceHostShell`\n- Type `ScriptObject` cannot match `WorkspaceHostShell`",
+            "range": {
+                "end": {
+                    "character": 15,
+                    "line": 21
+                },
+                "start": {
+                    "character": 10,
+                    "line": 21
+                }
+            },
+            "severity": 2,
+            "source": "Lua Diagnostics."
+        }
+    ]
+}

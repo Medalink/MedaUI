@@ -4,8 +4,9 @@
     Each entry shows a timestamp, a colored marker dot, and descriptive text.
 ]]
 
-local MedaUI = LibStub("MedaUI-1.0")
-local Pixel = LibStub("MedaUI-1.0").Pixel
+local MedaUI = LibStub("MedaUI-2.0")
+---@cast MedaUI MedaUILibrary
+local Pixel = LibStub("MedaUI-2.0").Pixel
 
 local DEFAULT_MARKER_SIZE = 10
 local DEFAULT_LINE_WIDTH = 2
@@ -34,7 +35,7 @@ end
 ---   lineWidth        (number, default 2)  -- connecting line width
 ---   renderEntry      (function|nil)       -- custom renderer function(entryFrame, data, index)
 ---   formatTimestamp   (function|nil)       -- function(seconds) -> string
-function MedaUI:CreateEventTimeline(parent, width, height, config)
+function MedaUI.CreateEventTimeline(library, parent, width, height, config)
     config = config or {}
     local markerSize = config.markerSize or DEFAULT_MARKER_SIZE
     local lineWidth = config.lineWidth or DEFAULT_LINE_WIDTH
@@ -43,7 +44,7 @@ function MedaUI:CreateEventTimeline(parent, width, height, config)
 
     local timeline = CreateFrame("Frame", nil, parent, "BackdropTemplate")
     Pixel.SetSize(timeline, width, height)
-    timeline:SetBackdrop(self:CreateBackdrop(true))
+    timeline:SetBackdrop(library:CreateBackdrop(true))
 
     timeline._data = {}
     timeline._entryPool = {}
@@ -52,7 +53,7 @@ function MedaUI:CreateEventTimeline(parent, width, height, config)
     timeline._formatTimestamp = formatTimestamp
 
     -- Scroll frame
-    local scrollParent = self:CreateScrollFrame(timeline)
+    local scrollParent = library:CreateScrollFrame(timeline)
     Pixel.SetPoint(scrollParent, "TOPLEFT", 6, -6)
     Pixel.SetPoint(scrollParent, "BOTTOMRIGHT", -6, 6)
     scrollParent:SetScrollStep(ENTRY_HEIGHT * 3)
@@ -64,9 +65,9 @@ function MedaUI:CreateEventTimeline(parent, width, height, config)
 
     -- Theme
     local function ApplyTheme()
-        local Theme = MedaUI.Theme
-        timeline:SetBackdropColor(unpack(Theme.backgroundDark))
-        timeline:SetBackdropBorderColor(unpack(Theme.border))
+        local theme = MedaUI.Theme
+        timeline:SetBackdropColor(unpack(theme.backgroundDark))
+        timeline:SetBackdropBorderColor(unpack(theme.border))
     end
     timeline._ApplyTheme = ApplyTheme
     timeline._themeHandle = MedaUI:RegisterThemedWidget(timeline, function()

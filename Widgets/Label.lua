@@ -3,8 +3,9 @@
     Lightweight themed text primitive for module UIs.
 ]]
 
-local MedaUI = LibStub("MedaUI-1.0")
-local Pixel = LibStub("MedaUI-1.0").Pixel
+local MedaUI = LibStub("MedaUI-2.0")
+---@cast MedaUI MedaUILibrary
+local Pixel = LibStub("MedaUI-2.0").Pixel
 
 local TONE_KEYS = {
     text = "text",
@@ -21,9 +22,9 @@ local function ResolveColor(tone, override)
         return override
     end
 
-    local Theme = MedaUI.Theme
+    local theme = MedaUI.Theme
     local themeKey = TONE_KEYS[tone or "text"] or "text"
-    return Theme[themeKey] or Theme.text or { 1, 1, 1, 1 }
+    return theme[themeKey] or theme.text or { 1, 1, 1, 1 }
 end
 
 --- Create a themed label.
@@ -31,7 +32,7 @@ end
 --- @param text string|nil
 --- @param config table|nil { fontObject, tone, width, justifyH, justifyV, wrap, layer, alpha, shadow }
 --- @return FontString
-function MedaUI:CreateLabel(parent, text, config)
+function MedaUI.CreateLabel(_, parent, text, config)
     config = config or {}
 
     local label = Pixel.CreateFontString(parent, text, config.fontObject or "GameFontNormal", config.layer or "OVERLAY")

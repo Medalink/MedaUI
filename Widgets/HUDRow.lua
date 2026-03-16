@@ -5,8 +5,9 @@
     Designed for in-game overlays (prophecy timelines, objective trackers, etc.)
 ]]
 
-local MedaUI = LibStub("MedaUI-1.0")
-local Pixel = LibStub("MedaUI-1.0").Pixel
+local MedaUI = LibStub("MedaUI-2.0")
+---@cast MedaUI MedaUILibrary
+local Pixel = LibStub("MedaUI-2.0").Pixel
 
 local DEFAULT_WIDTH = 260
 local DEFAULT_ICON_SIZE = 16
@@ -48,7 +49,7 @@ end
 ---   showDelta  (boolean, default true)  -- show delta indicator
 ---   showState  (boolean, default true)  -- show left state marker
 ---   interactive (boolean, default true) -- enable right-click handlers
-function MedaUI:CreateHUDRow(parent, config)
+function MedaUI.CreateHUDRow(library, parent, config)
     config = config or {}
 
     local width = config.width or DEFAULT_WIDTH
@@ -129,21 +130,21 @@ function MedaUI:CreateHUDRow(parent, config)
     -- Right-click interaction
     if interactive then
         row:EnableMouse(true)
-        row:SetScript("OnMouseUp", function(self, button)
+        row:SetScript("OnMouseUp", function(frame, button)
             if button == "RightButton" then
                 if IsShiftKeyDown() then
-                    if self._onDismiss then self._onDismiss(self) end
+                    if frame._onDismiss then frame._onDismiss(frame) end
                 else
-                    if self._onFulfill then self._onFulfill(self) end
+                    if frame._onFulfill then frame._onFulfill(frame) end
                 end
             end
         end)
 
-        row:SetScript("OnEnter", function(self)
-            self.text:SetTextColor(unpack(MedaUI.Theme.textBright or MedaUI.Theme.text or {1, 1, 1}))
+        row:SetScript("OnEnter", function(frame)
+            frame.text:SetTextColor(unpack(MedaUI.Theme.textBright or MedaUI.Theme.text or {1, 1, 1}))
         end)
-        row:SetScript("OnLeave", function(self)
-            self:_ApplyStateColor()
+        row:SetScript("OnLeave", function(frame)
+            frame:_ApplyStateColor()
         end)
     end
 
@@ -163,20 +164,20 @@ function MedaUI:CreateHUDRow(parent, config)
     -- ----------------------------------------------------------------
 
     function row:_ApplyStateColor()
-        local Theme = MedaUI.Theme
+        local theme = MedaUI.Theme
         local state = self._state
         if state == "fulfilled" then
-            self.stateMarker:SetVertexColor(unpack(Theme.success or {0.35, 0.8, 0.45}))
-            self.text:SetTextColor(unpack(Theme.textDim or {0.7, 0.7, 0.7}))
+            self.stateMarker:SetVertexColor(unpack(theme.success or {0.35, 0.8, 0.45}))
+            self.text:SetTextColor(unpack(theme.textDim or {0.7, 0.7, 0.7}))
         elseif state == "dormant" or state == "dismissed" then
-            self.stateMarker:SetVertexColor(unpack(Theme.textDisabled or {0.4, 0.4, 0.4}))
-            self.text:SetTextColor(unpack(Theme.textDisabled or {0.4, 0.4, 0.4}))
+            self.stateMarker:SetVertexColor(unpack(theme.textDisabled or {0.4, 0.4, 0.4}))
+            self.text:SetTextColor(unpack(theme.textDisabled or {0.4, 0.4, 0.4}))
         elseif state == "paused" then
-            self.stateMarker:SetVertexColor(unpack(Theme.warning or {1, 0.62, 0.12}))
-            self.text:SetTextColor(unpack(Theme.text or {1, 1, 1}))
+            self.stateMarker:SetVertexColor(unpack(theme.warning or {1, 0.62, 0.12}))
+            self.text:SetTextColor(unpack(theme.text or {1, 1, 1}))
         else
-            self.stateMarker:SetVertexColor(unpack(Theme.text or {1, 1, 1}))
-            self.text:SetTextColor(unpack(Theme.text or {1, 1, 1}))
+            self.stateMarker:SetVertexColor(unpack(theme.text or {1, 1, 1}))
+            self.text:SetTextColor(unpack(theme.text or {1, 1, 1}))
         end
     end
 
@@ -241,7 +242,7 @@ function MedaUI:CreateHUDRow(parent, config)
             return
         end
 
-        local Theme = MedaUI.Theme
+        local theme = MedaUI.Theme
         local neutral = thresholds and thresholds.neutral or 15
         local mild = thresholds and thresholds.mild or 60
 
@@ -249,15 +250,15 @@ function MedaUI:CreateHUDRow(parent, config)
 
         local s = abs(seconds)
         if s <= neutral then
-            self.delta:SetTextColor(unpack(Theme.textDim or {0.7, 0.7, 0.7}))
+            self.delta:SetTextColor(unpack(theme.textDim or {0.7, 0.7, 0.7}))
         elseif seconds > 0 then
             if s <= mild then
-                self.delta:SetTextColor(unpack(Theme.warning or {1, 0.62, 0.12}))
+                self.delta:SetTextColor(unpack(theme.warning or {1, 0.62, 0.12}))
             else
-                self.delta:SetTextColor(unpack(Theme.error or {1, 0.42, 0.42}))
+                self.delta:SetTextColor(unpack(theme.error or {1, 0.42, 0.42}))
             end
         else
-            self.delta:SetTextColor(unpack(Theme.success or {0.35, 0.8, 0.45}))
+            self.delta:SetTextColor(unpack(theme.success or {0.35, 0.8, 0.45}))
         end
     end
 

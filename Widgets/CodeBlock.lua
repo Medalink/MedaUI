@@ -3,8 +3,9 @@
     Monospace text display for stack traces, code, table dumps
 ]]
 
-local MedaUI = LibStub("MedaUI-1.0")
-local Pixel = LibStub("MedaUI-1.0").Pixel
+local MedaUI = LibStub("MedaUI-2.0")
+---@cast MedaUI MedaUILibrary
+local Pixel = LibStub("MedaUI-2.0").Pixel
 
 --- Create a code block
 --- @param parent Frame Parent frame
@@ -12,14 +13,14 @@ local Pixel = LibStub("MedaUI-1.0").Pixel
 --- @param height number Code block height
 --- @param config table|nil Configuration {showLineNumbers, wrapText}
 --- @return Frame The code block frame
-function MedaUI:CreateCodeBlock(parent, width, height, config)
+function MedaUI.CreateCodeBlock(library, parent, width, height, config)
     config = config or {}
     local showLineNumbers = config.showLineNumbers ~= false
     local wrapText = config.wrapText or false
 
     local codeBlock = CreateFrame("Frame", nil, parent, "BackdropTemplate")
     Pixel.SetSize(codeBlock, width, height)
-    codeBlock:SetBackdrop(self:CreateBackdrop(true))
+    codeBlock:SetBackdrop(library:CreateBackdrop(true))
 
     codeBlock.text = ""
     codeBlock.lines = {}
@@ -27,7 +28,7 @@ function MedaUI:CreateCodeBlock(parent, width, height, config)
     codeBlock.showLineNumbers = showLineNumbers
 
     -- Scroll frame (AF custom scrollbar)
-    local scrollParent = self:CreateScrollFrame(codeBlock)
+    local scrollParent = library:CreateScrollFrame(codeBlock)
     Pixel.SetPoint(scrollParent, "TOPLEFT", 4, -4)
     Pixel.SetPoint(scrollParent, "BOTTOMRIGHT", -4, 4)
     scrollParent:SetScrollStep(42)
@@ -44,7 +45,7 @@ function MedaUI:CreateCodeBlock(parent, width, height, config)
         Pixel.SetPoint(codeBlock.gutter, "TOPLEFT", 4, -4)
         Pixel.SetPoint(codeBlock.gutter, "BOTTOMLEFT", 4, 4)
         Pixel.SetWidth(codeBlock.gutter, gutterWidth)
-        codeBlock.gutter:SetBackdrop(self:CreateBackdrop(false))
+        codeBlock.gutter:SetBackdrop(library:CreateBackdrop(false))
 
         -- Adjust scroll frame position
         Pixel.SetPoint(scrollParent, "TOPLEFT", gutterWidth + 6, -4)
@@ -54,7 +55,7 @@ function MedaUI:CreateCodeBlock(parent, width, height, config)
     codeBlock.copyBtn = CreateFrame("Button", nil, codeBlock, "BackdropTemplate")
     Pixel.SetSize(codeBlock.copyBtn, 50, 18)
     Pixel.SetPoint(codeBlock.copyBtn, "TOPRIGHT", -8, -6)
-    codeBlock.copyBtn:SetBackdrop(self:CreateBackdrop(true))
+    codeBlock.copyBtn:SetBackdrop(library:CreateBackdrop(true))
 
     codeBlock.copyBtn.text = codeBlock.copyBtn:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     Pixel.SetPoint(codeBlock.copyBtn.text, "CENTER", 0, 0)
@@ -75,15 +76,15 @@ function MedaUI:CreateCodeBlock(parent, width, height, config)
 
     -- Apply theme colors
     local function ApplyTheme()
-        local Theme = MedaUI.Theme
-        codeBlock:SetBackdropColor(unpack(Theme.codeBackground))
-        codeBlock:SetBackdropBorderColor(unpack(Theme.border))
+        local theme = MedaUI.Theme
+        codeBlock:SetBackdropColor(unpack(theme.codeBackground))
+        codeBlock:SetBackdropBorderColor(unpack(theme.border))
         if codeBlock.gutter then
             codeBlock.gutter:SetBackdropColor(0.1, 0.1, 0.11, 1)
         end
-        codeBlock.copyBtn:SetBackdropColor(unpack(Theme.button))
-        codeBlock.copyBtn:SetBackdropBorderColor(unpack(Theme.border))
-        codeBlock.copyBtn.text:SetTextColor(unpack(Theme.textDim))
+        codeBlock.copyBtn:SetBackdropColor(unpack(theme.button))
+        codeBlock.copyBtn:SetBackdropBorderColor(unpack(theme.border))
+        codeBlock.copyBtn.text:SetTextColor(unpack(theme.textDim))
     end
     codeBlock._ApplyTheme = ApplyTheme
 
@@ -94,16 +95,16 @@ function MedaUI:CreateCodeBlock(parent, width, height, config)
 
     ApplyTheme()
 
-    codeBlock.copyBtn:SetScript("OnEnter", function(self)
-        local Theme = MedaUI.Theme
-        self:SetBackdropColor(unpack(Theme.buttonHover))
-        self.text:SetTextColor(unpack(Theme.text))
+    codeBlock.copyBtn:SetScript("OnEnter", function(button)
+        local theme = MedaUI.Theme
+        button:SetBackdropColor(unpack(theme.buttonHover))
+        button.text:SetTextColor(unpack(theme.text))
     end)
 
-    codeBlock.copyBtn:SetScript("OnLeave", function(self)
-        local Theme = MedaUI.Theme
-        self:SetBackdropColor(unpack(Theme.button))
-        self.text:SetTextColor(unpack(Theme.textDim))
+    codeBlock.copyBtn:SetScript("OnLeave", function(button)
+        local theme = MedaUI.Theme
+        button:SetBackdropColor(unpack(theme.button))
+        button.text:SetTextColor(unpack(theme.textDim))
     end)
 
     local function GetLineFrame(slot)
@@ -118,6 +119,7 @@ function MedaUI:CreateCodeBlock(parent, width, height, config)
             Pixel.SetPoint(line.text, "LEFT", 4, 0)
             Pixel.SetPoint(line.text, "RIGHT", -4, 0)
             line.text:SetJustifyH("LEFT")
+            line.text:SetWordWrap(wrapText and true or false)
 
             codeBlock.linePool[slot] = line
         end
@@ -138,7 +140,7 @@ function MedaUI:CreateCodeBlock(parent, width, height, config)
 
     -- Render only visible lines based on scroll position
     local function RenderVisible()
-        local Theme = MedaUI.Theme
+        local theme = MedaUI.Theme
         local lines = codeBlock.lines
 
         -- Hide previously visible
@@ -165,7 +167,7 @@ function MedaUI:CreateCodeBlock(parent, width, height, config)
                 lineNumObj:ClearAllPoints()
                 Pixel.SetPoint(lineNumObj, "TOPRIGHT", -4, -4 - (i - 1) * lineHeight)
                 lineNumObj:SetText(tostring(i))
-                lineNumObj:SetTextColor(unpack(Theme.codeLineNumber))
+                lineNumObj:SetTextColor(unpack(theme.codeLineNumber))
                 lineNumObj:Show()
             end
 
@@ -175,10 +177,10 @@ function MedaUI:CreateCodeBlock(parent, width, height, config)
             Pixel.SetPoint(line, "TOPLEFT", 0, -4 - (i - 1) * lineHeight)
             Pixel.SetPoint(line, "RIGHT", 0, 0)
             line.text:SetText(lines[i])
-            line.text:SetTextColor(unpack(Theme.text))
+            line.text:SetTextColor(unpack(theme.text))
 
             if codeBlock.highlightLine == i then
-                line:SetBackdropColor(unpack(Theme.codeHighlight))
+                line:SetBackdropColor(unpack(theme.codeHighlight))
             else
                 line:SetBackdropColor(0, 0, 0, 0)
             end
@@ -245,7 +247,7 @@ function MedaUI:CreateCodeBlock(parent, width, height, config)
 
     --- Copy text to clipboard (opens edit box dialog)
     function codeBlock:CopyToClipboard()
-        local Theme = MedaUI.Theme
+        local theme = MedaUI.Theme
         -- Create a popup with an edit box for copying
         if not MedaUI.copyDialog then
             local dialog = CreateFrame("Frame", "MedaUICopyDialog", UIParent, "BackdropTemplate")
@@ -289,15 +291,15 @@ function MedaUI:CreateCodeBlock(parent, width, height, config)
         end
 
         -- Apply current theme to dialog
-        MedaUI.copyDialog:SetBackdropColor(unpack(Theme.background))
-        MedaUI.copyDialog:SetBackdropBorderColor(unpack(Theme.border))
-        MedaUI.copyDialog.title:SetTextColor(unpack(Theme.gold))
-        MedaUI.copyDialog.editBox:SetBackdropColor(unpack(Theme.input))
-        MedaUI.copyDialog.editBox:SetBackdropBorderColor(unpack(Theme.border))
-        MedaUI.copyDialog.editBox:SetTextColor(unpack(Theme.text))
-        MedaUI.copyDialog.closeBtn:SetBackdropColor(unpack(Theme.button))
-        MedaUI.copyDialog.closeBtn:SetBackdropBorderColor(unpack(Theme.border))
-        MedaUI.copyDialog.closeBtn.text:SetTextColor(unpack(Theme.text))
+        MedaUI.copyDialog:SetBackdropColor(unpack(theme.background))
+        MedaUI.copyDialog:SetBackdropBorderColor(unpack(theme.border))
+        MedaUI.copyDialog.title:SetTextColor(unpack(theme.gold))
+        MedaUI.copyDialog.editBox:SetBackdropColor(unpack(theme.input))
+        MedaUI.copyDialog.editBox:SetBackdropBorderColor(unpack(theme.border))
+        MedaUI.copyDialog.editBox:SetTextColor(unpack(theme.text))
+        MedaUI.copyDialog.closeBtn:SetBackdropColor(unpack(theme.button))
+        MedaUI.copyDialog.closeBtn:SetBackdropBorderColor(unpack(theme.border))
+        MedaUI.copyDialog.closeBtn.text:SetTextColor(unpack(theme.text))
 
         MedaUI.copyDialog.editBox:SetText(self.text)
         MedaUI.copyDialog.editBox:HighlightText()

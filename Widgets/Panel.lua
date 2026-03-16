@@ -4,9 +4,10 @@
     Uses MedaUI.Pixel for pixel-perfect positioning
 ]]
 
-local MedaUI = LibStub("MedaUI-1.0")
+local MedaUI = LibStub("MedaUI-2.0")
+---@cast MedaUI MedaUILibrary
 
-local Pixel = LibStub("MedaUI-1.0").Pixel
+local Pixel = LibStub("MedaUI-2.0").Pixel
 local PANEL_AUTOPLACE_OFFSETS = {
     { x = 0, y = 0 },
     { x = 36, y = -24 },
@@ -56,9 +57,10 @@ end
 --- @param width number Panel width
 --- @param height number Panel height
 --- @param title string|nil Panel title
---- @return Frame The created panel frame
-function MedaUI:CreatePanel(name, width, height, title)
+--- @return MedaUIPanel The created panel frame
+function MedaUI.CreatePanel(library, name, width, height, title)
     local panel = Pixel.CreateBorderedFrame(UIParent, name, width, height)
+    ---@cast panel MedaUIPanel
     Pixel.SetPoint(panel, "CENTER")
     panel:SetMovable(true)
     panel:EnableMouse(true)
@@ -96,10 +98,12 @@ function MedaUI:CreatePanel(name, width, height, title)
     local closeBtn = CreateFrame("Button", nil, titleBar, "BackdropTemplate")
     Pixel.SetSize(closeBtn, 20, 20)
     Pixel.SetPoint(closeBtn, "RIGHT", titleBar, "RIGHT", -4, 0)
-    closeBtn:SetBackdrop(self:CreateBackdrop(false))
+    closeBtn:SetBackdrop(library:CreateBackdrop(false))
     closeBtn:SetBackdropColor(0, 0, 0, 0)
 
-    closeBtn.icon = closeBtn:CreateTexture(nil, "OVERLAY")
+    local closeIcon = closeBtn:CreateTexture(nil, "OVERLAY")
+    ---@cast closeIcon Texture
+    closeBtn.icon = closeIcon
     closeBtn.icon:SetTexture(MedaUI.mediaPath .. "Textures\\close-x.tga")
     Pixel.SetPoint(closeBtn.icon, "CENTER", 0, 0)
     Pixel.SetSize(closeBtn.icon, 12, 12)
@@ -125,16 +129,19 @@ function MedaUI:CreatePanel(name, width, height, title)
 
     -- Ambient texture overlays for depth/chrome
     local bgNoise = panel.content:CreateTexture(nil, "BACKGROUND", nil, 1)
+    ---@cast bgNoise Texture
     bgNoise:SetTexture(MedaUI.mediaPath .. "Textures\\bg-noise.tga")
     bgNoise:SetAllPoints()
     bgNoise:SetAlpha(0.10)
 
     local bgVignette = panel.content:CreateTexture(nil, "BACKGROUND", nil, 2)
+    ---@cast bgVignette Texture
     bgVignette:SetTexture(MedaUI.mediaPath .. "Textures\\bg-vignette.tga")
     bgVignette:SetAllPoints()
     bgVignette:SetAlpha(0.40)
 
     local topGlow = panel.content:CreateTexture(nil, "BACKGROUND", nil, 3)
+    ---@cast topGlow Texture
     topGlow:SetTexture(MedaUI.mediaPath .. "Textures\\glow-top-ambient.tga")
     Pixel.SetHeight(topGlow, 72)
     topGlow:SetPoint("TOPLEFT", panel.content, "TOPLEFT", 0, 0)
@@ -142,26 +149,31 @@ function MedaUI:CreatePanel(name, width, height, title)
     topGlow:SetAlpha(0.12)
 
     local headerAmbient = titleBar:CreateTexture(nil, "BACKGROUND", nil, 1)
+    ---@cast headerAmbient Texture
     headerAmbient:SetTexture(MedaUI.mediaPath .. "Textures\\header-ambient.tga")
     headerAmbient:SetAllPoints()
     headerAmbient:SetAlpha(0.08)
 
     local bgAtmosphere = panel.content:CreateTexture(nil, "BACKGROUND", nil, 1)
+    ---@cast bgAtmosphere Texture
     bgAtmosphere:SetTexture(MedaUI.mediaPath .. "Textures\\bg-atmosphere.tga")
     bgAtmosphere:SetAllPoints()
     bgAtmosphere:SetAlpha(0.2)
 
     local bgMesh = panel.content:CreateTexture(nil, "BACKGROUND", nil, 1)
+    ---@cast bgMesh Texture
     bgMesh:SetTexture(MedaUI.mediaPath .. "Textures\\bg-mesh.tga")
     bgMesh:SetAllPoints()
     bgMesh:SetAlpha(0.5)
 
     local bgDiagonal = panel.content:CreateTexture(nil, "BACKGROUND", nil, 1)
+    ---@cast bgDiagonal Texture
     bgDiagonal:SetTexture(MedaUI.mediaPath .. "Textures\\bg-diagonal.tga")
     bgDiagonal:SetAllPoints()
     bgDiagonal:SetAlpha(0.18)
 
     local bgParticles = panel.content:CreateTexture(nil, "BACKGROUND", nil, 1)
+    ---@cast bgParticles Texture
     bgParticles:SetTexture(MedaUI.mediaPath .. "Textures\\bg-particles.tga")
     bgParticles:SetAllPoints()
     bgParticles:SetAlpha(0.4)
@@ -172,7 +184,9 @@ function MedaUI:CreatePanel(name, width, height, title)
     }
 
     -- Addon icon watermark
-    panel.addonIcon = panel.content:CreateTexture(nil, "BACKGROUND")
+    local addonIcon = panel.content:CreateTexture(nil, "BACKGROUND")
+    ---@cast addonIcon Texture
+    panel.addonIcon = addonIcon
     Pixel.SetSize(panel.addonIcon, 128, 128)
     Pixel.SetPoint(panel.addonIcon, "BOTTOMRIGHT", panel.content, "BOTTOMRIGHT", -8, 8)
     panel.addonIcon:SetAlpha(0.6)
@@ -180,6 +194,7 @@ function MedaUI:CreatePanel(name, width, height, title)
 
     -- Accent line under title
     local accent = titleBar:CreateTexture(nil, "OVERLAY")
+    ---@cast accent Texture
     Pixel.SetHeight(accent, 1)
     Pixel.SetPoint(accent, "BOTTOMLEFT", titleBar, "BOTTOMLEFT")
     Pixel.SetPoint(accent, "BOTTOMRIGHT", titleBar, "BOTTOMRIGHT")
@@ -199,27 +214,27 @@ function MedaUI:CreatePanel(name, width, height, title)
 
     -- Apply theme colors
     local function ApplyTheme()
-        local Theme = MedaUI.Theme
-        panel:SetBackdropColor(unpack(Theme.background))
-        panel:SetBackdropBorderColor(unpack(Theme.border))
+        local theme = MedaUI.Theme
+        panel:SetBackdropColor(unpack(theme.background))
+        panel:SetBackdropBorderColor(unpack(theme.border))
 
         if panel._headless then
             titleBar:SetBackdropColor(0, 0, 0, 0)
         else
-            titleBar:SetBackdropColor(unpack(Theme.backgroundLight))
+            titleBar:SetBackdropColor(unpack(theme.backgroundLight))
         end
 
         if panel.titleText and not panel._headless then
-            panel.titleText:SetTextColor(unpack(Theme.gold))
+            panel.titleText:SetTextColor(unpack(theme.gold))
         end
 
         closeBtn.icon:SetAlpha(1)
         if not panel._headless then
-            accent:SetColorTexture(unpack(Theme.goldDim))
+            accent:SetColorTexture(unpack(theme.goldDim))
         end
 
         if topGlow then
-            local glow = Theme.panelGlow
+            local glow = theme.panelGlow
             if glow then
                 topGlow:SetVertexColor(glow[1], glow[2], glow[3], 1)
                 topGlow:SetAlpha(glow[4] or 0.06)
@@ -280,13 +295,13 @@ function MedaUI:CreatePanel(name, width, height, title)
             Pixel.SetPoint(panel.content, "BOTTOMRIGHT", panel, "BOTTOMRIGHT", -1, 1)
 
             panel:RegisterForDrag("LeftButton")
-            panel:SetScript("OnDragStart", function(self)
-                self:BringToFront()
-                self:StartMoving()
+            panel:SetScript("OnDragStart", function(frame)
+                frame:BringToFront()
+                frame:StartMoving()
             end)
-            panel:SetScript("OnDragStop", function(self)
-                self:StopMovingOrSizing()
-                if self.OnMove then self:OnMove(self:GetState()) end
+            panel:SetScript("OnDragStop", function(frame)
+                frame:StopMovingOrSizing()
+                if frame.OnMove then frame:OnMove(frame:GetState()) end
             end)
 
             closeBtn:SetParent(panel)
@@ -346,7 +361,7 @@ function MedaUI:CreatePanel(name, width, height, title)
 
         if enabled then
             if not self.resizeGrip then
-                self.resizeGrip = MedaUI:AddResizeGrip(self, {
+                self.resizeGrip = library:AddResizeGrip(self, {
                     minWidth = config.minWidth or 200,
                     minHeight = config.minHeight or 150,
                     onResize = function(w, h)

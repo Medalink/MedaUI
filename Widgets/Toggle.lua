@@ -4,7 +4,8 @@
     Track: 32x16, Knob: 10x10, slides 16px right when on
 ]]
 
-local MedaUI = LibStub("MedaUI-1.0")
+local MedaUI = LibStub("MedaUI-2.0")
+---@cast MedaUI MedaUILibrary
 local Pixel = MedaUI.Pixel
 
 local TRACK_W, TRACK_H = 32, 16
@@ -16,7 +17,7 @@ local KNOB_TRAVEL = 16
 --- @param parent Frame The parent frame
 --- @param label string|nil Optional label text
 --- @return Frame The toggle container frame
-function MedaUI:CreateToggle(parent, label)
+function MedaUI.CreateToggle(_, parent, label)
     local container = CreateFrame("Frame", nil, parent)
     Pixel.SetSize(container, label and 200 or TRACK_W, TRACK_H)
 
@@ -59,18 +60,18 @@ function MedaUI:CreateToggle(parent, label)
     end
 
     local function ApplyTheme()
-        local Theme = MedaUI.Theme
+        local theme = MedaUI.Theme
         if container.checked then
-            track:SetBackdropColor(unpack(Theme.toggleOn or Theme.gold))
-            track:SetBackdropBorderColor(unpack(Theme.borderLight or Theme.border))
-            knob:SetVertexColor(unpack(Theme.toggleKnobOn or { 1, 1, 1, 1 }))
+            track:SetBackdropColor(unpack(theme.toggleOn or theme.gold))
+            track:SetBackdropBorderColor(unpack(theme.borderLight or theme.border))
+            knob:SetVertexColor(unpack(theme.toggleKnobOn or { 1, 1, 1, 1 }))
         else
-            track:SetBackdropColor(unpack(Theme.toggleOff or Theme.button))
-            track:SetBackdropBorderColor(unpack(Theme.border))
-            knob:SetVertexColor(unpack(Theme.toggleKnob or { 1, 1, 1, 0.78 }))
+            track:SetBackdropColor(unpack(theme.toggleOff or theme.button))
+            track:SetBackdropBorderColor(unpack(theme.border))
+            knob:SetVertexColor(unpack(theme.toggleKnob or { 1, 1, 1, 0.78 }))
         end
         if container.label then
-            container.label:SetTextColor(unpack(Theme.text))
+            container.label:SetTextColor(unpack(theme.text))
         end
     end
     container._ApplyTheme = ApplyTheme
@@ -92,9 +93,9 @@ function MedaUI:CreateToggle(parent, label)
 
     track:SetScript("OnEnter", function()
         MedaUI:PlaySound("hover")
-        local Theme = MedaUI.Theme
+        local theme = MedaUI.Theme
         if not container.checked then
-            track:SetBackdropColor(unpack(Theme.buttonHover or Theme.button))
+            track:SetBackdropColor(unpack(theme.buttonHover or theme.button))
         end
     end)
 

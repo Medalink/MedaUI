@@ -4,15 +4,14 @@
     Each field definition maps to an existing MedaUI labeled widget.
 ]]
 
-local MedaUI = LibStub("MedaUI-1.0")
-local Pixel = LibStub("MedaUI-1.0").Pixel
+local MedaUI = LibStub("MedaUI-2.0")
+---@cast MedaUI MedaUILibrary
+local Pixel = LibStub("MedaUI-2.0").Pixel
 
 local DEFAULT_LABEL_WIDTH = 100
 local FIELD_SPACING = 8
 local CONTROL_WIDTH_DEFAULT = 200
 
-local type = type
-local pairs = pairs
 local ipairs = ipairs
 local tostring = tostring
 local tonumber = tonumber
@@ -28,7 +27,7 @@ local tonumber = tonumber
 ---   values     (table)        -- initial values keyed by field name
 ---   onChange   (function|nil) -- function(fieldName, newValue) on any change
 ---   labelWidth (number, default 100) -- label column width
-function MedaUI:CreateSchemaForm(parent, width, config)
+function MedaUI.CreateSchemaForm(_, parent, width, config)
     config = config or {}
 
     local form = CreateFrame("Frame", nil, parent)
@@ -75,8 +74,8 @@ function MedaUI:CreateSchemaForm(parent, width, config)
             form._values[field.name] = text
             if form._onChange then form._onChange(field.name, text) end
         end
-        ctrl:GetControl():HookScript("OnEditFocusLost", function(self)
-            local text = self:GetText()
+        ctrl:GetControl():HookScript("OnEditFocusLost", function(editBox)
+            local text = editBox:GetText()
             form._values[field.name] = text
             if form._onChange then form._onChange(field.name, text) end
         end)
@@ -104,8 +103,8 @@ function MedaUI:CreateSchemaForm(parent, width, config)
 
     fieldBuilders["spellIds"] = function(parentFrame, field, controlWidth)
         local ctrl = MedaUI:CreateLabeledEditBox(parentFrame, field.label or "Spell IDs", controlWidth)
-        ctrl:GetControl():HookScript("OnEditFocusLost", function(self)
-            local raw = self:GetText() or ""
+        ctrl:GetControl():HookScript("OnEditFocusLost", function(editBox)
+            local raw = editBox:GetText() or ""
             local ids = {}
             for id in raw:gmatch("(%d+)") do
                 local n = tonumber(id)

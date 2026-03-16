@@ -3,8 +3,8 @@
     Themed slot-oriented card for equipment or recommendation views.
 ]]
 
-local MedaUI = LibStub("MedaUI-1.0")
-local Pixel = LibStub("MedaUI-1.0").Pixel
+local MedaUI = LibStub("MedaUI-2.0")
+local Pixel = LibStub("MedaUI-2.0").Pixel
 
 local DEFAULT_WIDTH = 260
 local DEFAULT_HEIGHT = 78

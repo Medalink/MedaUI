@@ -3,15 +3,16 @@
     Dropdown-based theme selector with optional preview swatch
 ]]
 
-local MedaUI = LibStub("MedaUI-1.0")
-local Pixel = LibStub("MedaUI-1.0").Pixel
+local MedaUI = LibStub("MedaUI-2.0")
+---@cast MedaUI MedaUILibrary
+local Pixel = LibStub("MedaUI-2.0").Pixel
 
 --- Create a theme selector dropdown
 --- @param parent Frame Parent frame
 --- @param width number Dropdown width
 --- @param config table|nil Configuration {showPreview: bool, onChange: func}
 --- @return Frame The theme selector container
-function MedaUI:CreateThemeSelector(parent, width, config)
+function MedaUI.CreateThemeSelector(library, parent, width, config)
     config = config or {}
     local showPreview = config.showPreview ~= false
     local onChange = config.onChange
@@ -31,7 +32,7 @@ function MedaUI:CreateThemeSelector(parent, width, config)
         previewSwatch = CreateFrame("Frame", nil, container, "BackdropTemplate")
         Pixel.SetSize(previewSwatch, 24, 24)
         Pixel.SetPoint(previewSwatch, "LEFT", 0, 0)
-        previewSwatch:SetBackdrop(self:CreateBackdrop(true))
+        previewSwatch:SetBackdrop(library:CreateBackdrop(true))
         previewSwatch:SetBackdropBorderColor(unpack(MedaUI.Theme.border))
 
         -- Inner color texture
@@ -56,7 +57,7 @@ function MedaUI:CreateThemeSelector(parent, width, config)
     end
 
     -- Create dropdown
-    local dropdown = self:CreateDropdown(container, dropdownWidth, BuildOptions())
+    local dropdown = library:CreateDropdown(container, dropdownWidth, BuildOptions())
     if showPreview then
         Pixel.SetPoint(dropdown, "LEFT", previewSwatch, "RIGHT", previewSpacing, 0)
     else
@@ -68,9 +69,9 @@ function MedaUI:CreateThemeSelector(parent, width, config)
     -- Update preview swatch color
     local function UpdatePreview()
         if previewSwatch then
-            local Theme = MedaUI.Theme
-            previewSwatch.colorTex:SetColorTexture(unpack(Theme.gold))
-            previewSwatch:SetBackdropBorderColor(unpack(Theme.border))
+            local theme = MedaUI.Theme
+            previewSwatch.colorTex:SetColorTexture(unpack(theme.gold))
+            previewSwatch:SetBackdropBorderColor(unpack(theme.border))
         end
     end
 
@@ -82,7 +83,7 @@ function MedaUI:CreateThemeSelector(parent, width, config)
     UpdatePreview()
 
     -- Handle dropdown selection
-    dropdown.OnValueChanged = function(self, value, label)
+    dropdown.OnValueChanged = function(_, value)
         MedaUI:SetTheme(value)
         UpdatePreview()
         if onChange then
@@ -91,7 +92,7 @@ function MedaUI:CreateThemeSelector(parent, width, config)
     end
 
     -- Register for external theme changes
-    local function OnThemeChanged(callback, newTheme, oldTheme)
+    local function OnThemeChanged(_, newTheme)
         -- Update dropdown selection if theme was changed externally
         if dropdown:GetSelected() ~= newTheme then
             dropdown:SetSelected(newTheme)
@@ -118,9 +119,9 @@ function MedaUI:CreateThemeSelector(parent, width, config)
     --- Refresh the dropdown options (call after registering new themes)
     function container:RefreshOptions()
         self.dropdown:SetOptions(BuildOptions())
-        local currentTheme = MedaUI:GetActiveThemeName()
-        if currentTheme then
-            self.dropdown:SetSelected(currentTheme)
+        local activeThemeName = MedaUI:GetActiveThemeName()
+        if activeThemeName then
+            self.dropdown:SetSelected(activeThemeName)
         end
     end
 

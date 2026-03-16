@@ -3,15 +3,16 @@
     Modal dialog for viewing and copying large text content
 ]]
 
-local MedaUI = LibStub("MedaUI-1.0")
-local Pixel = LibStub("MedaUI-1.0").Pixel
+local MedaUI = LibStub("MedaUI-2.0")
+---@cast MedaUI MedaUILibrary
+local Pixel = LibStub("MedaUI-2.0").Pixel
 
 --- Create a text viewer dialog
 --- @param title string Dialog title
 --- @param width number Dialog width
 --- @param height number Dialog height
 --- @return table The text viewer widget
-function MedaUI:CreateTextViewer(title, width, height)
+function MedaUI.CreateTextViewer(library, title, width, height)
     width = width or 500
     height = height or 350
 
@@ -21,7 +22,7 @@ function MedaUI:CreateTextViewer(title, width, height)
     local viewer = CreateFrame("Frame", dialogName, UIParent, "BackdropTemplate")
     Pixel.SetSize(viewer, width, height)
     Pixel.SetPoint(viewer, "CENTER")
-    viewer:SetBackdrop(self:CreateBackdrop(true))
+    viewer:SetBackdrop(library:CreateBackdrop(true))
     viewer:SetFrameStrata("DIALOG")
     viewer:SetMovable(true)
     viewer:EnableMouse(true)
@@ -29,8 +30,6 @@ function MedaUI:CreateTextViewer(title, width, height)
     viewer:SetScript("OnDragStart", viewer.StartMoving)
     viewer:SetScript("OnDragStop", viewer.StopMovingOrSizing)
     viewer:Hide()
-
-    local Theme = self.Theme
 
     -- State
     viewer.title = title
@@ -52,18 +51,18 @@ function MedaUI:CreateTextViewer(title, width, height)
     closeBtn:SetScript("OnClick", function()
         viewer:Hide()
     end)
-    closeBtn:SetScript("OnEnter", function(self)
-        local Theme = MedaUI.Theme
-        self.text:SetTextColor(unpack(Theme.text))
+    closeBtn:SetScript("OnEnter", function(button)
+        local theme = MedaUI.Theme
+        button.text:SetTextColor(unpack(theme.text))
     end)
-    closeBtn:SetScript("OnLeave", function(self)
-        local Theme = MedaUI.Theme
-        self.text:SetTextColor(unpack(Theme.textDim))
+    closeBtn:SetScript("OnLeave", function(button)
+        local theme = MedaUI.Theme
+        button.text:SetTextColor(unpack(theme.textDim))
     end)
     viewer.closeBtn = closeBtn
 
     -- Scroll frame for the edit box (AF custom scrollbar)
-    local scrollParent = self:CreateScrollFrame(viewer)
+    local scrollParent = library:CreateScrollFrame(viewer)
     Pixel.SetPoint(scrollParent, "TOPLEFT", 10, -40)
     Pixel.SetPoint(scrollParent, "BOTTOMRIGHT", -10, 45)
     scrollParent:SetScrollStep(40)
@@ -79,8 +78,8 @@ function MedaUI:CreateTextViewer(title, width, height)
     editBox:SetScript("OnEscapePressed", function()
         viewer:Hide()
     end)
-    editBox:HookScript("OnTextChanged", function(self)
-        scrollParent:SetContentHeight(self:GetHeight(), true, true)
+    editBox:HookScript("OnTextChanged", function(box)
+        scrollParent:SetContentHeight(box:GetHeight(), true, true)
     end)
     viewer.editBox = editBox
 
@@ -116,13 +115,13 @@ function MedaUI:CreateTextViewer(title, width, height)
 
     -- Apply theme
     local function ApplyTheme()
-        local Theme = MedaUI.Theme
+        local theme = MedaUI.Theme
         viewer:SetBackdropColor(0.1, 0.1, 0.1, 0.97)
-        viewer:SetBackdropBorderColor(unpack(Theme.border))
+        viewer:SetBackdropBorderColor(unpack(theme.border))
 
-        titleText:SetTextColor(unpack(Theme.gold))
-        closeBtn.text:SetTextColor(unpack(Theme.textDim))
-        copyHint:SetTextColor(unpack(Theme.textDim))
+        titleText:SetTextColor(unpack(theme.gold))
+        closeBtn.text:SetTextColor(unpack(theme.textDim))
+        copyHint:SetTextColor(unpack(theme.textDim))
     end
     viewer._ApplyTheme = ApplyTheme
     viewer._themeHandle = MedaUI:RegisterThemedWidget(viewer, ApplyTheme)
@@ -169,9 +168,9 @@ end
 --- Use this when you only need one viewer at a time
 --- @return table The shared text viewer instance
 local sharedViewer = nil
-function MedaUI:GetSharedTextViewer()
+function MedaUI.GetSharedTextViewer(library)
     if not sharedViewer then
-        sharedViewer = self:CreateTextViewer("Text Viewer", 600, 400)
+        sharedViewer = library:CreateTextViewer("Text Viewer", 600, 400)
     end
     return sharedViewer
 end
@@ -179,8 +178,8 @@ end
 --- Quick helper to show text in the shared viewer
 --- @param title string Dialog title
 --- @param text string Text to display
-function MedaUI:ShowTextViewer(title, text)
-    local viewer = self:GetSharedTextViewer()
+function MedaUI.ShowTextViewer(library, title, text)
+    local viewer = library:GetSharedTextViewer()
     viewer:SetTitle(title)
     viewer:ShowWithText(text)
 end

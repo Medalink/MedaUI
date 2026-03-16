@@ -3,17 +3,18 @@
     EditBox with search icon, clear button, and debounced search
 ]]
 
-local MedaUI = LibStub("MedaUI-1.0")
-local Pixel = LibStub("MedaUI-1.0").Pixel
+local MedaUI = LibStub("MedaUI-2.0")
+---@cast MedaUI MedaUILibrary
+local Pixel = LibStub("MedaUI-2.0").Pixel
 
 --- Create a search box
 --- @param parent Frame Parent frame
 --- @param width number Search box width
 --- @return Frame The search box frame
-function MedaUI:CreateSearchBox(parent, width)
+function MedaUI.CreateSearchBox(library, parent, width)
     local searchBox = CreateFrame("Frame", nil, parent, "BackdropTemplate")
     Pixel.SetSize(searchBox, width, 24)
-    searchBox:SetBackdrop(self:CreateBackdrop(true))
+    searchBox:SetBackdrop(library:CreateBackdrop(true))
 
     searchBox.OnSearch = nil
     searchBox.debounceTime = 0.3
@@ -53,17 +54,17 @@ function MedaUI:CreateSearchBox(parent, width)
 
     -- Apply theme colors
     local function ApplyTheme()
-        local Theme = MedaUI.Theme
-        searchBox:SetBackdropColor(unpack(Theme.input))
+        local theme = MedaUI.Theme
+        searchBox:SetBackdropColor(unpack(theme.input))
         if searchBox._hasFocus then
-            searchBox:SetBackdropBorderColor(unpack(Theme.gold))
+            searchBox:SetBackdropBorderColor(unpack(theme.gold))
         else
-            searchBox:SetBackdropBorderColor(unpack(Theme.border))
+            searchBox:SetBackdropBorderColor(unpack(theme.border))
         end
-        searchBox.icon:SetVertexColor(unpack(Theme.textDim))
-        searchBox.editBox:SetTextColor(unpack(Theme.text))
-        searchBox.placeholder:SetTextColor(unpack(Theme.textDim))
-        searchBox.clearBtn.text:SetTextColor(unpack(Theme.textDim))
+        searchBox.icon:SetVertexColor(unpack(theme.textDim))
+        searchBox.editBox:SetTextColor(unpack(theme.text))
+        searchBox.placeholder:SetTextColor(unpack(theme.textDim))
+        searchBox.clearBtn.text:SetTextColor(unpack(theme.textDim))
     end
     searchBox._ApplyTheme = ApplyTheme
 
@@ -73,14 +74,14 @@ function MedaUI:CreateSearchBox(parent, width)
     -- Initial theme application
     ApplyTheme()
 
-    searchBox.clearBtn:SetScript("OnEnter", function(self)
-        local Theme = MedaUI.Theme
-        self.text:SetTextColor(unpack(Theme.text))
+    searchBox.clearBtn:SetScript("OnEnter", function(button)
+        local theme = MedaUI.Theme
+        button.text:SetTextColor(unpack(theme.text))
     end)
 
-    searchBox.clearBtn:SetScript("OnLeave", function(self)
-        local Theme = MedaUI.Theme
-        self.text:SetTextColor(unpack(Theme.textDim))
+    searchBox.clearBtn:SetScript("OnLeave", function(button)
+        local theme = MedaUI.Theme
+        button.text:SetTextColor(unpack(theme.textDim))
     end)
 
     searchBox.clearBtn:SetScript("OnClick", function()
@@ -132,14 +133,14 @@ function MedaUI:CreateSearchBox(parent, width)
 
     searchBox.editBox:SetScript("OnEditFocusGained", function()
         searchBox._hasFocus = true
-        local Theme = MedaUI.Theme
-        searchBox:SetBackdropBorderColor(unpack(Theme.gold))
+        local theme = MedaUI.Theme
+        searchBox:SetBackdropBorderColor(unpack(theme.gold))
     end)
 
     searchBox.editBox:SetScript("OnEditFocusLost", function()
         searchBox._hasFocus = false
-        local Theme = MedaUI.Theme
-        searchBox:SetBackdropBorderColor(unpack(Theme.border))
+        local theme = MedaUI.Theme
+        searchBox:SetBackdropBorderColor(unpack(theme.border))
     end)
 
     -- Click on container focuses editbox

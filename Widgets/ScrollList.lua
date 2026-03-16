@@ -3,8 +3,8 @@
     Virtualized scrolling list for large datasets
 ]]
 
-local MedaUI = LibStub("MedaUI-1.0")
-local Pixel = LibStub("MedaUI-1.0").Pixel
+local MedaUI = LibStub("MedaUI-2.0")
+local Pixel = LibStub("MedaUI-2.0").Pixel
 
 --- Create a scrollable list
 --- @param parent Frame Parent frame
@@ -16,6 +16,7 @@ function MedaUI.CreateScrollList(ui, parent, width, height, config)
     config = config or {}
     local rowHeight = config.rowHeight or 24
     local renderRow = config.renderRow
+    local safeRender = config.safeRender and true or false
 
     local scrollList = CreateFrame("Frame", nil, parent, "BackdropTemplate")
     Pixel.SetSize(scrollList, width, height)
@@ -27,8 +28,15 @@ function MedaUI.CreateScrollList(ui, parent, width, height, config)
     scrollList.rowHeight = rowHeight
     scrollList.renderRow = renderRow
     scrollList.rowPool = {}
+    scrollList.freeRows = {}
     scrollList.visibleRows = {}
+    scrollList.visibleRowsByIndex = {}
     scrollList.scrollOffset = 0
+    scrollList._lastFirstVisible = nil
+    scrollList._lastLastVisible = nil
+    scrollList._lastContentWidth = nil
+    scrollList._lastContentHeight = nil
+    scrollList._needsRender = true
 
     -- Scroll frame (AF custom scrollbar)
     local scrollParent = ui:CreateScrollFrame(scrollList)
@@ -69,65 +77,181 @@ function MedaUI.CreateScrollList(ui, parent, width, height, config)
 
     -- Initial theme application
     ApplyTheme()
+    local releaseIndexScratch = {}
 
-    -- Slot-based row pool: keyed by visible slot (1..visibleRowCount+1), not data index
-    local function GetRow(slot)
-        local row = scrollList.rowPool[slot]
+    local function AcquireRow()
+        local row = table.remove(scrollList.freeRows)
         if not row then
             row = CreateFrame("Frame", nil, content, "BackdropTemplate")
             Pixel.SetHeight(row, rowHeight)
-            Pixel.SetPoint(row, "RIGHT")
             row:SetBackdrop(MedaUI:CreateBackdrop(false))
-            scrollList.rowPool[slot] = row
+            scrollList.rowPool[#scrollList.rowPool + 1] = row
         end
         return row
     end
 
-    -- Update visible rows
-    local function UpdateRows()
+    local function RebuildVisibleRows(firstVisible, lastVisible)
+        wipe(scrollList.visibleRows)
+        for i = firstVisible, lastVisible do
+            local row = scrollList.visibleRowsByIndex[i]
+            if row then
+                scrollList.visibleRows[#scrollList.visibleRows + 1] = row
+            end
+        end
+    end
+
+    local function ReleaseRow(index)
+        local row = scrollList.visibleRowsByIndex[index]
+        if not row then
+            return
+        end
+
+        scrollList.visibleRowsByIndex[index] = nil
+        row._dataIndex = nil
+        row._dataRef = nil
+        row:Hide()
+        scrollList.freeRows[#scrollList.freeRows + 1] = row
+    end
+
+    local function ReleaseAllRows()
+        local count = 0
+        for index in pairs(scrollList.visibleRowsByIndex) do
+            count = count + 1
+            releaseIndexScratch[count] = index
+        end
+        for i = 1, count do
+            ReleaseRow(releaseIndexScratch[i])
+            releaseIndexScratch[i] = nil
+        end
+        wipe(scrollList.visibleRows)
+    end
+
+    local function ApplyRowFrame(row, index, theme, force)
+        if row._dataIndex ~= index or force then
+            row:ClearAllPoints()
+            Pixel.SetPoint(row, "TOPLEFT", 0, -((index - 1) * rowHeight))
+            Pixel.SetPoint(row, "TOPRIGHT", 0, -((index - 1) * rowHeight))
+            Pixel.SetHeight(row, rowHeight)
+        end
+
+        local isEven = (index % 2 == 0)
+        if force or row._isEven ~= isEven then
+            if isEven then
+                row:SetBackdropColor(unpack(theme.rowEven))
+            else
+                row:SetBackdropColor(unpack(theme.rowOdd))
+            end
+            row._isEven = isEven
+        end
+    end
+
+    local function RenderRowContent(row, data, index, theme)
+        if not scrollList.renderRow then
+            return
+        end
+
+        if safeRender then
+            local ok, err = pcall(scrollList.renderRow, row, data, index)
+            if not ok then
+                if not row.renderErrorText then
+                    row.renderErrorText = row:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+                    row.renderErrorText:SetPoint("TOPLEFT", 8, -6)
+                    row.renderErrorText:SetPoint("TOPRIGHT", -8, -6)
+                    row.renderErrorText:SetJustifyH("LEFT")
+                    row.renderErrorText:SetWordWrap(true)
+                end
+                row.renderErrorText:SetText("Row render failed: " .. tostring(err))
+                row.renderErrorText:SetTextColor(unpack(theme.levelError or { 1, 0.3, 0.3, 1 }))
+                row.renderErrorText:Show()
+            elseif row.renderErrorText then
+                row.renderErrorText:Hide()
+            end
+        else
+            if row.renderErrorText then
+                row.renderErrorText:Hide()
+            end
+            scrollList.renderRow(row, data, index)
+        end
+    end
+
+    local function UpdateRows(force)
         local Theme = MedaUI.Theme
         local dataSource = scrollList.filteredData or scrollList.data
         local currentHeight, visibleRowCount = GetLayoutMetrics()
-        local totalHeight = #dataSource * rowHeight
-        Pixel.SetHeight(content, math.max(totalHeight, currentHeight - 8))
-
-        -- Hide all rows first
-        for _, row in ipairs(scrollList.visibleRows) do
-            row:Hide()
+        local currentWidth = scrollFrame:GetWidth()
+        if currentWidth and currentWidth > 0 then
+            if scrollList._lastContentWidth ~= currentWidth then
+                content:SetWidth(currentWidth)
+                scrollList._lastContentWidth = currentWidth
+                force = true
+            end
         end
-        wipe(scrollList.visibleRows)
+        local totalHeight = #dataSource * rowHeight
+        local contentHeight = math.max(totalHeight, currentHeight - 8)
+        if scrollList._lastContentHeight ~= contentHeight then
+            Pixel.SetHeight(content, contentHeight)
+            scrollList._lastContentHeight = contentHeight
+        end
 
-        if #dataSource == 0 then return end
+        if #dataSource == 0 then
+            ReleaseAllRows()
+            scrollList._lastFirstVisible = nil
+            scrollList._lastLastVisible = nil
+            scrollList._needsRender = false
+            return
+        end
 
         -- Get scroll position
         local scrollPos = scrollFrame:GetVerticalScroll()
         local firstVisible = math.floor(scrollPos / rowHeight) + 1
         local lastVisible = math.min(firstVisible + visibleRowCount, #dataSource)
 
-        -- Show and render visible rows using slot-based pool
-        local slot = 0
-        for i = firstVisible, lastVisible do
-            slot = slot + 1
-            local row = GetRow(slot)
-            row:ClearAllPoints()
-            Pixel.SetPoint(row, "TOPLEFT", 0, -((i - 1) * rowHeight))
-            Pixel.SetPoint(row, "RIGHT")
-
-            -- Alternating row colors
-            if i % 2 == 0 then
-                row:SetBackdropColor(unpack(Theme.rowEven))
-            else
-                row:SetBackdropColor(unpack(Theme.rowOdd))
-            end
-
-            -- Render row content
-            if scrollList.renderRow then
-                scrollList.renderRow(row, dataSource[i], i)
-            end
-
-            row:Show()
-            scrollList.visibleRows[#scrollList.visibleRows + 1] = row
+        if not force
+            and not scrollList._needsRender
+            and scrollList._lastFirstVisible == firstVisible
+            and scrollList._lastLastVisible == lastVisible then
+            return
         end
+
+        local releaseCount = 0
+        for index in pairs(scrollList.visibleRowsByIndex) do
+            if index < firstVisible or index > lastVisible then
+                releaseCount = releaseCount + 1
+                releaseIndexScratch[releaseCount] = index
+            end
+        end
+        for i = 1, releaseCount do
+            ReleaseRow(releaseIndexScratch[i])
+            releaseIndexScratch[i] = nil
+        end
+
+        for i = firstVisible, lastVisible do
+            local row = scrollList.visibleRowsByIndex[i]
+            local data = dataSource[i]
+            local needsRender = force or scrollList._needsRender
+
+            if not row then
+                row = AcquireRow()
+                scrollList.visibleRowsByIndex[i] = row
+                needsRender = true
+            end
+
+            ApplyRowFrame(row, i, Theme, force)
+
+            if needsRender or row._dataRef ~= data then
+                RenderRowContent(row, data, i, Theme)
+            end
+
+            row._dataIndex = i
+            row._dataRef = data
+            row:Show()
+        end
+
+        RebuildVisibleRows(firstVisible, lastVisible)
+
+        scrollList._lastFirstVisible = firstVisible
+        scrollList._lastLastVisible = lastVisible
+        scrollList._needsRender = false
     end
 
     -- Scroll event (hook AF's existing OnVerticalScroll)
@@ -144,10 +268,11 @@ function MedaUI.CreateScrollList(ui, parent, width, height, config)
     function scrollList:SetData(data)
         scrollList.data = data or {}
         scrollList.filteredData = nil
+        scrollList._needsRender = true
         if scrollList.filterFunc then
             scrollList:ApplyFilter()
         else
-            UpdateRows()
+            UpdateRows(true)
         end
     end
 
@@ -176,14 +301,16 @@ function MedaUI.CreateScrollList(ui, parent, width, height, config)
         else
             scrollList.filteredData = nil
         end
-        UpdateRows()
+        scrollList._needsRender = true
+        UpdateRows(true)
     end
 
     --- Clear the filter
     function scrollList:ClearFilter()
         scrollList.filterFunc = nil
         scrollList.filteredData = nil
-        UpdateRows()
+        scrollList._needsRender = true
+        UpdateRows(true)
     end
 
     --- Refresh the display
@@ -191,7 +318,8 @@ function MedaUI.CreateScrollList(ui, parent, width, height, config)
         if scrollList.filterFunc then
             scrollList:ApplyFilter()
         else
-            UpdateRows()
+            scrollList._needsRender = true
+            UpdateRows(true)
         end
     end
 
@@ -229,9 +357,10 @@ function MedaUI.CreateScrollList(ui, parent, width, height, config)
     function scrollList:AddItem(item, scrollToNew)
         scrollList.data[#scrollList.data + 1] = item
         if scrollList.filterFunc then
+            scrollList._needsRender = true
             scrollList:ApplyFilter()
         else
-            UpdateRows()
+            UpdateRows(scrollToNew and true or false)
         end
         if scrollToNew then
             self:ScrollToBottom()
@@ -242,7 +371,9 @@ function MedaUI.CreateScrollList(ui, parent, width, height, config)
     function scrollList:Clear()
         wipe(scrollList.data)
         scrollList.filteredData = nil
-        UpdateRows()
+        scrollList._needsRender = true
+        ReleaseAllRows()
+        UpdateRows(true)
     end
 
     --- Get item count

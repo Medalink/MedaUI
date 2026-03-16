@@ -3,14 +3,15 @@
     Draggable transparent section intended to live inside a HUDGroup.
 ]]
 
-local MedaUI = LibStub("MedaUI-1.0")
-local Pixel = LibStub("MedaUI-1.0").Pixel
+local MedaUI = LibStub("MedaUI-2.0")
+---@cast MedaUI MedaUILibrary
+local Pixel = LibStub("MedaUI-2.0").Pixel
 
 --- Create a draggable HUD section.
 --- @param parent Frame
 --- @param config table|nil { width, height, locked, showBackground, backgroundOpacity, backdropColor, title, titleFont, titleTone, titleAlpha, positionMode }
 --- @return Frame
-function MedaUI:CreateHUDSection(parent, config)
+function MedaUI.CreateHUDSection(_, parent, config)
     config = config or {}
 
     local section = CreateFrame("Frame", nil, parent)
@@ -39,19 +40,19 @@ function MedaUI:CreateHUDSection(parent, config)
         Pixel.SetPoint(section.title, "TOPLEFT", 4, 0)
     end
 
-    section:SetScript("OnDragStart", function(self)
-        if not self._locked then
-            self:StartMoving()
+    section:SetScript("OnDragStart", function(widget)
+        if not widget._locked then
+            widget:StartMoving()
         end
     end)
 
-    section:SetScript("OnDragStop", function(self)
-        self:StopMovingOrSizing()
-        if self.OnMove then
-            if self._positionMode == "relative" then
-                self:OnMove(self:SaveRelativePosition())
+    section:SetScript("OnDragStop", function(widget)
+        widget:StopMovingOrSizing()
+        if widget.OnMove then
+            if widget._positionMode == "relative" then
+                widget:OnMove(widget:SaveRelativePosition())
             else
-                self:OnMove(self:SavePosition())
+                widget:OnMove(widget:SavePosition())
             end
         end
     end)

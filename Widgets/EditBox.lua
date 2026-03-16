@@ -3,8 +3,9 @@
     Creates themed text input fields
 ]]
 
-local MedaUI = LibStub("MedaUI-1.0")
-local Pixel = LibStub("MedaUI-1.0").Pixel
+local MedaUI = LibStub("MedaUI-2.0")
+---@cast MedaUI MedaUILibrary
+local Pixel = LibStub("MedaUI-2.0").Pixel
 
 --- Create a themed edit box
 --- @param parent Frame The parent frame
@@ -12,13 +13,13 @@ local Pixel = LibStub("MedaUI-1.0").Pixel
 --- @param height number Edit box height (default: 24)
 --- @param isMultiLine boolean|nil Whether to allow multiple lines
 --- @return EditBox The created edit box
-function MedaUI:CreateEditBox(parent, width, height, isMultiLine)
+function MedaUI.CreateEditBox(library, parent, width, height, isMultiLine)
     height = height or 24
 
     -- Container with backdrop
     local container = CreateFrame("Frame", nil, parent, "BackdropTemplate")
     Pixel.SetSize(container, width, height)
-    container:SetBackdrop(self:CreateBackdrop(true))
+    container:SetBackdrop(library:CreateBackdrop(true))
 
     -- EditBox
     local editBox = CreateFrame("EditBox", nil, container)
@@ -39,26 +40,26 @@ function MedaUI:CreateEditBox(parent, width, height, isMultiLine)
 
     -- Apply theme colors
     local function ApplyTheme()
-        local Theme = MedaUI.Theme
-        container:SetBackdropColor(unpack(container._isEnabled and Theme.input or Theme.backgroundDark))
+        local theme = MedaUI.Theme
+        container:SetBackdropColor(unpack(container._isEnabled and theme.input or theme.backgroundDark))
 
         if container._hasFocus then
-            container:SetBackdropBorderColor(unpack(Theme.gold))
+            container:SetBackdropBorderColor(unpack(theme.gold))
         elseif container._isHovered then
-            container:SetBackdropBorderColor(unpack(Theme.borderLight))
+            container:SetBackdropBorderColor(unpack(theme.borderLight))
         else
-            container:SetBackdropBorderColor(unpack(Theme.border))
+            container:SetBackdropBorderColor(unpack(theme.border))
         end
 
         if container._isEnabled then
             -- Check if placeholder is showing
             if container.placeholder and editBox:GetText() == container.placeholder then
-                editBox:SetTextColor(unpack(Theme.textDim))
+                editBox:SetTextColor(unpack(theme.textDim))
             else
-                editBox:SetTextColor(unpack(Theme.text))
+                editBox:SetTextColor(unpack(theme.text))
             end
         else
-            editBox:SetTextColor(unpack(Theme.textDim))
+            editBox:SetTextColor(unpack(theme.textDim))
         end
     end
     container._ApplyTheme = ApplyTheme
@@ -72,14 +73,14 @@ function MedaUI:CreateEditBox(parent, width, height, isMultiLine)
     -- Focus effects
     editBox:SetScript("OnEditFocusGained", function()
         container._hasFocus = true
-        local Theme = MedaUI.Theme
-        container:SetBackdropBorderColor(unpack(Theme.gold))
+        local theme = MedaUI.Theme
+        container:SetBackdropBorderColor(unpack(theme.gold))
     end)
 
     editBox:SetScript("OnEditFocusLost", function()
         container._hasFocus = false
-        local Theme = MedaUI.Theme
-        container:SetBackdropBorderColor(unpack(Theme.border))
+        local theme = MedaUI.Theme
+        container:SetBackdropBorderColor(unpack(theme.border))
     end)
 
     -- Enter key handling (single line)
@@ -105,19 +106,19 @@ function MedaUI:CreateEditBox(parent, width, height, isMultiLine)
     end)
 
     -- Hover effect on container
-    container:SetScript("OnEnter", function(self)
-        self._isHovered = true
+    container:SetScript("OnEnter", function(widget)
+        widget._isHovered = true
         if not editBox:HasFocus() then
-            local Theme = MedaUI.Theme
-            self:SetBackdropBorderColor(unpack(Theme.borderLight))
+            local theme = MedaUI.Theme
+            widget:SetBackdropBorderColor(unpack(theme.borderLight))
         end
     end)
 
-    container:SetScript("OnLeave", function(self)
-        self._isHovered = false
+    container:SetScript("OnLeave", function(widget)
+        widget._isHovered = false
         if not editBox:HasFocus() then
-            local Theme = MedaUI.Theme
-            self:SetBackdropBorderColor(unpack(Theme.border))
+            local theme = MedaUI.Theme
+            widget:SetBackdropBorderColor(unpack(theme.border))
         end
     end)
 
@@ -141,8 +142,8 @@ function MedaUI:CreateEditBox(parent, width, height, isMultiLine)
         self.placeholder = text
         if self.editBox:GetText() == "" then
             self.editBox:SetText(text)
-            local Theme = MedaUI.Theme
-            self.editBox:SetTextColor(unpack(Theme.textDim))
+            local theme = MedaUI.Theme
+            self.editBox:SetTextColor(unpack(theme.textDim))
         end
 
         -- Only install hooks once; subsequent calls just update self.placeholder
@@ -152,16 +153,16 @@ function MedaUI:CreateEditBox(parent, width, height, isMultiLine)
             self.editBox:HookScript("OnEditFocusGained", function(eb)
                 if self.placeholder and eb:GetText() == self.placeholder then
                     eb:SetText("")
-                    local Theme = MedaUI.Theme
-                    eb:SetTextColor(unpack(Theme.text))
+                    local theme = MedaUI.Theme
+                    eb:SetTextColor(unpack(theme.text))
                 end
             end)
 
             self.editBox:HookScript("OnEditFocusLost", function(eb)
                 if self.placeholder and eb:GetText() == "" then
                     eb:SetText(self.placeholder)
-                    local Theme = MedaUI.Theme
-                    eb:SetTextColor(unpack(Theme.textDim))
+                    local theme = MedaUI.Theme
+                    eb:SetTextColor(unpack(theme.textDim))
                 end
             end)
         end
@@ -178,17 +179,17 @@ function MedaUI:CreateEditBox(parent, width, height, isMultiLine)
     function container:Enable()
         self._isEnabled = true
         self.editBox:Enable()
-        local Theme = MedaUI.Theme
-        self:SetBackdropColor(unpack(Theme.input))
-        self.editBox:SetTextColor(unpack(Theme.text))
+        local theme = MedaUI.Theme
+        self:SetBackdropColor(unpack(theme.input))
+        self.editBox:SetTextColor(unpack(theme.text))
     end
 
     function container:Disable()
         self._isEnabled = false
         self.editBox:Disable()
-        local Theme = MedaUI.Theme
-        self:SetBackdropColor(unpack(Theme.backgroundDark))
-        self.editBox:SetTextColor(unpack(Theme.textDim))
+        local theme = MedaUI.Theme
+        self:SetBackdropColor(unpack(theme.backgroundDark))
+        self.editBox:SetTextColor(unpack(theme.textDim))
     end
 
     return container

@@ -3,18 +3,17 @@
     Creates labeled section dividers with gradient underline
 ]]
 
-local MedaUI = LibStub("MedaUI-1.0")
-local Pixel = LibStub("MedaUI-1.0").Pixel
+local MedaUI = LibStub("MedaUI-2.0")
+---@cast MedaUI MedaUILibrary
+local Pixel = LibStub("MedaUI-2.0").Pixel
 
 --- Create a themed section header with gold text and gradient underline
 --- @param parent Frame The parent frame
 --- @param text string Header text
 --- @param width number|nil Width of the underline (default: 280)
 --- @return Frame The container frame (with .header and .line properties)
-function MedaUI:CreateSectionHeader(parent, text, width)
+function MedaUI.CreateSectionHeader(_, parent, text, width)
     width = width or 280
-
-    local Theme = self.Theme
 
     -- Container for theme management
     local container = CreateFrame("Frame", nil, parent)
@@ -31,32 +30,32 @@ function MedaUI:CreateSectionHeader(parent, text, width)
 
     -- Apply theme colors
     local function ApplyTheme()
-        local Theme = MedaUI.Theme
-        header:SetTextColor(unpack(Theme.gold))
+        local theme = MedaUI.Theme
+        header:SetTextColor(unpack(theme.gold))
 
         -- Apply gradient to line if available, with fallback
-        if Theme.sectionGradientStart and Theme.sectionGradientEnd and line.SetGradient then
+        if theme.sectionGradientStart and theme.sectionGradientEnd and line.SetGradient then
             line:SetColorTexture(1, 1, 1, 1)  -- Base white texture for gradient
             local success = pcall(function()
                 line:SetGradient("HORIZONTAL", {
-                    r = Theme.sectionGradientStart[1],
-                    g = Theme.sectionGradientStart[2],
-                    b = Theme.sectionGradientStart[3],
-                    a = Theme.sectionGradientStart[4],
+                    r = theme.sectionGradientStart[1],
+                    g = theme.sectionGradientStart[2],
+                    b = theme.sectionGradientStart[3],
+                    a = theme.sectionGradientStart[4],
                 }, {
-                    r = Theme.sectionGradientEnd[1],
-                    g = Theme.sectionGradientEnd[2],
-                    b = Theme.sectionGradientEnd[3],
-                    a = Theme.sectionGradientEnd[4],
+                    r = theme.sectionGradientEnd[1],
+                    g = theme.sectionGradientEnd[2],
+                    b = theme.sectionGradientEnd[3],
+                    a = theme.sectionGradientEnd[4],
                 })
             end)
             if not success then
                 -- Fallback if SetGradient fails
-                line:SetColorTexture(unpack(Theme.gold))
+                line:SetColorTexture(unpack(theme.gold))
             end
         else
             -- Fallback to solid gold color
-            line:SetColorTexture(unpack(Theme.gold))
+            line:SetColorTexture(unpack(theme.gold))
         end
     end
     container._ApplyTheme = ApplyTheme

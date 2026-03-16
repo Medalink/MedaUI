@@ -4,8 +4,9 @@
     and optional item count badge. Extends the visual style of SectionHeader.
 ]]
 
-local MedaUI = LibStub("MedaUI-1.0")
-local Pixel = LibStub("MedaUI-1.0").Pixel
+local MedaUI = LibStub("MedaUI-2.0")
+---@cast MedaUI MedaUILibrary
+local Pixel = LibStub("MedaUI-2.0").Pixel
 
 local CHEVRON_RIGHT_TEX = "Interface\\AddOns\\MedaUI\\Media\\Textures\\chevron-right.tga"
 local CHEVRON_DOWN_TEX  = "Interface\\AddOns\\MedaUI\\Media\\Textures\\chevron-down.tga"
@@ -15,7 +16,7 @@ local CHEVRON_SIZE = 10
 --- @param parent Frame
 --- @param config table { text, width, count, expanded, onToggle }
 --- @return Frame container
-function MedaUI:CreateCollapsibleSectionHeader(parent, config)
+function MedaUI.CreateCollapsibleSectionHeader(_, parent, config)
     config = config or {}
     local width    = config.width or 280
     local height   = config.height or 32
@@ -56,9 +57,9 @@ function MedaUI:CreateCollapsibleSectionHeader(parent, config)
 
     -- Theme application
     local function ApplyTheme()
-        local Theme = MedaUI.Theme
-        local headerColor = Theme[tone] or Theme.gold or {1, 0.82, 0}
-        local dim  = Theme[dimTone] or Theme.textDim or {0.6, 0.6, 0.6}
+        local theme = MedaUI.Theme
+        local headerColor = theme[tone] or theme.gold or {1, 0.82, 0}
+        local dim  = theme[dimTone] or theme.textDim or {0.6, 0.6, 0.6}
 
         header:SetTextColor(unpack(headerColor))
         chevron:SetVertexColor(unpack(dim))
@@ -66,20 +67,20 @@ function MedaUI:CreateCollapsibleSectionHeader(parent, config)
 
         if not showLine then
             line:Hide()
-        elseif Theme.sectionGradientStart and Theme.sectionGradientEnd and line.SetGradient then
+        elseif theme.sectionGradientStart and theme.sectionGradientEnd and line.SetGradient then
             line:Show()
             line:SetColorTexture(1, 1, 1, 1)
             local success = pcall(function()
                 line:SetGradient("HORIZONTAL", {
-                    r = Theme.sectionGradientStart[1],
-                    g = Theme.sectionGradientStart[2],
-                    b = Theme.sectionGradientStart[3],
-                    a = Theme.sectionGradientStart[4],
+                    r = theme.sectionGradientStart[1],
+                    g = theme.sectionGradientStart[2],
+                    b = theme.sectionGradientStart[3],
+                    a = theme.sectionGradientStart[4],
                 }, {
-                    r = Theme.sectionGradientEnd[1],
-                    g = Theme.sectionGradientEnd[2],
-                    b = Theme.sectionGradientEnd[3],
-                    a = Theme.sectionGradientEnd[4],
+                    r = theme.sectionGradientEnd[1],
+                    g = theme.sectionGradientEnd[2],
+                    b = theme.sectionGradientEnd[3],
+                    a = theme.sectionGradientEnd[4],
                 })
             end)
             if not success then
@@ -96,22 +97,24 @@ function MedaUI:CreateCollapsibleSectionHeader(parent, config)
     ApplyTheme()
 
     -- Hover feedback
-    container:SetScript("OnEnter", function(self)
-        local Theme = MedaUI.Theme
-        local bright = Theme.textBright or Theme.text or {1, 1, 1}
+    container:SetScript("OnEnter", function()
+        local theme = MedaUI.Theme
+        local bright = theme.textBright or theme.text or {1, 1, 1}
         chevron:SetVertexColor(unpack(bright))
     end)
-    container:SetScript("OnLeave", function(self)
-        local Theme = MedaUI.Theme
-        local dim = Theme[dimTone] or Theme.textDim or {0.6, 0.6, 0.6}
+    container:SetScript("OnLeave", function()
+        local theme = MedaUI.Theme
+        local dim = theme[dimTone] or theme.textDim or {0.6, 0.6, 0.6}
         chevron:SetVertexColor(unpack(dim))
     end)
 
     -- Click handler
-    container:SetScript("OnClick", function(self)
-        self._expanded = not self._expanded
-        chevron:SetTexture(self._expanded and CHEVRON_DOWN_TEX or CHEVRON_RIGHT_TEX)
-        if onToggle then onToggle(self._expanded) end
+    container:SetScript("OnClick", function(widget)
+        widget._expanded = not widget._expanded
+        chevron:SetTexture(widget._expanded and CHEVRON_DOWN_TEX or CHEVRON_RIGHT_TEX)
+        if onToggle then
+            onToggle(widget._expanded)
+        end
     end)
 
     -- Internal refs

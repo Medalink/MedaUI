@@ -3,5 +3,14 @@ package-as: MedaUI
 ignore:
   - .github
   - .gitignore
+  - .luacheckrc
+  - .luarc.json
+  - .luals-meta
+  - .vscode
   - README.md
   - .pkgmeta
+  - docs
+  - lua_ls_check.json
+  - lua_ls_hosts.json
+  - lua_ls_root.json
+  - tools

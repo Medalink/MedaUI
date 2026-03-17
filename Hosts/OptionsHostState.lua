@@ -12,6 +12,8 @@ function OptionsHostState.GetModuleState(host, moduleId)
             selectedPageId = nil,
             pageStates = {},
             root = nil,
+            headerHost = nil,
+            headerFrame = nil,
             pageHost = nil,
             tabBar = nil,
         }
@@ -43,7 +45,15 @@ function OptionsHostState.EnsureModuleRoot(moduleId, moduleConfig, moduleState, 
         moduleState.root:SetPoint("TOPLEFT", 0, 0)
         moduleState.root:SetPoint("RIGHT", 0, 0)
         moduleState.root:SetHeight(5000)
-        moduleState.pageHost = moduleState.root
+
+        moduleState.headerHost = CreateFrame("Frame", nil, moduleState.root)
+        moduleState.headerHost:SetPoint("TOPLEFT", 0, 0)
+        moduleState.headerHost:SetPoint("RIGHT", 0, 0)
+        moduleState.headerHost:SetHeight(0)
+
+        moduleState.pageHost = CreateFrame("Frame", nil, moduleState.root)
+        moduleState.pageHost:SetPoint("RIGHT", 0, 0)
+        moduleState.pageHost:SetHeight(5000)
 
         if #moduleState.pages > 1 then
             local tabs = {}
@@ -52,13 +62,10 @@ function OptionsHostState.EnsureModuleRoot(moduleId, moduleConfig, moduleState, 
             end
 
             moduleState.tabBar = MedaUI:CreateTabBar(moduleState.root, tabs)
-            moduleState.tabBar:SetPoint("TOPLEFT", 0, 0)
+            moduleState.tabBar:SetPoint("TOPLEFT", moduleState.headerHost, "BOTTOMLEFT", 0, 0)
             moduleState.tabBar:SetPoint("RIGHT", 0, 0)
 
-            moduleState.pageHost = CreateFrame("Frame", nil, moduleState.root)
-            moduleState.pageHost:SetPoint("TOPLEFT", 0, -36)
-            moduleState.pageHost:SetPoint("RIGHT", 0, 0)
-            moduleState.pageHost:SetHeight(5000)
+            moduleState.pageHost:SetPoint("TOPLEFT", moduleState.tabBar, "BOTTOMLEFT", 0, -8)
 
             moduleState.tabBar.OnTabChanged = function(_, tabId)
                 moduleState.selectedPageId = tabId
@@ -68,6 +75,8 @@ function OptionsHostState.EnsureModuleRoot(moduleId, moduleConfig, moduleState, 
                 end
                 host:RefreshActivePage(true)
             end
+        else
+            moduleState.pageHost:SetPoint("TOPLEFT", moduleState.headerHost, "BOTTOMLEFT", 0, 0)
         end
 
         return

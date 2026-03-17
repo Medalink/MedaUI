@@ -240,10 +240,10 @@ function MedaUI:GetSoundList()
 
     if #sounds == 0 then
         local builtins = {
-            { value = "Sound\\Interface\\RaidWarning.ogg", label = "Raid Warning" },
-            { value = "Sound\\Interface\\ReadyCheck.ogg", label = "Ready Check" },
-            { value = "Sound\\Interface\\AlarmClockWarning3.ogg", label = "Alarm Clock" },
-            { value = "Sound\\Interface\\levelup2.ogg", label = "Level Up" },
+            { value = "soundkit:RAID_WARNING", label = "Raid Warning" },
+            { value = "soundkit:READY_CHECK", label = "Ready Check" },
+            { value = "soundkit:ALARM_CLOCK_WARNING_3", label = "Alarm Clock" },
+            { value = "soundkit:LEVELUP", label = "Level Up" },
         }
         for _, sound in ipairs(builtins) do
             if not seen[sound.value] then

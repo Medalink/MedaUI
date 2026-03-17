@@ -468,6 +468,10 @@ function OptionsHostView.Create(panel, config)
         contentFrame:SetHeight(math.max((height or DEFAULT_CONTENT_HEIGHT) + headerOffset, contentScroll.scrollFrame:GetHeight()))
     end
 
+    function view:SetHeaderOffset(offset)
+        headerOffset = offset or 0
+    end
+
     function view:RegisterConfigCleanup(frame)
         cleanupFrames[#cleanupFrames + 1] = frame
     end

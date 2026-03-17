@@ -53,6 +53,9 @@ function MedaUI.CreateOptionsHost(library, config)
             local moduleState = OptionsHostState.GetModuleState(host, moduleId)
             moduleState.pages = moduleState.pages or HostSupport.NormalizePages(moduleConfig)
             moduleState.selectedPageId = moduleState.selectedPageId or moduleState.pages[1].id
+            if not OptionsHostState.ResolvePage(moduleState, moduleState.selectedPageId) then
+                moduleState.selectedPageId = moduleState.pages[1].id
+            end
             host.activeModuleId = moduleId
             host.activePageId = moduleState.selectedPageId
             host.activeContentHeight = nil
@@ -60,29 +63,57 @@ function MedaUI.CreateOptionsHost(library, config)
             OptionsHostState.EnsureModuleRoot(moduleId, moduleConfig, moduleState, parentFrame, host)
 
             local page = OptionsHostState.ResolvePage(moduleState, moduleState.selectedPageId) or moduleState.pages[1]
+            if moduleState.tabBar and moduleState.tabBar.GetActiveTab and moduleState.tabBar.SetActiveTab then
+                local activeTabId = moduleState.tabBar:GetActiveTab()
+                if activeTabId ~= page.id then
+                    local previousOnTabChanged = moduleState.tabBar.OnTabChanged
+                    moduleState.tabBar.OnTabChanged = nil
+                    moduleState.tabBar:SetActiveTab(page.id)
+                    moduleState.tabBar.OnTabChanged = previousOnTabChanged
+                end
+            end
+
+            if moduleState.headerFrame then
+                HostSupport.Destroy(moduleState.headerFrame)
+                moduleState.headerFrame = nil
+            end
+
+            local chromeHeight = 0
+            if not moduleConfig.hideHeader then
+                moduleState.headerFrame = CreateFrame("Frame", nil, moduleState.headerHost)
+                moduleState.headerFrame:SetPoint("TOPLEFT", 0, 0)
+                moduleState.headerFrame:SetPoint("RIGHT", 0, 0)
+                moduleState.headerFrame:SetHeight(1)
+
+                chromeHeight = ui:BuildConfigHeader(moduleState.headerFrame, {
+                    title = page.title or moduleConfig.title or moduleId,
+                    stability = page.stability or moduleConfig.stability,
+                    stabilityColors = page.stabilityColors or moduleConfig.stabilityColors,
+                    version = page.version or moduleConfig.version,
+                    author = page.author or moduleConfig.author,
+                    description = page.description or moduleConfig.description,
+                })
+            end
+
+            if moduleState.headerHost then
+                moduleState.headerHost:SetHeight(chromeHeight)
+            end
+            if moduleState.tabBar then
+                chromeHeight = chromeHeight + 36
+            end
+            ui:SetHeaderOffset(chromeHeight)
+
             local pageState = OptionsHostState.GetPageState(moduleState, page.id)
             OptionsHostState.HideInactivePages(moduleState, page.id)
             OptionsHostState.EnsurePageFrame(moduleState, pageState)
 
             if not pageState.built then
-                local offset = 0
-                if not moduleConfig.hideHeader then
-                    offset = ui:BuildConfigHeader(pageState.frame, {
-                        title = page.title or moduleConfig.title or moduleId,
-                        stability = page.stability or moduleConfig.stability,
-                        stabilityColors = page.stabilityColors or moduleConfig.stabilityColors,
-                        version = page.version or moduleConfig.version,
-                        author = page.author or moduleConfig.author,
-                        description = page.description or moduleConfig.description,
-                    })
-                end
-
                 pageState.body = CreateFrame("Frame", nil, pageState.frame)
-                pageState.body:SetPoint("TOPLEFT", 0, -offset)
+                pageState.body:SetPoint("TOPLEFT", 0, 0)
                 pageState.body:SetPoint("RIGHT", 0, 0)
                 pageState.body:SetHeight(5000)
 
-                local height = moduleConfig.buildPage(page.id, pageState.body, offset, host)
+                local height = moduleConfig.buildPage(page.id, pageState.body, 0, host)
                 host.activeContentHeight = tonumber(height)
                 pageState.built = true
             elseif moduleConfig.onPageCacheRestore then
@@ -161,6 +192,9 @@ function MedaUI.CreateOptionsHost(library, config)
         local state = OptionsHostState.GetModuleState(self, moduleId)
         state.pages = state.pages or HostSupport.NormalizePages(self.modules[moduleId])
         state.selectedPageId = pageId or state.selectedPageId or state.pages[1].id
+        if not OptionsHostState.ResolvePage(state, state.selectedPageId) then
+            state.selectedPageId = state.pages[1].id
+        end
         self.activeModuleId = moduleId
         self.activePageId = state.selectedPageId
         ui:SelectItem(moduleId)

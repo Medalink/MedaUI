@@ -13,6 +13,7 @@ MedaUI.lua
 Core\ThemeRegistry.lua
 Pixel.lua
 Core\RuntimeHelpers.lua
+Core\AddonLogger.lua
 Core\MediaRegistry.lua
 Themes\Default.lua
 Themes\Bricks.lua

@@ -10,6 +10,7 @@
     <Script file="Pixel.lua"/>
     <Script file="Core\RuntimeHelpers.lua"/>
     <Script file="Core\LinkedSettings.lua"/>
+    <Script file="Core\AddonLogger.lua"/>
     <Script file="Core\MediaRegistry.lua"/>
     <Script file="Themes\Default.lua"/>
     <Script file="Themes\Bricks.lua"/>

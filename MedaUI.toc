@@ -1,4 +1,4 @@
-## Interface: 120001, 120000, 110207
+## Interface: 120005, 120001, 120000, 110207
 ## Title: Lib: MedaUI
 ## Notes: Shared UI library for Medalink's addons
 ## Author: Medalink
@@ -13,6 +13,7 @@ MedaUI.lua
 Core\ThemeRegistry.lua
 Pixel.lua
 Core\RuntimeHelpers.lua
+Core\LinkedSettings.lua
 Core\AddonLogger.lua
 Core\MediaRegistry.lua
 Themes\Default.lua

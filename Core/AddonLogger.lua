@@ -210,23 +210,23 @@ function MedaUI:CreateAddonLogger(config)
         return color .. prefix .. "|r"
     end
 
-    function logger:GetPolicy()
+    function logger.GetPolicy()
         return GetPolicy()
     end
 
-    function logger:SetPolicy(policy)
+    function logger.SetPolicy(_, policy)
         return SetPolicy(policy)
     end
 
-    function logger:RefreshSink()
+    function logger.RefreshSink()
         return RefreshSink()
     end
 
-    function logger:HasSink()
+    function logger.HasSink()
         return RefreshSink() ~= nil
     end
 
-    function logger:IsLevelConfigured(level)
+    function logger.IsLevelConfigured(_, level)
         local policy = GetPolicy()
         level = NormalizeLevel(level)
 
@@ -237,7 +237,7 @@ function MedaUI:CreateAddonLogger(config)
         return LOG_LEVEL_ORDER[level] >= LOG_LEVEL_ORDER[policy.minLevel]
     end
 
-    function logger:CanEmit(level)
+    function logger.CanEmit(_, level)
         local policy = GetPolicy()
         if not MedaUI:ShouldAllowLog(policy, level) then
             return false
@@ -250,9 +250,9 @@ function MedaUI:CreateAddonLogger(config)
         return policy.chatFallback == true
     end
 
-    function logger:Emit(level, message, sourceInfo)
+    function logger.Emit(loggerInstance, level, message, sourceInfo)
         level = NormalizeLevel(level)
-        if not self:CanEmit(level) then
+        if not loggerInstance:CanEmit(level) then
             return nil
         end
 
@@ -267,25 +267,25 @@ function MedaUI:CreateAddonLogger(config)
         return safeMessage
     end
 
-    function logger:EmitLazy(level, producer, sourceInfo)
+    function logger.EmitLazy(loggerInstance, level, producer, sourceInfo)
         level = NormalizeLevel(level)
-        if not self:CanEmit(level) then
+        if not loggerInstance:CanEmit(level) then
             return nil
         end
 
         if type(producer) ~= "function" then
-            return self:Emit(level, producer, sourceInfo)
+            return loggerInstance:Emit(level, producer, sourceInfo)
         end
 
         local ok, message = pcall(producer)
         if not ok then
-            return self:Emit("ERROR", "Log producer failed: " .. SafeToString(message), sourceInfo)
+            return loggerInstance:Emit("ERROR", "Log producer failed: " .. SafeToString(message), sourceInfo)
         end
 
-        return self:Emit(level, message, sourceInfo)
+        return loggerInstance:Emit(level, message, sourceInfo)
     end
 
-    function logger:GetColor()
+    function logger.GetColor()
         return unpack(addonColor)
     end
 
@@ -387,7 +387,7 @@ function MedaUI:BuildLogPolicyControls(parent, getPolicy, setPolicy, opts)
         end
     end
 
-    function container:Refresh()
+    function container.Refresh()
         local policy = ReadPolicy()
         enabledCheckbox:SetChecked(policy.enabled)
         minLevelDropdown:SetSelected(policy.minLevel)

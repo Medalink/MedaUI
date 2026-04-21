@@ -2,7 +2,7 @@
 ## Title: Lib: MedaUI
 ## Notes: Shared UI library for Medalink's addons
 ## Author: Medalink
-## Version: 1.0.0
+## Version: 1.0.2
 ## X-Category: Library
 Libs\LibStub\LibStub.lua
 Libs\CallbackHandler-1.0\CallbackHandler-1.0.lua

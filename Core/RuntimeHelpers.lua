@@ -1,4 +1,10 @@
 local MedaUI = LibStub("MedaUI-2.0")
+local C_AddOnProfiler = _G.C_AddOnProfiler
+local Enum = _G.Enum
+local MedaAuras = _G.MedaAuras
+local PlaySound = _G.PlaySound
+local SOUNDKIT = _G.SOUNDKIT
+local format = format
 local gsub = string.gsub
 local lower = string.lower
 
@@ -137,12 +143,136 @@ function MedaUI:GetMemoryColor(percent)
     })
 end
 
+function MedaUI:GetCPUColor(percent)
+    return self:GetStatusColor(percent, {
+        { max = 1, color = { 0.4, 0.9, 0.4 } },
+        { max = 3, color = { 1, 0.8, 0 } },
+        { color = { 1, 0.3, 0.3 } },
+    })
+end
+
 function MedaUI:GetCombatColor(inCombat)
     if inCombat then
         return 1, 0.3, 0.3
     end
 
     return 0.4, 0.9, 0.4
+end
+
+local function NormalizeAddonRoster(addonNames)
+    if type(addonNames) ~= "table" then
+        return {}
+    end
+
+    local roster = {}
+    for i = 1, #addonNames do
+        if type(addonNames[i]) == "string" and addonNames[i] ~= "" then
+            roster[#roster + 1] = addonNames[i]
+        end
+    end
+    return roster
+end
+
+function MedaUI:IsAddOnProfilerAvailable()
+    return C_AddOnProfiler
+        and C_AddOnProfiler.GetAddOnMetric
+        and Enum
+        and Enum.AddOnProfilerMetric
+end
+
+function MedaUI:IsAddOnProfilerEnabled()
+    if not self:IsAddOnProfilerAvailable() then
+        return false
+    end
+
+    if C_AddOnProfiler.IsEnabled then
+        return C_AddOnProfiler.IsEnabled()
+    end
+
+    return true
+end
+
+function MedaUI:GatherSuiteCPUMs(addonNames, metric)
+    if not self:IsAddOnProfilerAvailable() then
+        return nil, 0
+    end
+
+    local roster = NormalizeAddonRoster(addonNames)
+    local isAddonLoaded = C_AddOns and C_AddOns.IsAddOnLoaded
+    local totalMs = 0
+    local loadedCount = 0
+
+    for i = 1, #roster do
+        local addonName = roster[i]
+        if not isAddonLoaded or isAddonLoaded(addonName) then
+            totalMs = totalMs + (C_AddOnProfiler.GetAddOnMetric(addonName, metric) or 0)
+            loadedCount = loadedCount + 1
+        end
+    end
+
+    if loadedCount == 0 then
+        return 0, 0
+    end
+
+    return totalMs, loadedCount
+end
+
+function MedaUI:ComputeFrameBudgetPercent(cpuMs, fps)
+    cpuMs = tonumber(cpuMs) or 0
+    fps = tonumber(fps) or (GetFramerate and GetFramerate()) or 0
+    if fps <= 0 then
+        return 0
+    end
+
+    return (cpuMs / (1000 / fps)) * 100
+end
+
+function MedaUI:GatherSuiteMemoryKB(addonNames)
+    if not (UpdateAddOnMemoryUsage and GetAddOnMemoryUsage) then
+        return nil, 0
+    end
+
+    UpdateAddOnMemoryUsage()
+
+    local roster = NormalizeAddonRoster(addonNames)
+    local isAddonLoaded = C_AddOns and C_AddOns.IsAddOnLoaded
+    local totalKB = 0
+    local loadedCount = 0
+
+    for i = 1, #roster do
+        local addonName = roster[i]
+        if not isAddonLoaded or isAddonLoaded(addonName) then
+            totalKB = totalKB + (GetAddOnMemoryUsage(addonName) or 0)
+            loadedCount = loadedCount + 1
+        end
+    end
+
+    if loadedCount == 0 then
+        return 0, 0
+    end
+
+    return totalKB, loadedCount
+end
+
+function MedaUI:FormatCPUMs(valueMs)
+    if valueMs == nil then
+        return "N/A"
+    end
+
+    return format("%.3f ms", tonumber(valueMs) or 0)
+end
+
+function MedaUI:FormatMemoryKB(valueKB)
+    if valueKB == nil then
+        return "N/A"
+    end
+
+    valueKB = tonumber(valueKB) or 0
+    if valueKB >= 1024 then
+        return format("%.2f MB", valueKB / 1024)
+    end
+
+    return format("%.0f KB", valueKB)
 end
 
 function MedaUI:CreateScrollFrame(parent, name, width, height)
